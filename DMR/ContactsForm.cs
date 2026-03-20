@@ -577,6 +577,189 @@ namespace DMR
 			}
 		}
 
+		// Static import method that can be called from MainForm batch import
+		public static bool ImportFromCsvFile(string filePath, MainForm mainForm)
+		{
+			if (!File.Exists(filePath))
+			{
+				MessageBox.Show("File not found: " + filePath, "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return false;
+			}
+
+			int num = 0;
+			int num2 = 0;
+
+			try
+			{
+				using (CsvFileReader csvFileReader = new CsvFileReader(filePath, Encoding.Default))
+				{
+					CsvRow csvRow = new CsvRow();
+					csvFileReader.ReadRow(csvRow);
+					
+					// Detect format: OpenGD77CPS (7 columns) vs Android (4 columns starting with "Contact Name")
+					bool isOpenGD77Format = (csvRow.Count == 7 && csvRow.SequenceEqual(ContactsForm.SZ_HEADER_TEXT));
+					bool isAndroidFormat = (csvRow.Count >= 4 && ((List<string>)csvRow)[0] == "Contact Name");
+					
+					if (!isOpenGD77Format && !isAndroidFormat)
+					{
+						string debugInfo = "Contacts CSV Header Detection:\n" +
+							"Row count: " + csvRow.Count + "\n" +
+							"First column: '" + (csvRow.Count > 0 ? ((List<string>)csvRow)[0] : "(empty)") + "'\n\n" +
+							"Expected formats:\n" +
+							"- OpenGD77CPS: 7 columns\n" +
+							"- Android: 4 columns starting with 'Contact Name'";
+						MessageBox.Show(debugInfo, "Import Error - Unrecognized Format", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return false;
+					}
+					
+					if (isOpenGD77Format)
+					{
+						// OpenGD77CPS format: 7-column format
+						for (num = 0; num < ContactForm.data.Count; num++)
+						{
+							ContactForm.data.SetName(num, "");
+						}
+						while (csvFileReader.ReadRow(csvRow))
+						{
+							if (csvRow.Count >= 6)
+							{
+								num = 0;
+								CsvRow csvRow2 = csvRow;
+								num = 1;
+								num2 = Convert.ToInt32(((List<string>)csvRow2)[0]);
+								if (num2 < ContactForm.data.Count)
+								{
+									ContactForm.data.SetName(num2, ((List<string>)csvRow)[num++]);
+									ContactForm.data.SetCallID(num2, ((List<string>)csvRow)[num++]);
+									ContactForm.data.SetCallType(num2, ((List<string>)csvRow)[num++]);
+									ContactForm.data.SetCallRxTone(num2, ((List<string>)csvRow)[num++]);
+									ContactForm.data.SetRingStyle(num2, ((List<string>)csvRow)[num++]);
+									ContactForm.data.SetRepeaterSlot(num2, ((List<string>)csvRow)[num++]);
+								}
+							}
+						}
+						mainForm.RefreshRelatedForm(typeof(ContactsForm));
+						mainForm.VerifyRelatedForm(typeof(ContactsForm));
+						return true;
+					}
+					else if (isAndroidFormat)
+					{
+						// Android format: Contact Name, ID, ID Type, TS Override
+						// Clear existing contacts
+						for (num = 0; num < ContactForm.data.Count; num++)
+						{
+							ContactForm.data.SetName(num, "");
+						}
+						
+						while (csvFileReader.ReadRow(csvRow))
+						{
+							if (csvRow.Count >= 3)
+							{
+								List<string> cols = (List<string>)csvRow;
+								
+								// Find empty slot
+								int contactIndex = ContactForm.data.GetMinIndex();
+								if (contactIndex == -1)
+								{
+									MessageBox.Show("Error. Maximum number of contacts reached. Import aborted", "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+									break;
+								}
+								
+								// Column 0: Contact Name
+								string contactName = cols[0];
+								ContactForm.data.SetName(contactIndex, contactName);
+								
+								// Column 1: ID
+								string callId = cols[1];
+								ContactForm.data.SetCallID(contactIndex, callId);
+								
+								// Column 2: ID Type (Private/Group) -> CallType (0=Group, 1=Private, 2=All Call)
+								string idType = cols[2];
+								int callType = 0; // Default to Group
+								if (idType == "Private") callType = 1;
+								else if (idType == "All Call") callType = 2;
+								ContactForm.data.SetCallType(contactIndex, callType);
+								
+								// Column 3: TS Override (not used in OpenGD77CPS, skip)
+								
+								// Set defaults for fields not in Android format
+								ContactForm.data.SetCallRxTone(contactIndex, "No");
+								ContactForm.data.SetRingStyle(contactIndex, "Off");
+								ContactForm.data.SetRepeaterSlot(contactIndex, "None");
+							}
+						}
+						
+						mainForm.RefreshRelatedForm(typeof(ContactsForm));
+						mainForm.VerifyRelatedForm(typeof(ContactsForm));
+						return true;
+					}
+					else
+					{
+						MessageBox.Show("Data format error - CSV header does not match expected format", "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return false;
+					}
+				}
+			}
+				catch (Exception ex)
+			{
+				MessageBox.Show("Import failed: " + ex.Message, "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return false;
+			}
+		}
+
+		public static bool ExportToAndroidCsvFile(string filePath)
+		{
+			try
+			{
+				using (CsvFileWriter csvFileWriter = new CsvFileWriter(new FileStream(filePath, FileMode.Create), Encoding.Default))
+				{
+					// Write header - Android format: Contact Name,ID,ID Type,TS Override
+					CsvRow csvRow = new CsvRow();
+					csvRow.Add("Contact Name");
+					csvRow.Add("ID");
+					csvRow.Add("ID Type");
+					csvRow.Add("TS Override");
+					csvFileWriter.WriteRow(csvRow);
+					
+					// Write all valid contacts
+					for (int i = 0; i < ContactForm.data.Count; i++)
+					{
+						if (ContactForm.data.DataIsValid(i))
+						{
+							csvRow.Clear();
+							
+							// Column 0: Contact Name
+							csvRow.Add(ContactForm.data.GetName(i));
+							
+							// Column 1: ID (Call ID)
+							string callId = ContactForm.data.GetCallID(i);
+							if (callId == null) callId = "";
+							csvRow.Add(callId);
+							
+							// Column 2: ID Type (Private, Group, All Call)
+							int callType = ContactForm.data.GetCallType(i);
+							string idType = (callType == 1) ? "Private" : (callType == 2) ? "All Call" : "Group";
+							csvRow.Add(idType);
+							
+							// Column 3: TS Override
+							int tsOverrideInt = ContactForm.data.GetRepeaterSlot(i);
+							string tsOverride = tsOverrideInt.ToString();
+							if (tsOverride == "0") tsOverride = "None";
+							csvRow.Add(tsOverride);
+							
+							csvFileWriter.WriteRow(csvRow);
+						}
+					}
+				}
+				return true;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Export failed: " + ex.Message, "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return false;
+			}
+		}
+
 		private void method_1()
 		{
 			if (this.dgvContacts.Rows.Count > 0)

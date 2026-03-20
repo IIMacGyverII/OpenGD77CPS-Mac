@@ -108,6 +108,12 @@ namespace DMR
 
 		private ToolStripSeparator toolStripSeparator1;
 
+		private ToolStripMenuItem tsmiImportCsv;
+
+		private ToolStripMenuItem tsmiExportCsv;
+
+		private ToolStripSeparator toolStripSeparator5;
+
 		private ContextMenuStrip cmsGroupContact;
 
 		private ToolStripMenuItem tsmiAddContact;
@@ -133,6 +139,8 @@ namespace DMR
 
 		private ToolStripMenuItem tsmiZoneBasic;
 		private ToolStripMenuItem tsmiZoneList;
+		private ToolStripMenuItem tsmiZoneExportCsv;
+		private ToolStripMenuItem tsmiZoneImportCsv;
 
 		private ToolStripMenuItem tsmiCloseAll;
 
@@ -293,6 +301,9 @@ namespace DMR
 			this.tsmiNew = new ToolStripMenuItem();
 			this.tsmiSave = new ToolStripMenuItem();
 			this.tsmiOpen = new ToolStripMenuItem();
+			this.toolStripSeparator5 = new ToolStripSeparator();
+			this.tsmiImportCsv = new ToolStripMenuItem();
+			this.tsmiExportCsv = new ToolStripMenuItem();
 			this.toolStripSeparator1 = new ToolStripSeparator();
 			this.tsmiExit = new ToolStripMenuItem();
 			this.tsmiSetting = new ToolStripMenuItem();
@@ -315,6 +326,8 @@ namespace DMR
 			this.tsmiZone = new ToolStripMenuItem();
 			this.tsmiZoneBasic = new ToolStripMenuItem();
 			this.tsmiZoneList = new ToolStripMenuItem();
+			this.tsmiZoneExportCsv = new ToolStripMenuItem();
+			this.tsmiZoneImportCsv = new ToolStripMenuItem();
 			this.tsmiChannels = new ToolStripMenuItem();
 			this.tsmiScan = new ToolStripMenuItem();
 			this.tsmiScanBasic = new ToolStripMenuItem();
@@ -419,11 +432,14 @@ namespace DMR
 			this.mnsMain.Padding = new Padding(7, 3, 0, 3);
 			this.mnsMain.Size = new Size(865, 27);
 			this.mnsMain.TabIndex = 4;
-			this.tsmiFile.DropDownItems.AddRange(new ToolStripItem[5]
+			this.tsmiFile.DropDownItems.AddRange(new ToolStripItem[8]
 			{
 				this.tsmiNew,
 				this.tsmiSave,
 				this.tsmiOpen,
+				this.toolStripSeparator5,
+				this.tsmiImportCsv,
+				this.tsmiExportCsv,
 				this.toolStripSeparator1,
 				this.tsmiExit
 			});
@@ -448,8 +464,23 @@ namespace DMR
 			this.tsmiOpen.Click += this.tsbtnOpen_Click;
 			this.tsmiOpen.ShortcutKeys = Keys.Control | Keys.O;
 
+			this.toolStripSeparator5.Name = "toolStripSeparator5";
+			this.toolStripSeparator5.Size = new Size(205, 6);
+
+			this.tsmiImportCsv.Name = "tsmiImportCsv";
+			this.tsmiImportCsv.Size = new Size(208, 22);
+			this.tsmiImportCsv.Text = "Import CSV Files...";
+			this.tsmiImportCsv.Click += this.tsmiImportCsv_Click;
+			this.tsmiImportCsv.ShortcutKeys = Keys.Control | Keys.I;
+
+			this.tsmiExportCsv.Name = "tsmiExportCsv";
+			this.tsmiExportCsv.Size = new Size(208, 22);
+			this.tsmiExportCsv.Text = "Export CSV Files...";
+			this.tsmiExportCsv.Click += this.tsmiExportCsv_Click;
+			this.tsmiExportCsv.ShortcutKeys = Keys.Control | Keys.E;
+
 			this.toolStripSeparator1.Name = "toolStripSeparator1";
-			this.toolStripSeparator1.Size = new Size(105, 6);
+			this.toolStripSeparator1.Size = new Size(205, 6);
 			this.tsmiExit.Name = "tsmiExit";
 			this.tsmiExit.Size = new Size(108, 22);
 			this.tsmiExit.Text = "Exit";
@@ -559,10 +590,12 @@ namespace DMR
 			this.tsmiZone.Name = "tsmiZone";
 			this.tsmiZone.Size = new Size(191, 22);
 			this.tsmiZone.Text = "Zone";
-			this.tsmiZone.DropDownItems.AddRange(new ToolStripItem[2]
+			this.tsmiZone.DropDownItems.AddRange(new ToolStripItem[4]
 			{
 				this.tsmiZoneBasic,
-				this.tsmiZoneList
+				this.tsmiZoneList,
+				this.tsmiZoneExportCsv,
+				this.tsmiZoneImportCsv
 			});
 
 			this.tsmiZoneBasic.Name = "tsmiZoneBasic";
@@ -574,6 +607,16 @@ namespace DMR
 			this.tsmiZoneList.Size = new Size(124, 22);
 			this.tsmiZoneList.Text = "ZoneList";
 			this.tsmiZoneList.Click += this.tsmiZoneList_Click;
+
+			this.tsmiZoneExportCsv.Name = "tsmiZoneExportCsv";
+			this.tsmiZoneExportCsv.Size = new Size(180, 22);
+			this.tsmiZoneExportCsv.Text = "Export Zones to CSV";
+			this.tsmiZoneExportCsv.Click += this.tsmiZoneExportCsv_Click;
+
+			this.tsmiZoneImportCsv.Name = "tsmiZoneImportCsv";
+			this.tsmiZoneImportCsv.Size = new Size(180, 22);
+			this.tsmiZoneImportCsv.Text = "Import Zones from CSV";
+			this.tsmiZoneImportCsv.Click += this.tsmiZoneImportCsv_Click;
 
 			this.tsmiChannels.Name = "tsmiChannels";
 			this.tsmiChannels.Size = new Size(191, 22);
@@ -2959,6 +3002,66 @@ namespace DMR
 			}
 		}
 
+		private void tsmiZoneExportCsv_Click(object sender, EventArgs e)
+		{
+			SaveFileDialog sfd = new SaveFileDialog();
+			sfd.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
+			sfd.DefaultExt = "csv";
+			sfd.FileName = "zones_export.csv";
+			
+			if (sfd.ShowDialog() == DialogResult.OK)
+			{
+				if (ZonesCsvExporter.ExportZonesToCsv(sfd.FileName))
+				{
+					MessageBox.Show("Zones exported successfully!", "Export Complete", 
+						MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			}
+		}
+
+		private void tsmiZoneImportCsv_Click(object sender, EventArgs e)
+		{
+			OpenFileDialog ofd = new OpenFileDialog();
+			ofd.Filter = "CSV files (*.csv)|*.csv|All files (*.*)|*.*";
+			
+			if (ofd.ShowDialog() == DialogResult.OK)
+			{
+				DialogResult result = MessageBox.Show(
+					"Clear existing zones before import?", 
+					"Import Zones", 
+					MessageBoxButtons.YesNoCancel, 
+					MessageBoxIcon.Question);
+					
+				if (result == DialogResult.Cancel)
+					return;
+					
+				bool clearExisting = (result == DialogResult.Yes);
+				
+				int zonesImported = 0;
+				int zonesSkipped = 0;
+				
+				if (ZonesCsvImporter.ImportZonesFromCsv(ofd.FileName, clearExisting, out zonesImported, out zonesSkipped))
+				{
+					// Refresh zone tree nodes
+					TreeNode parentNode = this.method_9(typeof(ZoneBasicForm), this.tvwMain.Nodes);
+					if (parentNode != null)
+					{
+						parentNode.Nodes.Clear();
+						this.InitZones(parentNode);
+					}
+					
+					string message = "Zones import complete!\n\nImported: " + zonesImported + " zones";
+					if (zonesSkipped > 0)
+					{
+						message += "\nSkipped: " + zonesSkipped + " zones";
+					}
+					
+					MessageBox.Show(message, "Import Complete", 
+						MessageBoxButtons.OK, MessageBoxIcon.Information);
+				}
+			}
+		}
+
 		private void tsmiChannels_Click(object sender, EventArgs e)
 		{
 			TreeNode treeNode = this.method_9(typeof(ChannelsForm), this.tvwMain.Nodes);
@@ -2966,6 +3069,284 @@ namespace DMR
 			{
 				this.method_7(treeNode, true);
 			}
+		}
+
+		private void tsmiImportCsv_Click(object sender, EventArgs e)
+		{
+			// Select folder containing CSV files
+			FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
+			folderBrowser.Description = "Select folder containing CSV files (Channels.csv, Contacts.csv, TG_Lists.csv, Zones.csv)";
+			
+			if (folderBrowser.ShowDialog() != DialogResult.OK)
+				return;
+			
+			string folderPath = folderBrowser.SelectedPath;
+			StringBuilder results = new StringBuilder();
+			bool hasErrors = false;
+			
+			// Check which files exist
+			string channelsFile = Path.Combine(folderPath, "Channels.csv");
+			string contactsFile = Path.Combine(folderPath, "Contacts.csv");
+			string tgListsFile = Path.Combine(folderPath, "TG_Lists.csv");
+			string zonesFile = Path.Combine(folderPath, "Zones.csv");
+			
+			// Confirm import
+			StringBuilder fileList = new StringBuilder("Found these files:\n\n");
+			int fileCount = 0;
+			
+			if (File.Exists(contactsFile)) { fileList.Append("✓ Contacts.csv\n"); fileCount++; }
+			if (File.Exists(tgListsFile)) { fileList.Append("✓ TG_Lists.csv\n"); fileCount++; }
+			if (File.Exists(channelsFile)) { fileList.Append("✓ Channels.csv\n"); fileCount++; }
+			if (File.Exists(zonesFile)) { fileList.Append("✓ Zones.csv\n"); fileCount++; }
+			
+			if (fileCount == 0)
+			{
+				MessageBox.Show("No CSV files found in the selected folder.", "No Files Found", 
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+			
+			fileList.Append("\nImport these files?");
+			
+			DialogResult confirmResult = MessageBox.Show(fileList.ToString(), "Import CSV Files", 
+				MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+			
+			if (confirmResult != DialogResult.Yes)
+				return;
+			
+			// Import files in correct order: Contacts → TG Lists → Channels → Zones
+			
+			// Track import counts
+			int contactsCount = 0;
+			int channelsCount = 0;
+			int zonesCount = 0;
+			int zonesSkipped = 0;
+			
+			// 1. Import Contacts (if exists)
+			if (File.Exists(contactsFile))
+			{
+				try
+				{
+					// Count contacts before import
+					int contactsBefore = CountValidContacts();
+					
+					if (ContactsForm.ImportFromCsvFile(contactsFile, this))
+					{
+						// Count contacts after import
+						contactsCount = CountValidContacts() - contactsBefore;
+						results.Append("✓ Contacts: " + contactsCount + " imported\n");
+					}
+					else
+					{
+						results.Append("✗ Contacts.csv failed\n");
+						hasErrors = true;
+					}
+				}
+				catch (Exception ex)
+				{
+					results.Append("✗ Contacts.csv failed: " + ex.Message + "\n");
+					hasErrors = true;
+				}
+			}
+			
+			// 2. Import TG Lists (if exists)
+			if (File.Exists(tgListsFile))
+			{
+				try
+				{
+					int tgListsCount;
+					if (TGListsCsvImporter.ImportTGListsFromCsv(tgListsFile, true, this, out tgListsCount))
+					{
+						if (tgListsCount > 0)
+						{
+							results.Append("✓ TG Lists: " + tgListsCount + " imported\n");
+						}
+					}
+					else
+					{
+						results.Append("✗ TG_Lists.csv failed\n");
+						hasErrors = true;
+					}
+				}
+				catch (Exception ex)
+				{
+					results.Append("✗ TG_Lists.csv failed: " + ex.Message + "\n");
+					hasErrors = true;
+				}
+			}
+			
+			// 3. Import Channels (if exists)
+			if (File.Exists(channelsFile))
+			{
+				try
+				{
+					if (ChannelsForm.ImportFromCsvFile(channelsFile, true, this, out channelsCount))
+					{
+						results.Append("✓ Channels: " + channelsCount + " imported\n");
+					}
+					else
+					{
+						results.Append("✗ Channels.csv failed\n");
+						hasErrors = true;
+					}
+				}
+				catch (Exception ex)
+				{
+					results.Append("✗ Channels.csv failed: " + ex.Message + "\n");
+					hasErrors = true;
+				}
+			}
+			
+			// 4. Import Zones (if exists) 
+			if (File.Exists(zonesFile))
+			{
+				try
+				{
+					if (ZonesCsvImporter.ImportZonesFromCsv(zonesFile, true, out zonesCount, out zonesSkipped))
+					{
+						// Refresh zone tree nodes
+						TreeNode parentNode = this.method_9(typeof(ZoneBasicForm), this.tvwMain.Nodes);
+						if (parentNode != null)
+						{
+							parentNode.Nodes.Clear();
+							this.InitZones(parentNode);
+						}
+						results.Append("✓ Zones: " + zonesCount + " imported");
+						if (zonesSkipped > 0)
+						{
+							results.Append(", " + zonesSkipped + " skipped");
+						}
+						results.Append("\n");
+					}
+					else
+					{
+						results.Append("✗ Zones.csv failed\n");
+						hasErrors = true;
+					}
+				}
+				catch (Exception ex)
+				{
+					results.Append("✗ Zones.csv failed: " + ex.Message + "\n");
+					hasErrors = true;
+				}
+			}
+			
+			// Show results
+			string title = hasErrors ? "Import Completed with Errors" : "Import Complete";
+			MessageBoxIcon icon = hasErrors ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
+			
+			MessageBox.Show(results.ToString(), title, MessageBoxButtons.OK, icon);
+			
+			// Refresh all tree nodes
+			this.InitTree();
+		}
+
+		private void tsmiExportCsv_Click(object sender, EventArgs e)
+		{
+			// Select folder to export CSV files
+			FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
+			folderBrowser.Description = "Select folder to export CSV files (Channels.csv, Contacts.csv, Zones.csv)";
+			
+			if (folderBrowser.ShowDialog() != DialogResult.OK)
+				return;
+			
+			string folderPath = folderBrowser.SelectedPath;
+			StringBuilder results = new StringBuilder();
+			bool hasErrors = false;
+			
+			// Prepare file paths
+			string channelsFile = Path.Combine(folderPath, "Channels.csv");
+			string contactsFile = Path.Combine(folderPath, "Contacts.csv");
+			string zonesFile = Path.Combine(folderPath, "Zones.csv");
+			
+			// Confirm export
+			DialogResult confirmResult = MessageBox.Show(
+				"Export Channels, Contacts, and Zones to:\n\n" + folderPath + "\n\nContinue?",
+				"Export CSV Files",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Question);
+			
+			if (confirmResult != DialogResult.Yes)
+				return;
+			
+			// Export files
+			
+			// 1. Export Contacts
+			try
+			{
+				if (ContactsForm.ExportToAndroidCsvFile(contactsFile))
+				{
+					results.Append("✓ Contacts.csv exported\n");
+				}
+				else
+				{
+					results.Append("✗ Contacts.csv failed\n");
+					hasErrors = true;
+				}
+			}
+			catch (Exception ex)
+			{
+				results.Append("✗ Contacts.csv failed: " + ex.Message + "\n");
+				hasErrors = true;
+			}
+			
+			// 2. Export Channels
+			try
+			{
+				if (ChannelsForm.ExportToAndroidCsvFile(channelsFile))
+				{
+					results.Append("✓ Channels.csv exported\n");
+				}
+				else
+				{
+					results.Append("✗ Channels.csv failed\n");
+					hasErrors = true;
+				}
+			}
+			catch (Exception ex)
+			{
+				results.Append("✗ Channels.csv failed: " + ex.Message + "\n");
+				hasErrors = true;
+			}
+			
+			// 3. Export Zones
+			try
+			{
+				if (ZonesCsvExporter.ExportZonesToCsv(zonesFile))
+				{
+					results.Append("✓ Zones.csv exported\n");
+				}
+				else
+				{
+					results.Append("✗ Zones.csv failed\n");
+					hasErrors = true;
+				}
+			}
+			catch (Exception ex)
+			{
+				results.Append("✗ Zones.csv failed: " + ex.Message + "\n");
+				hasErrors = true;
+			}
+			
+			// Show results
+			string title = hasErrors ? "Export Completed with Errors" : "Export Complete";
+			MessageBoxIcon icon = hasErrors ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
+			
+			MessageBox.Show(results.ToString(), title, MessageBoxButtons.OK, icon);
+		}
+
+		// Helper method to count valid contacts
+		private int CountValidContacts()
+		{
+			int count = 0;
+			for (int i = 0; i < ContactForm.data.Count; i++)
+			{
+				if (ContactForm.data.DataIsValid(i))
+				{
+					count++;
+				}
+			}
+			return count;
 		}
 
 		private void tsmiScanBasic_Click(object sender, EventArgs e)

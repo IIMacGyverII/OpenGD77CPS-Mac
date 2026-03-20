@@ -617,6 +617,607 @@ namespace DMR
 
 
 
+		// Static import method that can be called from MainForm batch import
+		public static bool ImportFromCsvFile(string filePath, bool clearFirst, MainForm mainForm, out int importedCount)
+		{
+			importedCount = 0;
+			
+			if (!File.Exists(filePath))
+			{
+				MessageBox.Show("File not found: " + filePath, "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return false;
+			}
+
+			int foundIndex = -1;
+			string rxGroupName;
+			string zoneNameNew;
+			int zoneIndex;
+
+			try
+			{
+				using (CsvFileReader csvFileReader = new CsvFileReader(filePath, Encoding.Default))
+				{
+					CsvRow csvRow = new CsvRow();
+					csvFileReader.ReadRow(csvRow);
+					
+					// Debug: Show what we detected
+					string firstColumn = (csvRow.Count > 0) ? ((List<string>)csvRow)[0] : "(empty)";
+					string debugInfo = "CSV Header Detection:\n" +
+						"Row count: " + csvRow.Count + "\n" +
+						"First column: '" + firstColumn + "'\n" +
+						"First column length: " + firstColumn.Length + "\n";
+					
+					// Detect format: OpenGD77CPS format (starts with "CH_DATA") vs Android format (starts with "Channel Number" or "_id")
+					bool isOpenGD77Format = (csvRow.Count > 0 && ((List<string>)csvRow)[0] == "CH_DATA");
+					bool isAndroidFormat = (csvRow.Count > 0 && (((List<string>)csvRow)[0] == "Channel Number" || ((List<string>)csvRow)[0] == "_id"));
+					bool hasIdColumn = (csvRow.Count > 0 && ((List<string>)csvRow)[0] == "_id"); // New format with _id column
+					
+					debugInfo += "Detected as OpenGD77: " + isOpenGD77Format + "\n";
+					debugInfo += "Detected as Android: " + isAndroidFormat + "\n";
+					debugInfo += "Has _id column: " + hasIdColumn;
+					
+					if (!isOpenGD77Format && !isAndroidFormat)
+					{
+						MessageBox.Show(debugInfo + "\n\nUnrecognized CSV format. Header should start with 'CH_DATA' (OpenGD77CPS), 'Channel Number' (Android app), or '_id' (Android app with ID)", 
+							"Import Error - Debug Info", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return false;
+					}
+					
+					if (isOpenGD77Format && !csvRow.SequenceEqual(SZ_EXPORT_HEADER_TEXT))
+					{
+						MessageBox.Show("Data format error - CSV header does not match expected OpenGD77CPS format", 
+							"Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return false;
+					}
+					
+					if (isOpenGD77Format)
+					{
+						// OpenGD77CPS format - use existing logic
+						if (clearFirst)
+						{
+							for (int n = 0; n < ChannelForm.data.Count; n++)
+							{
+								ChannelForm.data.ClearIndexAndReset(n);
+							}
+						}
+
+						while (csvFileReader.ReadRow(csvRow))
+						{
+							int num = 1; // Start at column 1 (skip CH_DATA)
+							string name = ((List<string>)csvRow)[num++];
+							
+							foundIndex = ChannelForm.data.FindIndexForName(name);
+							if (foundIndex == -1)
+							{
+								foundIndex = ChannelForm.data.GetMinIndex();
+								if (foundIndex == -1)
+								{
+									MessageBox.Show("Error. Maximum numbers of channels reached. Import aborted");
+									break;// stop processing
+								}
+							}
+
+							ChannelForm.ChannelOne value = ChannelForm.data[foundIndex];
+								
+							value.Name = name;
+							value.ChModeS = ((List<string>)csvRow)[num++];
+							value.RxFreq = ((List<string>)csvRow)[num++];
+							value.TxFreq = ((List<string>)csvRow)[num++];
+							value.TxColor = Convert.ToInt32(((List<string>)csvRow)[num++]);
+
+							value.RepeaterSlotS		=((List<string>)csvRow)[num++];// Timeslot
+							string contactName		= ((List<string>)csvRow)[num++];
+							int callType			=  Int32.Parse(((List<string>)csvRow)[num++]);
+							string callId			= ((List<string>)csvRow)[num++];
+
+
+							if (contactName == Settings.SZ_NONE || Int32.Parse(callId) == 0)
+							{
+								value.Contact = 0;
+							}
+							else
+							{
+								// Find contact by ID, not name
+								int newContactIndex = ContactForm.data.GetCallIndexFromIdString(Int32.Parse(callId));
+
+								if (newContactIndex == -1)
+								{
+									// Contact not found - need to create it
+									newContactIndex = ContactForm.data.GetMinIndex();
+									if (newContactIndex != -1)
+									{
+										ContactForm.data.SetIndex(newContactIndex, 0);
+										ContactForm.data.Default(newContactIndex);
+										ContactForm.data.SetName(newContactIndex, contactName);
+										ContactForm.data.SetCallType(newContactIndex, callType);
+										ContactForm.data.SetCallID(newContactIndex, callId);
+										value.Contact = newContactIndex + 1;
+									}
+									else
+									{
+										MessageBox.Show("Unable to create new contact (" + contactName + ")");
+										break;
+									}
+								}
+								else
+								{
+									value.Contact = newContactIndex;
+								}
+							}
+
+							rxGroupName = ((List<string>)csvRow)[num++];
+							if (rxGroupName != Settings.SZ_NONE)
+							{
+								int newRxGroupIndex = RxGroupListForm.data.AddRxGroupWithName(rxGroupName);
+
+								if (newRxGroupIndex != -1)
+								{
+									//Check if contact already in group
+									if (!RxGroupListForm.data[newRxGroupIndex].ContainsContact((ushort)value.Contact))
+									{
+										RxListOneData rxGroup = RxGroupListForm.data[newRxGroupIndex];
+										int contactIndex = RxGroupListForm.data.GetContactsCountForIndex(newRxGroupIndex);
+										if (contactIndex < 32)
+										{
+											rxGroup.ContactList[contactIndex] = (ushort)(value.Contact);
+											RxGroupListForm.data.SetIndex(newRxGroupIndex, contactIndex + 2);
+										}
+										else
+										{
+											MessageBox.Show("Unable to add contact (" + value.ContactString + ") to Rx Group (" + rxGroupName + ")", "Import error");
+											break;
+										}
+									}
+								}
+								else
+								{
+									MessageBox.Show("Unable to create new Rx Group list (" + rxGroupName + ")", "Import error");
+								}
+
+								value.RxGroupList = newRxGroupIndex + 1;
+							}
+							else
+							{
+								value.RxGroupList = 0;
+							}
+
+							value.ScanListString = ((List<string>)csvRow)[num++];
+
+							zoneNameNew = ((List<string>)csvRow)[num++];
+
+							if (zoneNameNew != Settings.SZ_NONE)
+							{
+								zoneIndex = -1;
+								for (int zoneNum = 0; zoneNum < ZoneForm.data.Count; zoneNum++)
+								{
+									if (ZoneForm.data.ZoneList[zoneNum].Name == zoneNameNew)
+									{
+										zoneIndex = zoneNum;
+										break;
+									}
+								}
+								if (zoneIndex == -1)
+								{
+									zoneIndex = ZoneForm.data.GetMinIndex();
+									if (zoneIndex != -1)
+									{
+										Console.WriteLine("Adding zone " + zoneNameNew);
+										ZoneForm.data.SetIndex(zoneIndex, 1);
+										ZoneForm.data.Default(zoneIndex);
+										ZoneForm.data.SetName(zoneIndex, zoneNameNew);
+									}
+									else
+									{
+										MessageBox.Show("Unable to create zone (" + zoneNameNew + ")","Import error");
+										break;
+									}
+								}
+
+								if (zoneIndex != -1)
+								{
+									if (!ZoneForm.data.ZoneList[zoneIndex].AddChannelToZone((ushort)(foundIndex)))
+									{
+										MessageBox.Show("Unable to add channel to zone (" + zoneNameNew + ")", "Import error");
+										break;
+									}
+								}
+							}
+
+							value.RxTone = ((List<string>)csvRow)[num++];
+							value.TxTone = ((List<string>)csvRow)[num++];
+							value.PowerString = ((List<string>)csvRow)[num++];
+							value.BandwidthString = ((List<string>)csvRow)[num++];
+							value.OnlyRxString = ((List<string>)csvRow)[num++];
+							value.SquelchString = ((List<string>)csvRow)[num++];
+
+							value.AdmitCriteria = Convert.ToInt32(((List<string>)csvRow)[num++]);
+
+							value.Tot = Convert.ToInt32(((List<string>)csvRow)[num++]);
+							value.TotRekey = Convert.ToInt32(((List<string>)csvRow)[num++]);
+
+							value.TxSignaling = Convert.ToInt32(((List<string>)csvRow)[num++]);
+							value.RxSignaling = Convert.ToInt32(((List<string>)csvRow)[num++]);
+
+							value.Key = Convert.ToInt32(((List<string>)csvRow)[num++]);
+							value.EmgSystem = Convert.ToInt32(((List<string>)csvRow)[num++]);
+
+							value.Flag1 = Convert.ToByte(((List<string>)csvRow)[num++]);
+							value.Flag2 = Convert.ToByte(((List<string>)csvRow)[num++]);
+							value.Flag3 = Convert.ToByte(((List<string>)csvRow)[num++]);
+							value.Flag4 = Convert.ToByte(((List<string>)csvRow)[num++]);
+
+							value.RssiThreshold = Convert.ToInt32(((List<string>)csvRow)[num++]);
+							value.VoiceEmphasis = Convert.ToInt32(((List<string>)csvRow)[num++]);
+							value.TxSignaling = Convert.ToInt32(((List<string>)csvRow)[num++]);
+							value.UnmuteRule = Convert.ToInt32(((List<string>)csvRow)[num++]);
+							value.RxSignaling = Convert.ToInt32(((List<string>)csvRow)[num++]);
+							value.ArtsInterval = Convert.ToInt32(((List<string>)csvRow)[num++]);
+
+							ChannelForm.data.SetIndex(foundIndex, 1);
+							ChannelForm.data.Default(foundIndex);
+							ChannelForm.data[foundIndex] = value;
+							importedCount++;
+						}
+
+						mainForm.RefreshRelatedForm(typeof(ChannelsForm));
+						mainForm.RefreshRelatedForm(typeof(ContactForm));
+						mainForm.InitTree();
+
+						return true;
+					}
+					else if (isAndroidFormat)
+					{
+						// Android app format - different column mapping
+						// Android: Channel Number,Channel Name,Channel Type,Rx Frequency,Tx Frequency,Bandwidth (kHz),Colour Code,Timeslot,Contact,TG List,DMR ID,TS1_TA_Tx,TS2_TA_Tx ID,RX Tone,TX Tone,Squelch,Power,Rx Only,Zone Skip,All Skip,TOT,VOX,No Beep,No Eco,APRS,Latitude,Longitude,Use Location
+						
+						if (clearFirst)
+						{
+							for (int num = 0; num < ChannelForm.data.Count; num++)
+							{
+								ChannelForm.data.ClearIndexAndReset(num);
+							}
+						}
+
+					int rowNumber = 0;
+					while (csvFileReader.ReadRow(csvRow))
+					{
+						rowNumber++;
+						if (csvRow.Count < 16) continue; // Skip invalid rows
+						
+						List<string> cols = (List<string>)csvRow;
+						int col = 0;
+						
+						try
+						{
+						// Skip _id column if present (new Android format with database ID)
+						if (hasIdColumn)
+						{
+							col++; // Skip the _id column
+						}
+
+						// Column 0 (or 1 if _id present): Channel Number (read but use sequential assignment)
+						string channelNumStr = cols[col++].Trim();
+						// Note: Channel Number may not be unique (multiple zones use same number)
+						// Use sequential assignment instead of channelNum as array index
+						foundIndex = ChannelForm.data.GetMinIndex();
+						if (foundIndex == -1)
+						{
+							MessageBox.Show("Maximum channel capacity reached. Imported " + importedCount + " channels.", 
+								"Import Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+							break;
+						}
+						
+						string name = cols[col++];
+						
+						ChannelForm.ChannelOne value = ChannelForm.data[foundIndex];
+						value.Name = name;
+						
+						// Column 2: Channel Type
+					value.ChModeS = cols[col++].Trim();
+					
+					// Column 3: Rx Frequency
+					value.RxFreq = cols[col++].Trim();
+					
+					// Column 4: Tx Frequency
+					value.TxFreq = cols[col++].Trim();
+					
+					// Column 5: Bandwidth (kHz) - convert to BandwidthString
+					string bw = cols[col++].Trim();
+				value.BandwidthString = bw;
+					
+			// Column 6: Colour Code
+			if (col < cols.Count && !string.IsNullOrEmpty(cols[col].Trim()))
+			{
+				try
+					{
+					value.TxColor = Convert.ToInt32(cols[col].Trim());
+				}
+				catch
+				{
+					// Skip invalid colour code
+				}
+			}
+			col++;
+			
+			// Column 7: Timeslot
+			if (col < cols.Count) value.RepeaterSlotS = cols[col++]; else col++;
+			
+			// Column 8: Contact Name
+			string contactName = "";
+			if (col < cols.Count) contactName = cols[col++].Trim(); else col++;
+			
+			// Column 9: TG List name
+			string tgListName = "";
+			if (col < cols.Count) tgListName = cols[col++].Trim(); else col++;
+						
+						// Column 10: DMR ID (skip)
+						col++;
+						
+						// Column 11: TS1_TA_Tx (skip)
+						col++;
+						
+						// Column 12: TS2_TA_Tx ID (skip)
+						col++;
+						
+						// Column 13: RX Tone
+						if (col < cols.Count) value.RxTone = cols[col++]; else col++;
+						
+						// Column 14: TX Tone
+						if (col < cols.Count) value.TxTone = cols[col++]; else col++;
+						
+						// Column 15: Squelch
+						if (col < cols.Count && !string.IsNullOrEmpty(cols[col]))
+					{
+						value.SquelchString = cols[col];
+					}
+					col++;
+					
+					// Column 16: Power
+					if (col < cols.Count) value.PowerString = cols[col++]; else col++;
+				
+				// Column 17: Rx Only
+				if (col < cols.Count) value.OnlyRxString = cols[col++]; else col++;
+							
+							// Handle contact lookup/creation
+							if (!string.IsNullOrEmpty(contactName) && contactName != "None")
+							{
+								// Try to find existing contact by name
+								int contactIndex = -1;
+								for (int c = 0; c < ContactForm.data.Count; c++)
+								{
+									if (ContactForm.data.DataIsValid(c) && ContactForm.data[c].Name == contactName)
+									{
+										contactIndex = c;
+										break;
+									}
+								}
+								
+								if (contactIndex == -1)
+								{
+									// Create new contact
+									contactIndex = ContactForm.data.GetMinIndex();
+									if (contactIndex != -1)
+									{
+										ContactForm.data.SetIndex(contactIndex, 0);
+										ContactForm.data.Default(contactIndex);
+										ContactForm.data.SetName(contactIndex, contactName);
+										ContactForm.data.SetCallType(contactIndex, 0); // Group Call
+										ContactForm.data.SetCallID(contactIndex, "1");
+									}
+								}
+								
+								if (contactIndex != -1)
+								{
+									value.Contact = contactIndex + 1;
+								}
+							}
+							else
+							{
+								value.Contact = 0;
+							}
+							
+							// Handle TG List assignment
+							if (!string.IsNullOrEmpty(tgListName) && tgListName != "None")
+							{
+								value.RxGroupListString = tgListName;
+							}
+							else
+							{
+								value.RxGroupList = 0;
+							}
+							
+							ChannelForm.data.SetIndex(foundIndex, 1);
+							ChannelForm.data.Default(foundIndex);
+							ChannelForm.data[foundIndex] = value;
+							importedCount++;
+						}
+						catch (Exception ex)
+						{
+							MessageBox.Show("Error processing row " + rowNumber + ": " + ex.Message + "\n\nDetails: " + ex.ToString(),
+								"CSV Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+							// Continue processing remaining rows
+						}
+					}
+
+					mainForm.RefreshRelatedForm(typeof(ChannelsForm));
+						mainForm.RefreshRelatedForm(typeof(ContactForm));
+						mainForm.InitTree();
+
+						return true;
+					}
+					else
+					{
+						// This should never happen due to the checks above
+						MessageBox.Show("Unexpected error - fell through to else block.\n" +
+							"First column: '" + firstColumn + "'\n" +
+							"isOpenGD77Format: " + isOpenGD77Format + "\n" +
+							"isAndroidFormat: " + isAndroidFormat, 
+							"Import Error - Debug", MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return false;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Import failed: " + ex.Message, "Import Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return false;
+			}
+		}
+
+		public static bool ExportToAndroidCsvFile(string filePath)
+		{
+			try
+			{
+				using (CsvFileWriter csvFileWriter = new CsvFileWriter(new FileStream(filePath, FileMode.Create), Encoding.Default))
+				{
+					// Write header - Android format: Channel Number,Channel Name,Channel Type,Rx Frequency,Tx Frequency,Bandwidth (kHz),Colour Code,Timeslot,Contact,TG List,DMR ID,TS1_TA_Tx,TS2_TA_Tx ID,RX Tone,TX Tone,Squelch,Power,Rx Only,Zone Skip,All Skip,TOT,VOX,No Beep,No Eco,APRS,Latitude,Longitude,Use Location
+					CsvRow csvRow = new CsvRow();
+					csvRow.Add("Channel Number");
+					csvRow.Add("Channel Name");
+					csvRow.Add("Channel Type");
+					csvRow.Add("Rx Frequency");
+					csvRow.Add("Tx Frequency");
+					csvRow.Add("Bandwidth (kHz)");
+					csvRow.Add("Colour Code");
+					csvRow.Add("Timeslot");
+					csvRow.Add("Contact");
+					csvRow.Add("TG List");
+					csvRow.Add("DMR ID");
+					csvRow.Add("TS1_TA_Tx");
+					csvRow.Add("TS2_TA_Tx ID");
+					csvRow.Add("RX Tone");
+					csvRow.Add("TX Tone");
+					csvRow.Add("Squelch");
+					csvRow.Add("Power");
+					csvRow.Add("Rx Only");
+					csvRow.Add("Zone Skip");
+					csvRow.Add("All Skip");
+					csvRow.Add("TOT");
+					csvRow.Add("VOX");
+					csvRow.Add("No Beep");
+					csvRow.Add("No Eco");
+					csvRow.Add("APRS");
+					csvRow.Add("Latitude");
+					csvRow.Add("Longitude");
+					csvRow.Add("Use Location");
+					csvFileWriter.WriteRow(csvRow);
+					
+					// Write all valid channels
+					for (int i = 0; i < ChannelForm.data.Count; i++)
+					{
+						if (ChannelForm.data.DataIsValid(i))
+						{
+							ChannelForm.ChannelOne channelOne = ChannelForm.data[i];
+							csvRow.Clear();
+							
+							// Column 0: Channel Number (1-based for display)
+							csvRow.Add((i + 1).ToString());
+							
+							// Column 1: Channel Name
+							csvRow.Add(channelOne.Name);
+							
+							// Column 2: Channel Type (Analogue/Digital)
+							csvRow.Add(channelOne.ChModeS);
+							
+							// Column 3: Rx Frequency
+							csvRow.Add(channelOne.RxFreq);
+							
+							// Column 4: Tx Frequency
+							csvRow.Add(channelOne.TxFreq);
+							
+							// Column 5: Bandwidth (kHz)
+							csvRow.Add(channelOne.BandwidthString);
+							
+							// Column 6: Colour Code
+							csvRow.Add(channelOne.TxColor.ToString());
+							
+							// Column 7: Timeslot
+							csvRow.Add(channelOne.RepeaterSlotS);
+							
+							// Column 8: Contact
+							string contactName = "";
+							if (channelOne.Contact > 0 && channelOne.Contact <= ContactForm.data.Count)
+							{
+								int contactIndex = channelOne.Contact - 1;
+								if (ContactForm.data.DataIsValid(contactIndex))
+								{
+									contactName = ContactForm.data.GetName(contactIndex);
+								}
+							}
+							csvRow.Add(contactName);
+							
+							// Column 9: TG List (not used - empty)
+							csvRow.Add("");
+							
+							// Column 10: DMR ID (not used - empty)
+							csvRow.Add("");
+							
+							// Column 11: TS1_TA_Tx (Off)
+							csvRow.Add("Off");
+							
+							// Column 12: TS2_TA_Tx ID (Off)
+							csvRow.Add("Off");
+							
+							// Column 13: RX Tone
+							csvRow.Add(channelOne.RxTone);
+							
+							// Column 14: TX Tone
+							csvRow.Add(channelOne.TxTone);
+							
+							// Column 15: Squelch
+							csvRow.Add(channelOne.SquelchString);
+							
+							// Column 16: Power
+							csvRow.Add(channelOne.PowerString);
+							
+							// Column 17: Rx Only
+							csvRow.Add(channelOne.OnlyRxString);
+							
+							// Column 18: Zone Skip (No)
+							csvRow.Add("No");
+							
+							// Column 19: All Skip (No)
+							csvRow.Add("No");
+							
+							// Column 20: TOT (0)
+							csvRow.Add("0");
+							
+							// Column 21: VOX (Off)
+							csvRow.Add("Off");
+							
+							// Column 22: No Beep (No)
+							csvRow.Add("No");
+							
+							// Column 23: No Eco (No)
+							csvRow.Add("No");
+							
+							// Column 24: APRS (None)
+							csvRow.Add("None");
+							
+							// Column 25: Latitude (0.128)
+							csvRow.Add("0.128");
+							
+							// Column 26: Longitude (0.008)
+							csvRow.Add("0.008");
+							
+							// Column 27: Use Location (No)
+							csvRow.Add("No");
+							
+							csvFileWriter.WriteRow(csvRow);
+						}
+					}
+				}
+				return true;
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show("Export failed: " + ex.Message, "Export Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return false;
+			}
+		}
+
+
+
 		private void updateAddAndDeleteButtons()
 		{
 		//	this.btnDelete.Enabled = !this.dgvChannels.SelectedRows.Contains(this.dgvChannels.Rows[0]);
