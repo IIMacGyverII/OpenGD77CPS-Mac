@@ -1720,6 +1720,34 @@ namespace DMR
 			return true;
 		}
 
+		/// <summary>
+		/// Import channels from CSV file (wrapper for ChannelsCsvImporter)
+		/// </summary>
+		/// <param name="filePath">Path to Channels.csv file</param>
+		/// <param name="clearFirst">If true, clear existing channels before import</param>
+		/// <param name="mainForm">Reference to main form for UI updates</param>
+		/// <param name="importedCount">Number of channels successfully imported</param>
+		/// <returns>True if import succeeded, false otherwise</returns>
+		public static bool ImportFromCsvFile(string filePath, bool clearFirst, Form mainForm, out int importedCount)
+		{
+			return ChannelsCsvImporter.ImportChannelsFromCsv(filePath, clearFirst, mainForm, out importedCount);
+		}
+
+		/// <summary>
+		/// Export channels to Android-compatible CSV format (stub - implement if needed)
+		/// </summary>
+		public static bool ExportToAndroidCsvFile(string filePath)
+		{
+			// TODO: Implement if needed - currently channels export is handled elsewhere
+			// For now, use the existing export functionality
+			System.Windows.Forms.MessageBox.Show(
+				"Channel export not yet implemented.\nUse 'Batch Export' instead.",
+				"Not Implemented",
+				System.Windows.Forms.MessageBoxButtons.OK,
+				System.Windows.Forms.MessageBoxIcon.Information);
+			return false;
+		}
+
 		static ChannelsForm()
 		{
 
