@@ -310,6 +310,7 @@
     </Compile>
     <Compile Include="DMR\ZonesCsvExporter.cs" />
     <Compile Include="DMR\ZonesCsvImporter.cs" />
+    <Compile Include="DMR\TGListsCsvExporter.cs" />
     <Compile Include="DMR\TGListsCsvImporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReadWriteCsv\CsvFileReader.cs" />

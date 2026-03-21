@@ -3257,11 +3257,12 @@ namespace DMR
 			// Prepare file paths
 			string channelsFile = Path.Combine(folderPath, "Channels.csv");
 			string contactsFile = Path.Combine(folderPath, "Contacts.csv");
+			string tgListsFile = Path.Combine(folderPath, "TG_Lists.csv");
 			string zonesFile = Path.Combine(folderPath, "Zones.csv");
 			
 			// Confirm export
 			DialogResult confirmResult = MessageBox.Show(
-				"Export Channels, Contacts, and Zones to:\n\n" + folderPath + "\n\nContinue?",
+				"Export Contacts, TG Lists, Channels, and Zones to:\n\n" + folderPath + "\n\nContinue?",
 				"Export CSV Files",
 				MessageBoxButtons.YesNo,
 				MessageBoxIcon.Question);
@@ -3290,7 +3291,26 @@ namespace DMR
 				hasErrors = true;
 			}
 			
-			// 2. Export Channels
+			// 2. Export TG Lists
+			try
+			{
+				if (TGListsCsvExporter.ExportTGListsToCsv(tgListsFile))
+				{
+					results.Append("✓ TG_Lists.csv exported\n");
+				}
+				else
+				{
+					results.Append("✗ TG_Lists.csv failed\n");
+					hasErrors = true;
+				}
+			}
+			catch (Exception ex)
+			{
+				results.Append("✗ TG_Lists.csv failed: " + ex.Message + "\n");
+				hasErrors = true;
+			}
+			
+			// 3. Export Channels
 			try
 			{
 				if (ChannelsForm.ExportToAndroidCsvFile(channelsFile))
@@ -3309,7 +3329,7 @@ namespace DMR
 				hasErrors = true;
 			}
 			
-			// 3. Export Zones
+			// 4. Export Zones
 			try
 			{
 				if (ZonesCsvExporter.ExportZonesToCsv(zonesFile))
