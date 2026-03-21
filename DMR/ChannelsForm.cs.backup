@@ -889,13 +889,6 @@ namespace DMR
 						
 						try
 						{
-						// Skip _id column if present (new Android format with database ID)
-						if (hasIdColumn)
-						{
-							col++; // Skip the _id column
-						}
-
-						// Column 0 (or 1 if _id present): Channel Number (read but use sequential assignment)
 						string channelNumStr = cols[col++].Trim();
 						// Note: Channel Number may not be unique (multiple zones use same number)
 						// Use sequential assignment instead of channelNum as array index
@@ -946,9 +939,8 @@ namespace DMR
 			string contactName = "";
 			if (col < cols.Count) contactName = cols[col++].Trim(); else col++;
 			
-			// Column 9: TG List name
-			string tgListName = "";
-			if (col < cols.Count) tgListName = cols[col++].Trim(); else col++;
+			// Column 9: (skip)
+			col++;
 						
 						// Column 10: DMR ID (skip)
 						col++;
@@ -1016,15 +1008,8 @@ namespace DMR
 								value.Contact = 0;
 							}
 							
-							// Handle TG List assignment
-							if (!string.IsNullOrEmpty(tgListName) && tgListName != "None")
-							{
-								value.RxGroupListString = tgListName;
-							}
-							else
-							{
-								value.RxGroupList = 0;
-							}
+							// No zone information in basic Android format - zones imported separately
+							value.RxGroupList = 0;
 							
 							ChannelForm.data.SetIndex(foundIndex, 1);
 							ChannelForm.data.Default(foundIndex);
@@ -1718,19 +1703,6 @@ namespace DMR
 		private static bool smethod_0(string string_0)
 		{
 			return true;
-		}
-
-		/// <summary>
-		/// Import channels from CSV file (wrapper for ChannelsCsvImporter)
-		/// </summary>
-		/// <param name="filePath">Path to Channels.csv file</param>
-		/// <param name="clearFirst">If true, clear existing channels before import</param>
-		/// <param name="mainForm">Reference to main form for UI updates</param>
-		/// <param name="importedCount">Number of channels successfully imported</param>
-		/// <returns>True if import succeeded, false otherwise</returns>
-		public static bool ImportFromCsvFile(string filePath, bool clearFirst, Form mainForm, out int importedCount)
-		{
-			return ChannelsCsvImporter.ImportChannelsFromCsv(filePath, clearFirst, mainForm, out importedCount);
 		}
 
 		static ChannelsForm()
