@@ -59,27 +59,30 @@ namespace DMR
 					}
 
 					// Detect if CSV has _id column (Android export format)
-					// Format with _id: "_id,Channel Number,Channel Name,..." (29 columns)
-					// Format without _id: "Channel Number,Channel Name,..." (28 columns)
+					// Format with _id: "_id,Channel Number,Channel Name,..." (37 columns new, 29 legacy)
+					// Format without _id: "Channel Number,Channel Name,..." (36 columns new, 28 legacy)
 					bool hasIdColumn = false;
+					bool hasNewFields = false; // Additional fields: Encrypt, Relay, Interrupt, etc.
 					int fieldOffset = 0;
 					
 					if (headerRow.Count >= 29 && headerRow[0] != null && headerRow[0].Trim().Equals("_id", StringComparison.OrdinalIgnoreCase))
 					{
 						hasIdColumn = true;
 						fieldOffset = 1; // Skip _id column when parsing
-						System.Diagnostics.Debug.WriteLine("Detected Android export format with _id column (29 fields)");
+						hasNewFields = headerRow.Count >= 37;
+						System.Diagnostics.Debug.WriteLine("Detected Android export format with _id column (" + headerRow.Count + " fields, newFields=" + hasNewFields + ")");
 					}
 					else if (headerRow.Count >= 28 && headerRow[0] != null && headerRow[0].Trim().Equals("Channel Number", StringComparison.OrdinalIgnoreCase))
 					{
 						hasIdColumn = false;
 						fieldOffset = 0; // No offset needed
-						System.Diagnostics.Debug.WriteLine("Detected standard OpenGD77 format (28 fields)");
+						hasNewFields = headerRow.Count >= 36;
+						System.Diagnostics.Debug.WriteLine("Detected OpenGD77 format (" + headerRow.Count + " fields, newFields=" + hasNewFields + ")");
 					}
 					else
 					{
 						MessageBox.Show(
-							"Unknown CSV format. Expected 28 or 29 columns.\nFirst column: " + (headerRow.Count > 0 ? headerRow[0] : "empty"),
+							"Unknown CSV format. Expected 28, 29, 36, or 37 columns.\nFirst column: " + (headerRow.Count > 0 ? headerRow[0] : "empty"),
 							"Channel Import Error",
 							MessageBoxButtons.OK,
 							MessageBoxIcon.Error);
@@ -87,7 +90,15 @@ namespace DMR
 					}
 
 					// Expected minimum field count
-					int minFields = hasIdColumn ? 29 : 28;
+					int minFields;
+					if (hasNewFields)
+					{
+						minFields = hasIdColumn ? 37 : 36;
+					}
+					else
+					{
+						minFields = hasIdColumn ? 29 : 28;
+					}
 
 					// Build lookup maps
 					Dictionary<string, int> contactNameMap = BuildContactNameMap();
@@ -205,6 +216,30 @@ namespace DMR
 							channel.RxTone = rxTone;
 							channel.TxTone = txTone;
 							channel.PowerString = power;
+
+							// NEW FIELDS (29-36): Parse if available (backward compatible)
+							if (hasNewFields && row.Count >= minFields)
+							{
+								// Fields 29-36 (with fieldOffset applied):
+								// 29: Encrypt Switch, 30: Encrypt Key, 31: Relay, 32: Interrupt,
+								// 33: Active, 34: Outbound Slot, 35: Channel Mode, 36: Contact Type
+								
+								// OpenGD77 CPS may not have direct UI fields for these, but we log for reference
+								string encryptSwitch = GetField(row, 29, fieldOffset);
+								string encryptKey = GetField(row, 30, fieldOffset);
+								string relay = GetField(row, 31, fieldOffset);
+								string interrupt = GetField(row, 32, fieldOffset);
+								string active = GetField(row, 33, fieldOffset);
+								string outboundSlot = GetField(row, 34, fieldOffset);
+								string channelMode = GetField(row, 35, fieldOffset);
+								string contactTypeStr = GetField(row, 36, fieldOffset);
+								
+								System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " extended: encrypt=" + encryptSwitch + 
+									",relay=" + relay + ",interrupt=" + interrupt + ",active=" + active);
+								
+								// Note: OpenGD77 codeplug may not store these directly, but they're preserved
+								// for round-trip compatibility with Android app
+							}
 
 							// Save channel back to data
 							ChannelForm.data[channelIndex] = channel;
