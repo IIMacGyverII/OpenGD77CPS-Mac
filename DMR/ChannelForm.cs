@@ -4910,7 +4910,7 @@ namespace DMR
             this.lblxband.TextAlign = ContentAlignment.MiddleLeft;
             base.AutoScaleDimensions = new SizeF(7f, 16f);
 //			base.AutoScaleMode = AutoScaleMode.Font;
-			base.ClientSize = new Size(1104, 684);
+			base.ClientSize = new Size(1104, 900);
 			base.Controls.Add(this.pnlChannel);
 			base.Controls.Add(this.tsrCh);
 			base.Controls.Add(this.mnsCh);
