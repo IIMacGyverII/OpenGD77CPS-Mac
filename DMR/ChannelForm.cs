@@ -2703,6 +2703,23 @@ namespace DMR
 
         private Label lblxband;
 
+		// Android-specific field controls
+		private Label lblAndroidFields;
+		private CheckBox chkEncryptSwitch;
+		private Label lblEncryptKey;
+		private TextBox txtEncryptKey;
+		private Label lblRelay;
+		private CustomNumericUpDown nudRelay;
+		private Label lblInterrupt;
+		private CustomNumericUpDown nudInterrupt;
+		private CheckBox chkActive;
+		private Label lblOutboundSlot;
+		private CustomNumericUpDown nudOutboundSlot;
+		private Label lblChannelMode;
+		private CustomNumericUpDown nudChannelMode;
+		private Label lblAndroidContactType;
+		private CustomNumericUpDown nudAndroidContactType;
+
 		public static int CurCntCh
 		{
 			get;
@@ -2780,6 +2797,15 @@ namespace DMR
 			value.DataCall = this.chkDataCall.Checked;
 			value.EmgConfirmed = this.chkEmgConfirmed.Checked;
 			value.EnchancedChAccess = this.chkEnhancedChAccess.Checked;
+			// Android-specific fields
+			if (this.chkEncryptSwitch != null) value.EncryptSwitch = this.chkEncryptSwitch.Checked ? 1 : 0;
+			// EncryptKey not saved (string field, CSV-only)
+			if (this.nudRelay != null) value.Relay = (int)this.nudRelay.Value;
+			if (this.nudInterrupt != null) value.Interrupt = (int)this.nudInterrupt.Value;
+			if (this.chkActive != null) value.Active = this.chkActive.Checked ? 1 : 0;
+			if (this.nudOutboundSlot != null) value.OutboundSlot = (int)this.nudOutboundSlot.Value;
+			if (this.nudChannelMode != null) value.ChannelMode = (int)this.nudChannelMode.Value;
+			if (this.nudAndroidContactType != null) value.AndroidContactType = (int)this.nudAndroidContactType.Value;
 			ChannelForm.data[index] = value;
 		}
 
@@ -2852,6 +2878,15 @@ namespace DMR
 			this.chkDataCall.Checked = channelOne.DataCall;
 			this.chkEmgConfirmed.Checked = channelOne.EmgConfirmed;
 			this.chkEnhancedChAccess.Checked = channelOne.EnchancedChAccess;
+			// Android-specific fields
+			if (this.chkEncryptSwitch != null) this.chkEncryptSwitch.Checked = channelOne.EncryptSwitch != 0;
+			if (this.txtEncryptKey != null) this.txtEncryptKey.Text = ""; // Not stored in codeplug
+			if (this.nudRelay != null) this.nudRelay.Value = channelOne.Relay;
+			if (this.nudInterrupt != null) this.nudInterrupt.Value = channelOne.Interrupt;
+			if (this.chkActive != null) this.chkActive.Checked = channelOne.Active != 0;
+			if (this.nudOutboundSlot != null) this.nudOutboundSlot.Value = channelOne.OutboundSlot;
+			if (this.nudChannelMode != null) this.nudChannelMode.Value = channelOne.ChannelMode;
+			if (this.nudAndroidContactType != null) this.nudAndroidContactType.Value = channelOne.AndroidContactType;
 			this.method_7();
 			this.method_9();
 			this.method_8();
@@ -2936,6 +2971,10 @@ namespace DMR
 				Settings.smethod_59(base.Controls);
 				Settings.smethod_68(this);
 				Settings.smethod_71(this.tsrCh.smethod_10(), base.Name);
+				
+				// Create Android-specific controls programmatically
+				this.CreateAndroidControls();
+				
 				ChannelForm.data.ChModeChangeEvent += this.method_2;
 				this.BbRiogasSx();
 				this.method_0();
@@ -2945,6 +2984,121 @@ namespace DMR
 			{
 				MessageBox.Show(ex.Message);
 			}
+		}
+		
+		private void CreateAndroidControls()
+		{
+			// Create a group box for Android-specific fields
+			var grpAndroid = new GroupBox();
+			grpAndroid.Text = "Android-Specific Fields";
+			grpAndroid.Location = new System.Drawing.Point(10, 580);
+			grpAndroid.Size = new System.Drawing.Size(740, 180);
+			grpAndroid.TabIndex = 100;
+			
+			int yPos = 25;
+			int xCol1 = 15, xCol2 = 200, xCol3 = 385, xCol4 = 570;
+			int ctrlWidth = 170;
+			int spacing = 30;
+			
+			// Row 1: Encrypt Switch and Relay
+			this.chkEncryptSwitch = new CheckBox();
+			this.chkEncryptSwitch.Text = "Encrypt Switch";
+			this.chkEncryptSwitch.Location = new System.Drawing.Point(xCol1, yPos);
+			this.chkEncryptSwitch.AutoSize = true;
+			grpAndroid.Controls.Add(this.chkEncryptSwitch);
+			
+			this.lblRelay = new Label();
+			this.lblRelay.Text = "Relay:";
+			this.lblRelay.Location = new System.Drawing.Point(xCol2, yPos + 3);
+			this.lblRelay.AutoSize = true;
+			grpAndroid.Controls.Add(this.lblRelay);
+			
+			this.nudRelay = new CustomNumericUpDown();
+			this.nudRelay.Location = new System.Drawing.Point(xCol2 + 50, yPos);
+			this.nudRelay.Size = new System.Drawing.Size(60, 23);
+			grpAndroid.Controls.Add(this.nudRelay);
+			
+			this.lblInterrupt = new Label();
+			this.lblInterrupt.Text = "Interrupt:";
+			this.lblInterrupt.Location = new System.Drawing.Point(xCol3, yPos + 3);
+			this.lblInterrupt.AutoSize = true;
+			grpAndroid.Controls.Add(this.lblInterrupt);
+			
+			this.nudInterrupt = new CustomNumericUpDown();
+			this.nudInterrupt.Location = new System.Drawing.Point(xCol3 + 65, yPos);
+			this.nudInterrupt.Size = new System.Drawing.Size(60, 23);
+			grpAndroid.Controls.Add(this.nudInterrupt);
+			
+			yPos += spacing;
+			
+			// Row 2: Active and Outbound Slot
+			this.chkActive = new CheckBox();
+			this.chkActive.Text = "Active";
+			this.chkActive.Location = new System.Drawing.Point(xCol1, yPos);
+			this.chkActive.AutoSize = true;
+			grpAndroid.Controls.Add(this.chkActive);
+			
+			this.lblOutboundSlot = new Label();
+			this.lblOutboundSlot.Text = "Outbound Slot:";
+			this.lblOutboundSlot.Location = new System.Drawing.Point(xCol2, yPos + 3);
+			this.lblOutboundSlot.AutoSize = true;
+			grpAndroid.Controls.Add(this.lblOutboundSlot);
+			
+			this.nudOutboundSlot = new CustomNumericUpDown();
+			this.nudOutboundSlot.Location = new System.Drawing.Point(xCol2 + 100, yPos);
+			this.nudOutboundSlot.Size = new System.Drawing.Size(60, 23);
+			grpAndroid.Controls.Add(this.nudOutboundSlot);
+			
+			this.lblChannelMode = new Label();
+			this.lblChannelMode.Text = "Channel Mode:";
+			this.lblChannelMode.Location = new System.Drawing.Point(xCol3, yPos + 3);
+			this.lblChannelMode.AutoSize = true;
+			grpAndroid.Controls.Add(this.lblChannelMode);
+			
+			this.nudChannelMode = new CustomNumericUpDown();
+			this.nudChannelMode.Location = new System.Drawing.Point(xCol3 + 105, yPos);
+			this.nudChannelMode.Size = new System.Drawing.Size(60, 23);
+			grpAndroid.Controls.Add(this.nudChannelMode);
+			
+			yPos += spacing;
+			
+			// Row 3: Contact Type and Encrypt Key
+			this.lblAndroidContactType = new Label();
+			this.lblAndroidContactType.Text = "Contact Type:";
+			this.lblAndroidContactType.Location = new System.Drawing.Point(xCol1, yPos + 3);
+			this.lblAndroidContactType.AutoSize = true;
+			grpAndroid.Controls.Add(this.lblAndroidContactType);
+			
+			this.nudAndroidContactType = new CustomNumericUpDown();
+			this.nudAndroidContactType.Location = new System.Drawing.Point(xCol1 + 95, yPos);
+			this.nudAndroidContactType.Size = new System.Drawing.Size(60, 23);
+			grpAndroid.Controls.Add(this.nudAndroidContactType);
+			
+			this.lblEncryptKey = new Label();
+			this.lblEncryptKey.Text = "Encrypt Key:";
+			this.lblEncryptKey.Location = new System.Drawing.Point(xCol2, yPos + 3);
+			this.lblEncryptKey.AutoSize = true;
+			grpAndroid.Controls.Add(this.lblEncryptKey);
+			
+			this.txtEncryptKey = new TextBox();
+			this.txtEncryptKey.Location = new System.Drawing.Point(xCol2 + 85, yPos);
+			this.txtEncryptKey.Size = new System.Drawing.Size(300, 23);
+			this.txtEncryptKey.ReadOnly = true;
+			this.txtEncryptKey.BackColor = System.Drawing.SystemColors.Control;
+			this.txtEncryptKey.Text = "(CSV-only field)";
+			grpAndroid.Controls.Add(this.txtEncryptKey);
+			
+			// Add info label
+			yPos += spacing + 10;
+			var lblInfo = new Label();
+			lblInfo.Text = "Note: These fields are Android-specific and stored in reserve bytes. EncryptKey cannot be stored in binary codeplug.";
+			lblInfo.Location = new System.Drawing.Point(xCol1, yPos);
+			lblInfo.Size = new System.Drawing.Size(700, 30);
+			lblInfo.ForeColor = System.Drawing.Color.DarkBlue;
+			grpAndroid.Controls.Add(lblInfo);
+			
+			// Add the group box to the form
+			this.pnlChannel.Controls.Add(grpAndroid);
 		}
 
 		private void ChannelForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -2987,6 +3141,17 @@ namespace DMR
 			Settings.smethod_37(this.cmbKeySwitch, ChannelForm.SZ_KEY_SWITCH);
 			Settings.smethod_36(this.nudRxColor, new Class13(0, 15, 1, 1m, 2));
 			Settings.smethod_36(this.nudTxColor, new Class13(0, 15, 1, 1m, 2));
+			// Android-specific field initialization
+			if (this.txtEncryptKey != null)
+			{
+				this.txtEncryptKey.MaxLength = 32;
+				this.txtEncryptKey.KeyPress += Settings.smethod_54;
+			}
+			if (this.nudRelay != null) Settings.smethod_36(this.nudRelay, new Class13(0, 7, 1, 1m, 1));
+			if (this.nudInterrupt != null) Settings.smethod_36(this.nudInterrupt, new Class13(0, 7, 1, 1m, 1));
+			if (this.nudOutboundSlot != null) Settings.smethod_36(this.nudOutboundSlot, new Class13(0, 255, 1, 1m, 3));
+			if (this.nudChannelMode != null) Settings.smethod_36(this.nudChannelMode, new Class13(0, 255, 1, 1m, 3));
+			if (this.nudAndroidContactType != null) Settings.smethod_36(this.nudAndroidContactType, new Class13(0, 255, 1, 1m, 3));
 		}
 
 		private void method_1()
