@@ -3085,7 +3085,6 @@ namespace DMR
 			this.txtEncryptKey.Location = new System.Drawing.Point(xCol2 + 85, yPos);
 			this.txtEncryptKey.Size = new System.Drawing.Size(300, 23);
 			this.txtEncryptKey.ReadOnly = false;
-			this.txtEncryptKey.PlaceholderText = "CSV export/import only";
 			grpAndroid.Controls.Add(this.txtEncryptKey);
 			
 			// Add info label
