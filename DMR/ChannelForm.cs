@@ -3031,9 +3031,9 @@ namespace DMR
 			
 			yPos += spacing;
 			
-			// Row 2: Active and Outbound Slot
-			this.chkActive = new CheckBox();
-			this.chkActive.Text = "Active";
+// Row 2: Active (Current Loaded Channel) and Outbound Slot
+            this.chkActive = new CheckBox();
+            this.chkActive.Text = "Current Channel Loaded";
 			this.chkActive.Location = new System.Drawing.Point(xCol1, yPos);
 			this.chkActive.AutoSize = true;
 			grpAndroid.Controls.Add(this.chkActive);
