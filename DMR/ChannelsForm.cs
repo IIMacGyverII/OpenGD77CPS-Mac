@@ -1070,7 +1070,7 @@ namespace DMR
 			{
 				using (CsvFileWriter csvFileWriter = new CsvFileWriter(new FileStream(filePath, FileMode.Create), Encoding.Default))
 				{
-					// Write header - Android format: Channel Number,Channel Name,Channel Type,Rx Frequency,Tx Frequency,Bandwidth (kHz),Colour Code,Timeslot,Contact,TG List,DMR ID,TS1_TA_Tx,TS2_TA_Tx ID,RX Tone,TX Tone,Squelch,Power,Rx Only,Zone Skip,All Skip,TOT,VOX,No Beep,No Eco,APRS,Latitude,Longitude,Use Location
+					// Write header - Android format with all 36 fields (no _id in OpenGD77 export)
 					CsvRow csvRow = new CsvRow();
 					csvRow.Add("Channel Number");
 					csvRow.Add("Channel Name");
@@ -1100,6 +1100,14 @@ namespace DMR
 					csvRow.Add("Latitude");
 					csvRow.Add("Longitude");
 					csvRow.Add("Use Location");
+					csvRow.Add("Encrypt Switch");
+					csvRow.Add("Encrypt Key");
+					csvRow.Add("Relay");
+					csvRow.Add("Interrupt");
+					csvRow.Add("Active");
+					csvRow.Add("Outbound Slot");
+					csvRow.Add("Channel Mode");
+					csvRow.Add("Contact Type");
 					csvFileWriter.WriteRow(csvRow);
 					
 					// Write all valid channels
@@ -1202,6 +1210,34 @@ namespace DMR
 							
 							// Column 27: Use Location (No)
 							csvRow.Add("No");
+							
+							// NEW FIELDS (28-35): Export with OpenGD77 defaults
+							// These fields don't have direct UI in OpenGD77, but we export defaults for Android compatibility
+							
+							// Column 28: Encrypt Switch (0 for analog, 1 for digital)
+							bool isDigital = channelOne.ChModeS.Equals("Digital", StringComparison.OrdinalIgnoreCase);
+							csvRow.Add(isDigital ? "1" : "0");
+							
+							// Column 29: Encrypt Key (empty)
+							csvRow.Add("");
+							
+							// Column 30: Relay (1 = default)
+							csvRow.Add("1");
+							
+							// Column 31: Interrupt (2 for digital, 0 for analog)
+							csvRow.Add(isDigital ? "2" : "0");
+							
+							// Column 32: Active (1 for digital, 0 for analog)
+							csvRow.Add(isDigital ? "1" : "0");
+							
+							// Column 33: Outbound Slot (0 = default)
+							csvRow.Add("0");
+							
+							// Column 34: Channel Mode (0 = default)
+							csvRow.Add("0");
+							
+							// Column 35: Contact Type (0 = default)
+							csvRow.Add("0");
 							
 							csvFileWriter.WriteRow(csvRow);
 						}
