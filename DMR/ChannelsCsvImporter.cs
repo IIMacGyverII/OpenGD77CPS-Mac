@@ -217,16 +217,15 @@ namespace DMR
 							channel.TxTone = txTone;
 							channel.PowerString = power;
 
-							// NEW FIELDS (29-36): Parse if available (backward compatible)
+							// NEW FIELDS (29-36): Parse Android-specific fields and store in reserve bytes
 							if (hasNewFields && row.Count >= minFields)
 							{
 								// Fields 29-36 (with fieldOffset applied):
 								// 29: Encrypt Switch, 30: Encrypt Key, 31: Relay, 32: Interrupt,
 								// 33: Active, 34: Outbound Slot, 35: Channel Mode, 36: Contact Type
 								
-								// OpenGD77 CPS may not have direct UI fields for these, but we log for reference
 								string encryptSwitch = GetField(row, 29, fieldOffset);
-								string encryptKey = GetField(row, 30, fieldOffset);
+								string encryptKey = GetField(row, 30, fieldOffset);  // Cannot store (string)
 								string relay = GetField(row, 31, fieldOffset);
 								string interrupt = GetField(row, 32, fieldOffset);
 								string active = GetField(row, 33, fieldOffset);
@@ -234,11 +233,40 @@ namespace DMR
 								string channelMode = GetField(row, 35, fieldOffset);
 								string contactTypeStr = GetField(row, 36, fieldOffset);
 								
-								System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " extended: encrypt=" + encryptSwitch + 
-									",relay=" + relay + ",interrupt=" + interrupt + ",active=" + active);
+								// Store in reserve fields (now accessible via properties)
+								int encryptSwitchVal;
+								if (int.TryParse(encryptSwitch, out encryptSwitchVal))
+									channel.EncryptSwitch = encryptSwitchVal;
 								
-								// Note: OpenGD77 codeplug may not store these directly, but they're preserved
-								// for round-trip compatibility with Android app
+								int relayVal;
+								if (int.TryParse(relay, out relayVal))
+									channel.Relay = relayVal;
+								
+								int interruptVal;
+								if (int.TryParse(interrupt, out interruptVal))
+									channel.Interrupt = interruptVal;
+								
+								int activeVal;
+								if (int.TryParse(active, out activeVal))
+									channel.Active = activeVal;
+								
+								int outboundSlotVal;
+								if (int.TryParse(outboundSlot, out outboundSlotVal))
+									channel.OutboundSlot = outboundSlotVal;
+								
+								int channelModeVal;
+								if (int.TryParse(channelMode, out channelModeVal))
+									channel.ChannelMode = channelModeVal;
+								
+								int contactTypeVal;
+								if (int.TryParse(contactTypeStr, out contactTypeVal))
+									channel.AndroidContactType = contactTypeVal;
+								
+								// Note: EncryptKey (string) cannot be stored in binary codeplug
+								System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " Android fields imported: " +
+									"encrypt=" + encryptSwitch + ",relay=" + relay + ",interrupt=" + interrupt + 
+									",active=" + active + ",slot=" + outboundSlot + ",mode=" + channelMode + 
+									",contactType=" + contactTypeStr);
 							}
 
 							// Save channel back to data

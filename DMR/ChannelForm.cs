@@ -1054,6 +1054,113 @@ namespace DMR
 				}
 			}
 
+			// Android-specific fields (use reserve bytes for binary compatibility)
+			// These are only used when importing/exporting Android CSV format
+			public int EncryptSwitch
+			{
+				get
+				{
+					return (this.flag3 & 0x01);  // Use bit 0 of flag3
+				}
+				set
+				{
+					if (value != 0)
+					{
+						this.flag3 |= 0x01;
+					}
+					else
+					{
+						this.flag3 &= 0xFE;
+					}
+				}
+			}
+
+			public int Relay
+			{
+				get
+				{
+					return (this.flag3 & 0x0E) >> 1;  // Use bits 1-3 of flag3 (0-7 range)
+				}
+				set
+				{
+					this.flag3 &= 0xF1;  // Clear bits 1-3
+					this.flag3 |= (byte)((value & 0x07) << 1);
+				}
+			}
+
+			public int Interrupt
+			{
+				get
+				{
+					return (this.flag3 & 0x70) >> 4;  // Use bits 4-6 of flag3 (0-7 range)
+				}
+				set
+				{
+					this.flag3 &= 0x8F;  // Clear bits 4-6
+					this.flag3 |= (byte)((value & 0x07) << 4);
+				}
+			}
+
+			public int Active
+			{
+				get
+				{
+					return (this.flag3 & 0x80) >> 7;  // Use bit 7 of flag3
+				}
+				set
+				{
+					if (value != 0)
+					{
+						this.flag3 |= 0x80;
+					}
+					else
+					{
+						this.flag3 &= 0x7F;
+					}
+				}
+			}
+
+			public int OutboundSlot
+			{
+				get
+				{
+					return this.reserve;  // Use entire reserve byte (0-255)
+				}
+				set
+				{
+					this.reserve = (byte)value;
+				}
+			}
+
+			public int ChannelMode
+			{
+				get
+				{
+					return (this.reserve2 & 0xFF);  // Use low byte of reserve2
+				}
+				set
+				{
+					this.reserve2 &= 0xFF00;  // Clear low byte
+					this.reserve2 |= (ushort)(value & 0xFF);
+				}
+			}
+
+			public int AndroidContactType
+			{
+				get
+				{
+					return (this.reserve2 >> 8);  // Use high byte of reserve2
+				}
+				set
+				{
+					this.reserve2 &= 0x00FF;  // Clear high byte
+					this.reserve2 |= (ushort)((value & 0xFF) << 8);
+				}
+			}
+
+			// Note: EncryptKey (string) is handled in CSV import/export layer
+			// It cannot be stored in the binary codeplug without breaking compatibility
+
 			public int Power
 			{
 				get
