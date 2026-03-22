@@ -2799,7 +2799,8 @@ namespace DMR
 			value.EnchancedChAccess = this.chkEnhancedChAccess.Checked;
 			// Android-specific fields
 			if (this.chkEncryptSwitch != null) value.EncryptSwitch = this.chkEncryptSwitch.Checked ? 1 : 0;
-			// EncryptKey not saved (string field, CSV-only)
+			// EncryptKey is CSV-only (can't be stored in binary codeplug, but save to memory for CSV export)
+			// Note: Key will be lost when saving to .g77 file!
 			if (this.nudRelay != null) value.Relay = (int)this.nudRelay.Value;
 			if (this.nudInterrupt != null) value.Interrupt = (int)this.nudInterrupt.Value;
 			if (this.chkActive != null) value.Active = this.chkActive.Checked ? 1 : 0;
@@ -2880,7 +2881,7 @@ namespace DMR
 			this.chkEnhancedChAccess.Checked = channelOne.EnchancedChAccess;
 			// Android-specific fields
 			if (this.chkEncryptSwitch != null) this.chkEncryptSwitch.Checked = channelOne.EncryptSwitch != 0;
-			if (this.txtEncryptKey != null) this.txtEncryptKey.Text = ""; // Not stored in codeplug
+			if (this.txtEncryptKey != null) this.txtEncryptKey.Text = ""; // Not stored in binary codeplug (only in CSV)
 			if (this.nudRelay != null) this.nudRelay.Value = channelOne.Relay;
 			if (this.nudInterrupt != null) this.nudInterrupt.Value = channelOne.Interrupt;
 			if (this.chkActive != null) this.chkActive.Checked = channelOne.Active != 0;
@@ -2992,7 +2993,7 @@ namespace DMR
 			var grpAndroid = new GroupBox();
 			grpAndroid.Text = "Android-Specific Fields";
 			grpAndroid.Location = new System.Drawing.Point(10, 580);
-			grpAndroid.Size = new System.Drawing.Size(740, 180);
+			grpAndroid.Size = new System.Drawing.Size(740, 200);
 			grpAndroid.TabIndex = 100;
 			
 			int yPos = 25;
@@ -3083,9 +3084,8 @@ namespace DMR
 			this.txtEncryptKey = new TextBox();
 			this.txtEncryptKey.Location = new System.Drawing.Point(xCol2 + 85, yPos);
 			this.txtEncryptKey.Size = new System.Drawing.Size(300, 23);
-			this.txtEncryptKey.ReadOnly = true;
-			this.txtEncryptKey.BackColor = System.Drawing.SystemColors.Control;
-			this.txtEncryptKey.Text = "(CSV-only field)";
+			this.txtEncryptKey.ReadOnly = false;
+			this.txtEncryptKey.PlaceholderText = "CSV export/import only";
 			grpAndroid.Controls.Add(this.txtEncryptKey);
 			
 			// Add info label
@@ -4206,9 +4206,10 @@ namespace DMR
 			this.pnlChannel.Dock = DockStyle.Fill;
 			this.pnlChannel.Location = new Point(0, 25);
 			this.pnlChannel.Name = "pnlChannel";
-			this.pnlChannel.Size = new Size(1104, 659);
+			this.pnlChannel.Size = new Size(1104, 820);
 			this.pnlChannel.TabIndex = 0;
 			this.pnlChannel.TabStop = true;
+			this.pnlChannel.AutoScroll = true;
 			this.btnCopy.Location = new Point(486, 25);
 			this.btnCopy.Name = "btnCopy";
 			this.btnCopy.Size = new Size(33, 23);
