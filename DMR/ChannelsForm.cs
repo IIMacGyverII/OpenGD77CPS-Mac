@@ -1211,33 +1211,32 @@ namespace DMR
 							// Column 27: Use Location (No)
 							csvRow.Add("No");
 							
-							// NEW FIELDS (28-35): Export with OpenGD77 defaults
-							// These fields don't have direct UI in OpenGD77, but we export defaults for Android compatibility
+							// NEW FIELDS (28-35): Export actual Android-specific values from reserve fields
+							// These are stored in flagencrypt key3, reserve, and reserve2 bytes for binary compatibility
 							
-							// Column 28: Encrypt Switch (0 for analog, 1 for digital)
-							bool isDigital = channelOne.ChModeS.Equals("Digital", StringComparison.OrdinalIgnoreCase);
-							csvRow.Add(isDigital ? "1" : "0");
+							// Column 28: Encrypt Switch
+							csvRow.Add(channelOne.EncryptSwitch.ToString());
 							
-							// Column 29: Encrypt Key (empty)
+							// Column 29: Encrypt Key (empty - cannot store string in binary codeplug)
 							csvRow.Add("");
 							
-							// Column 30: Relay (1 = default)
-							csvRow.Add("1");
+							// Column 30: Relay
+							csvRow.Add(channelOne.Relay.ToString());
 							
-							// Column 31: Interrupt (2 for digital, 0 for analog)
-							csvRow.Add(isDigital ? "2" : "0");
+							// Column 31: Interrupt
+							csvRow.Add(channelOne.Interrupt.ToString());
 							
-							// Column 32: Active (1 for digital, 0 for analog)
-							csvRow.Add(isDigital ? "1" : "0");
+							// Column 32: Active
+							csvRow.Add(channelOne.Active.ToString());
 							
-							// Column 33: Outbound Slot (0 = default)
-							csvRow.Add("0");
+							// Column 33: Outbound Slot
+							csvRow.Add(channelOne.OutboundSlot.ToString());
 							
-							// Column 34: Channel Mode (0 = default)
-							csvRow.Add("0");
+							// Column 34: Channel Mode
+							csvRow.Add(channelOne.ChannelMode.ToString());
 							
-							// Column 35: Contact Type (0 = default)
-							csvRow.Add("0");
+							// Column 35: Contact Type
+							csvRow.Add(channelOne.AndroidContactType.ToString());
 							
 							csvFileWriter.WriteRow(csvRow);
 						}
