@@ -238,18 +238,39 @@ namespace DMR
 								if (int.TryParse(encryptSwitch, out encryptSwitchVal))
 									channel.EncryptSwitch = encryptSwitchVal;
 								
-								int relayVal;
-								if (int.TryParse(relay, out relayVal))
-									channel.Relay = relayVal;
-								
-								int interruptVal;
-								if (int.TryParse(interrupt, out interruptVal))
-									channel.Interrupt = interruptVal;
-								
-								int activeVal;
-								if (int.TryParse(active, out activeVal))
-									channel.Active = activeVal;
-								
+							// VALIDATE relay (MUST be 1 for all channels)
+							int relayVal;
+							if (int.TryParse(relay, out relayVal))
+							{
+								if (relayVal != 1)
+								{
+									System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " relay=" + relayVal + " is invalid, forcing to 1");
+									relayVal = 1;
+								}
+								channel.Relay = relayVal;
+							}
+							else
+							{
+								channel.Relay = 1; // Default to 1
+							}
+							
+							// VALIDATE interrupt (2 for Digital, 0 for Analog)
+							int interruptVal;
+							if (int.TryParse(interrupt, out interruptVal))
+							{
+								int expectedInterrupt = channelType.Equals("Digital", StringComparison.OrdinalIgnoreCase) ? 2 : 0;
+								if (interruptVal != expectedInterrupt)
+								{
+									System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " interrupt=" + interruptVal + 
+										" wrong for " + channelType + " channel, forcing to " + expectedInterrupt);
+									interruptVal = expectedInterrupt;
+								}
+								channel.Interrupt = interruptVal;
+							}
+							else
+							{
+								channel.Interrupt = channelType.Equals("Digital", StringComparison.OrdinalIgnoreCase) ? 2 : 0;
+							}
 								int outboundSlotVal;
 								if (int.TryParse(outboundSlot, out outboundSlotVal))
 									channel.OutboundSlot = outboundSlotVal;
