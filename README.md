@@ -1,23 +1,27 @@
 # OpenGD77 CPS - PriInterPhone Edition
 
-**Customer Programming Software Modified for the PriInterPhone DMR Radio Android App**
+**Customer Programming Software Modified for the [PriInterPhone Android App](https://github.com/IIMacGyverII/phonedmrapp)**
 
 ## Overview
 
-This is a **modified version** of the OpenGD77 Customer Programming Software (CPS), specifically adapted for use with the **PriInterPhone DMR Radio LSPosed mod** for Ulefone Armor 26 Ultra radios.
+This is a **modified version** of the OpenGD77 Customer Programming Software (CPS), specifically adapted for use with the **[PriInterPhone LSPosed mod](https://github.com/IIMacGyverII/phonedmrapp)** running on:
+- **Ulefone Armor 26 Ultra**
+- **Comjot C-26**
 
 ### What is OpenGD77?
 
 OpenGD77 is an open-source firmware and programming ecosystem for DMR (Digital Mobile Radio) handheld and mobile radios. The standard OpenGD77 CPS is a Windows application that allows users to program DMR radios via CSV import/export or direct USB connection.
 
-This fork extends the OpenGD77 CPS to support the **PriInterPhone Android app's extended CSV format**, enabling users to edit, manage, and program their PriInterPhone radio channels with advanced features like APRS, GPS coordinates, and encryption.
+This fork extends the OpenGD77 CPS to support the **[PriInterPhone Android app's](https://github.com/IIMacGyverII/phonedmrapp) extended CSV format**, enabling users to edit, manage, and program their PriInterPhone channels with advanced features like APRS, GPS coordinates, and encryption.
 
 ## Purpose & Use Case
 
 ### Specifically Designed For:
-- **PriInterPhone DMR Radio** - LSPosed mod for Ulefone Armor 26 Ultra ([phonedmrapp repository](https://github.com/IIMacGyverII/phonedmrapp))
-- Users who want to **edit DMR channel/contact programming on PC**
-- Workflow: Export from Android app → Edit on PC → Import back to Android
+- **[PriInterPhone Android App](https://github.com/IIMacGyverII/phonedmrapp)** - LSPosed mod for:
+  - Ulefone Armor 26 Ultra
+  - Comjot C-26
+- Users who want to **edit channel/contact programming on PC**
+- Workflow: Export from PriInterPhone app → Edit on PC → Import back to app
 
 ### May Work With (But Not Officially Supported):
 - Other OpenGD77-compatible radios (GD-77, DM-1801, RD-5R, etc.)
@@ -65,7 +69,7 @@ This fork maintains compatibility with standard OpenGD77 CSV format but adds:
 ## Usage Workflow
 
 ### Export from PriInterPhone App
-1. Open PriInterPhone app on your Ulefone radio
+1. Open PriInterPhone app on your device (Ulefone Armor 26 Ultra or Comjot C-26)
 2. Go to **LOCAL** tab
 3. Tap **📤 EXPORT (OpenGD77)** button
 4. Files saved to `Download/DMR/DMR_Backups/YYYYMMDD_HHmmss/`
@@ -125,7 +129,7 @@ All files use **OpenGD77-compatible format** with CRLF line endings and tab-pref
 
 ## Related Projects
 
-- **PriInterPhone DMR Radio App**: https://github.com/IIMacGyverII/phonedmrapp
+- **PriInterPhone Android App**: https://github.com/IIMacGyverII/phonedmrapp
 - **Standard OpenGD77 Project**: https://www.opengd77.com
 - **OpenGD77 Firmware**: https://github.com/LibreDMR/OpenGD77
 
@@ -153,12 +157,13 @@ Or open `OpenGD77CPS.sln` in Visual Studio and build normally.
 
 ## Known Limitations
 
-- **CSV-Only Workflow**: Designed primarily for CSV export/import with the PriInterPhone app, not direct radio programming
-- **Android-Specific Features**: Some extended fields (APRS, GPS, encryption) are specific to the PriInterPhone app and won't transfer to standard OpenGD77 radios
+- **Device-Specific**: This tool is specifically designed for the PriInterPhone app running on Ulefone Armor 26 Ultra and Comjot C-26 devices
+- **CSV-Only Workflow**: Designed primarily for CSV export/import with the PriInterPhone app, not direct device programming
+- **Extended Features**: APRS, GPS, encryption, and other extended fields are specific to the PriInterPhone app and won't transfer to standard OpenGD77 radios
 
 ## Support
 
-This is a specialized fork for the PriInterPhone DMR Radio project. For issues:
+This is a specialized fork for the [PriInterPhone Android App](https://github.com/IIMacGyverII/phonedmrapp). For issues:
 - **PriInterPhone app questions**: See [phonedmrapp repository](https://github.com/IIMacGyverII/phonedmrapp)
 - **OpenGD77 CPS general questions**: See [OpenGD77 documentation](https://www.opengd77.com)
 - **Fork-specific issues**: Open an issue in this repository
@@ -171,7 +176,7 @@ This project inherits the license from the original OpenGD77 CPS project. See th
 
 - **Original OpenGD77 Project**: Roger Clark, Daniel Caujolle-Bert, and contributors
 - **PriInterPhone Edition**: Modified for extended CSV format support
-- **PriInterPhone Mod**: Custom LSPosed module for Ulefone Armor 26 Ultra DMR radios
+- **PriInterPhone App**: Custom LSPosed module for Ulefone Armor 26 Ultra and Comjot C-26
 
 ---
 
