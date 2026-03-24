@@ -1,38 +1,34 @@
-# OpenGD77 CPS for macOS - PriInterPhone Edition
+# OpenGD77 CPS - PriInterPhone Edition
 
-**macOS-compatible Customer Programming Software for the PriInterPhone DMR Radio Android App**
+**Customer Programming Software Modified for the PriInterPhone DMR Radio Android App**
 
 ## Overview
 
-This is a **macOS port** of the OpenGD77 Customer Programming Software (CPS), specifically adapted for use with the **PriInterPhone DMR Radio LSPosed mod** for Ulefone Armor 26 Ultra radios.
+This is a **modified version** of the OpenGD77 Customer Programming Software (CPS), specifically adapted for use with the **PriInterPhone DMR Radio LSPosed mod** for Ulefone Armor 26 Ultra radios.
 
 ### What is OpenGD77?
 
-OpenGD77 is an open-source firmware and programming ecosystem for DMR (Digital Mobile Radio) handheld and mobile radios. The standard OpenGD77 CPS is a Windows-only application that allows users to program DMR radios via CSV import/export or direct USB connection.
+OpenGD77 is an open-source firmware and programming ecosystem for DMR (Digital Mobile Radio) handheld and mobile radios. The standard OpenGD77 CPS is a Windows application that allows users to program DMR radios via CSV import/export or direct USB connection.
 
-This fork brings OpenGD77 CPS functionality to **macOS**, enabling Mac users to edit, manage, and program their PriInterPhone Android DMR radio using the familiar OpenGD77 CSV workflow.
+This fork extends the OpenGD77 CPS to support the **PriInterPhone Android app's extended CSV format**, enabling users to edit, manage, and program their PriInterPhone radio channels with advanced features like APRS, GPS coordinates, and encryption.
 
 ## Purpose & Use Case
 
 ### Specifically Designed For:
 - **PriInterPhone DMR Radio** - LSPosed mod for Ulefone Armor 26 Ultra ([phonedmrapp repository](https://github.com/IIMacGyverII/phonedmrapp))
-- Users who want to **edit DMR channel/contact programming on a Mac**
-- Cross-platform workflow: Export from Android app → Edit on Mac → Import back to Android
+- Users who want to **edit DMR channel/contact programming on PC**
+- Workflow: Export from Android app → Edit on PC → Import back to Android
 
 ### May Work With (But Not Officially Supported):
 - Other OpenGD77-compatible radios (GD-77, DM-1801, RD-5R, etc.)
-- Standard OpenGD77 firmware users on macOS
+- Standard OpenGD77 firmware users
 - Other DMR programming workflows that use OpenGD77 CSV format
 
 **Note**: This CPS is optimized for the extended CSV format used by the PriInterPhone Android app, which includes additional fields for APRS, GPS coordinates, encryption settings, and zone management. While it can import/export standard OpenGD77 CSV files, it's designed with the PriInterPhone feature set in mind.
 
 ## Key Differences from Standard OpenGD77 CPS
 
-### 1. **Platform**
-- **Standard OpenGD77 CPS**: Windows-only (.NET Framework 4.x)
-- **This Fork**: macOS-compatible (.NET Framework 4.8 via Mono)
-
-### 2. **Extended CSV Format Support**
+### 1. **Extended CSV Format Support**
 The PriInterPhone app exports **37-column CSV files** with extended fields:
 - **APRS Settings**: APRS enable/disable per channel
 - **GPS Coordinates**: Latitude/longitude for navigation
@@ -43,12 +39,12 @@ The PriInterPhone app exports **37-column CSV files** with extended fields:
 
 Standard OpenGD77 uses **25-column CSV files**. This fork can handle both formats but is optimized for the extended 37-column structure.
 
-### 3. **Workflow Integration**
+### 2. **Workflow Integration**
 - Direct CSV workflow with the PriInterPhone Android app
 - No USB cable required - export/import via SD card or cloud sync
 - Designed for the app's backup structure: `Download/DMR/DMR_Backups/YYYYMMDD_HHmmss/`
 
-### 4. **Feature Parity**
+### 3. **Feature Parity**
 This fork maintains compatibility with standard OpenGD77 CSV format but adds:
 - Extended field parsing for APRS, GPS, and encryption
 - Zone management (Zones.csv support)
@@ -58,22 +54,13 @@ This fork maintains compatibility with standard OpenGD77 CSV format but adds:
 ## Requirements
 
 ### System Requirements
-- **macOS** 10.13 (High Sierra) or later
-- **Mono Framework** 6.x or later (provides .NET 4.8 runtime on macOS)
-- **Target Framework**: .NET Framework 4.8
+- **Windows** 7 or later
+- **.NET Framework** 4.8
 
 ### Installation
-1. Install Mono Framework: https://www.mono-project.com/download/stable/
-2. Clone or download this repository
-3. Build or run the CPS using Mono
-
-```bash
-# Build the project
-msbuild OpenGD77CPS.sln /p:Configuration=Release
-
-# Run the CPS
-mono bin/Release/OpenGD77CPS.exe
-```
+1. Clone or download this repository
+2. Build the solution in Visual Studio or MSBuild
+3. Run OpenGD77CPS.exe
 
 ## Usage Workflow
 
@@ -82,13 +69,13 @@ mono bin/Release/OpenGD77CPS.exe
 2. Go to **LOCAL** tab
 3. Tap **📤 EXPORT (OpenGD77)** button
 4. Files saved to `Download/DMR/DMR_Backups/YYYYMMDD_HHmmss/`
-5. Transfer to your Mac via:
+5. Transfer to your PC via:
    - USB cable (MTP mode)
    - Cloud sync (Google Drive, Dropbox, etc.)
    - ADB: `adb pull /sdcard/Download/DMR/DMR_Backups/`
 
-### Edit on Mac
-1. Launch OpenGD77 CPS on macOS
+### Edit on PC
+1. Launch OpenGD77 CPS
 2. **Import** → Select the backup folder containing CSV files
 3. Edit channels, contacts, zones, TG lists as needed
 4. **Export** → Save back to a folder
@@ -149,9 +136,11 @@ All files use **OpenGD77-compatible format** with CRLF line endings and tab-pref
 # Restore NuGet packages
 nuget restore OpenGD77CPS.sln
 
-# Build with Mono
+# Build with MSBuild
 msbuild OpenGD77CPS.sln /p:Configuration=Release /p:TargetFrameworkVersion=v4.8
 ```
+
+Or open `OpenGD77CPS.sln` in Visual Studio and build normally.
 
 ### Project Structure
 - **OpenGD77CPS/** - Main CPS application
@@ -160,12 +149,10 @@ msbuild OpenGD77CPS.sln /p:Configuration=Release /p:TargetFrameworkVersion=v4.8
 
 ### .NET Framework Version
 - **Target**: .NET Framework 4.8
-- **Runtime**: Mono 6.x+ on macOS
-- **Compatibility**: Windows .NET Framework 4.8 (for cross-platform development)
+- **Platform**: Windows
 
 ## Known Limitations
 
-- **USB Programming**: Direct USB programming to OpenGD77 radios may have limited support on macOS (driver compatibility)
 - **CSV-Only Workflow**: Designed primarily for CSV export/import with the PriInterPhone app, not direct radio programming
 - **Android-Specific Features**: Some extended fields (APRS, GPS, encryption) are specific to the PriInterPhone app and won't transfer to standard OpenGD77 radios
 
@@ -174,7 +161,7 @@ msbuild OpenGD77CPS.sln /p:Configuration=Release /p:TargetFrameworkVersion=v4.8
 This is a specialized fork for the PriInterPhone DMR Radio project. For issues:
 - **PriInterPhone app questions**: See [phonedmrapp repository](https://github.com/IIMacGyverII/phonedmrapp)
 - **OpenGD77 CPS general questions**: See [OpenGD77 documentation](https://www.opengd77.com)
-- **macOS-specific issues**: Open an issue in this repository
+- **Fork-specific issues**: Open an issue in this repository
 
 ## License
 
@@ -183,7 +170,7 @@ This project inherits the license from the original OpenGD77 CPS project. See th
 ## Credits
 
 - **Original OpenGD77 Project**: Roger Clark, Daniel Caujolle-Bert, and contributors
-- **macOS Port**: Maintained for PriInterPhone DMR Radio integration
+- **PriInterPhone Edition**: Modified for extended CSV format support
 - **PriInterPhone Mod**: Custom LSPosed module for Ulefone Armor 26 Ultra DMR radios
 
 ---
