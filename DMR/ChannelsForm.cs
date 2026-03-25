@@ -1215,11 +1215,9 @@ namespace DMR
 							// These are stored in flagencrypt key3, reserve, and reserve2 bytes for binary compatibility
 							
 							// Column 28: Encrypt Switch
-							csvRow.Add(channelOne.EncryptSwitch.ToString());
-							
-							// Column 29: Encrypt Key (empty - cannot store string in binary codeplug)
-							csvRow.Add("");
-							
+						// FIX: Always export as 0 (disabled) since encryption keys cannot be stored
+						// in binary .g77 codeplug. Encryption must be configured on Android device.
+						csvRow.Add("0");
 							// Column 30: Relay
 							csvRow.Add(channelOne.Relay.ToString());
 							
