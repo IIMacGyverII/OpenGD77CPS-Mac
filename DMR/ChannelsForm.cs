@@ -1118,7 +1118,10 @@ namespace DMR
 							ChannelForm.ChannelOne channelOne = ChannelForm.data[i];
 							csvRow.Clear();
 							
-							// Column 0: Channel Number (1-based for display)
+							// Column 0: _id (use i+1 for database ID, matches Channel Number)
+							csvRow.Add((i + 1).ToString());
+							
+							// Column 1: Channel Number (1-based for display)
 							csvRow.Add((i + 1).ToString());
 							
 							// Column 1: Channel Name
@@ -1136,11 +1139,17 @@ namespace DMR
 							// Column 5: Bandwidth (kHz)
 							csvRow.Add(channelOne.BandwidthString);
 							
-							// Column 6: Colour Code
+							// Column 7: Colour Code
 							csvRow.Add(channelOne.TxColor.ToString());
 							
-							// Column 7: Timeslot
-							csvRow.Add(channelOne.RepeaterSlotS);
+							// Column 8: Timeslot (use RepeaterSlotS for correct "1" or "2" values)
+							// For Digital channels: RepeaterSlotS returns "1" or "2"
+							// For Analog channels: returns empty/default, but we export "1" for compatibility
+							string timeslot = channelOne.RepeaterSlotS;
+							if (string.IsNullOrEmpty(timeslot) || timeslot == "" || timeslot == "0") {
+								timeslot = "1"; // Default to timeslot 1 for Analog or invalid
+							}
+							csvRow.Add(timeslot);
 							
 							// Column 8: Contact
 							string contactName = "";
@@ -1214,26 +1223,30 @@ namespace DMR
 							// NEW FIELDS (28-35): Export actual Android-specific values from reserve fields
 							// These are stored in flagencrypt key3, reserve, and reserve2 bytes for binary compatibility
 							
-							// Column 28: Encrypt Switch
-						// FIX: Always export as 0 (disabled) since encryption keys cannot be stored
-						// in binary .g77 codeplug. Encryption must be configured on Android device.
-						csvRow.Add("0");
+// Column 29: Encrypt Switch
+					// FIX: Always export as 0 (disabled) since encryption keys cannot be stored
+					// in binary .g77 codeplug. Encryption must be configured on Android device.
+					csvRow.Add("0");
+					
+					// Column 30: Encrypt Key (always empty - not stored in .g77 binary)
+					csvRow.Add("");
+					
+						// Column 31: Relay
+						csvRow.Add(channelOne.Relay.ToString());
 						
-						// Column 29: Encrypt Key (always empty - not stored in .g77 binary)
-						csvRow.Add("");
+						// Column 32: Interrupt
+						csvRow.Add(channelOne.Interrupt.ToString());
 						
-							csvRow.Add(channelOne.Interrupt.ToString());
-							
-							// Column 32: Active
-							csvRow.Add(channelOne.Active.ToString());
-							
-							// Column 33: Outbound Slot
-							csvRow.Add(channelOne.OutboundSlot.ToString());
-							
-							// Column 34: Channel Mode
-							csvRow.Add(channelOne.ChannelMode.ToString());
-							
-							// Column 35: Contact Type
+						// Column 33: Active
+						csvRow.Add(channelOne.Active.ToString());
+						
+						// Column 34: Outbound Slot
+						csvRow.Add(channelOne.OutboundSlot.ToString());
+						
+						// Column 35: Channel Mode
+						csvRow.Add(channelOne.ChannelMode.ToString());
+						
+						// Column 36: Contact Type
 							csvRow.Add(channelOne.AndroidContactType.ToString());
 							
 							csvFileWriter.WriteRow(csvRow);
