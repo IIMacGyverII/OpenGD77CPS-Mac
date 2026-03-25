@@ -1070,8 +1070,9 @@ namespace DMR
 			{
 				using (CsvFileWriter csvFileWriter = new CsvFileWriter(new FileStream(filePath, FileMode.Create), Encoding.Default))
 				{
-					// Write header - Android format with all 36 fields (no _id in OpenGD77 export)
+					// Write header - Android format with all 37 fields (includes _id)
 					CsvRow csvRow = new CsvRow();
+					csvRow.Add("_id");
 					csvRow.Add("Channel Number");
 					csvRow.Add("Channel Name");
 					csvRow.Add("Channel Type");
