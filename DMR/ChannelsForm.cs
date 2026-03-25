@@ -1218,10 +1218,10 @@ namespace DMR
 						// FIX: Always export as 0 (disabled) since encryption keys cannot be stored
 						// in binary .g77 codeplug. Encryption must be configured on Android device.
 						csvRow.Add("0");
-							// Column 30: Relay
-							csvRow.Add(channelOne.Relay.ToString());
-							
-							// Column 31: Interrupt
+						
+						// Column 29: Encrypt Key (always empty - not stored in .g77 binary)
+						csvRow.Add("");
+						
 							csvRow.Add(channelOne.Interrupt.ToString());
 							
 							// Column 32: Active
