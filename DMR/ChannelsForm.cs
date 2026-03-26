@@ -953,10 +953,10 @@ namespace DMR
 						// Column 10: DMR ID (skip)
 						col++;
 						
-						// Column 11: TS1_TA_Tx (skip)
+						// Column 12: TS1_TA_Tx (skip)
 						col++;
 						
-						// Column 12: TS2_TA_Tx ID (skip)
+						// Column 13: TS2_TA_Tx ID (skip)
 						col++;
 						
 						// Column 13: RX Tone
@@ -1164,16 +1164,16 @@ namespace DMR
 							}
 							csvRow.Add(contactName);
 							
-							// Column 9: TG List (not used - empty)
+							// Column 10: TG List (RxGroupListString)
+							csvRow.Add(channelOne.RxGroupListString ?? "");
+							
+							// Column 11: DMR ID (not used - empty)
 							csvRow.Add("");
 							
-							// Column 10: DMR ID (not used - empty)
-							csvRow.Add("");
-							
-							// Column 11: TS1_TA_Tx (Off)
+							// Column 12: TS1_TA_Tx (Off)
 							csvRow.Add("Off");
 							
-							// Column 12: TS2_TA_Tx ID (Off)
+							// Column 13: TS2_TA_Tx ID (Off)
 							csvRow.Add("Off");
 							
 							// Column 13: RX Tone
