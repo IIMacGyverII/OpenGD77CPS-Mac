@@ -2708,8 +2708,7 @@ namespace DMR
 		private CheckBox chkEncryptSwitch;
 		private Label lblEncryptKey;
 		private TextBox txtEncryptKey;
-		private Label lblRelay;
-		private CustomNumericUpDown nudRelay;
+		private CheckBox chkRelay;
 		private Label lblInterrupt;
 		private CustomNumericUpDown nudInterrupt;
 		private CheckBox chkActive;
@@ -2801,7 +2800,7 @@ namespace DMR
 			if (this.chkEncryptSwitch != null) value.EncryptSwitch = this.chkEncryptSwitch.Checked ? 1 : 0;
 			// EncryptKey is CSV-only (can't be stored in binary codeplug, but save to memory for CSV export)
 			// Note: Key will be lost when saving to .g77 file!
-			if (this.nudRelay != null) value.Relay = (int)this.nudRelay.Value;
+			if (this.chkRelay != null) value.Relay = this.chkRelay.Checked ? 1 : 2;
 			if (this.nudInterrupt != null) value.Interrupt = (int)this.nudInterrupt.Value;
 			if (this.chkActive != null) value.Active = this.chkActive.Checked ? 1 : 0;
 			if (this.nudOutboundSlot != null) value.OutboundSlot = (int)this.nudOutboundSlot.Value;
@@ -2882,7 +2881,7 @@ namespace DMR
 			// Android-specific fields
 			if (this.chkEncryptSwitch != null) this.chkEncryptSwitch.Checked = channelOne.EncryptSwitch != 0;
 			if (this.txtEncryptKey != null) this.txtEncryptKey.Text = ""; // Not stored in binary codeplug (only in CSV)
-			if (this.nudRelay != null) this.nudRelay.Value = channelOne.Relay;
+			if (this.chkRelay != null) this.chkRelay.Checked = (channelOne.Relay == 1);
 			if (this.nudInterrupt != null) this.nudInterrupt.Value = channelOne.Interrupt;
 			if (this.chkActive != null) this.chkActive.Checked = channelOne.Active != 0;
 			if (this.nudOutboundSlot != null) this.nudOutboundSlot.Value = channelOne.OutboundSlot;
@@ -3008,16 +3007,11 @@ namespace DMR
 			this.chkEncryptSwitch.AutoSize = true;
 			grpAndroid.Controls.Add(this.chkEncryptSwitch);
 			
-			this.lblRelay = new Label();
-			this.lblRelay.Text = "Relay:";
-			this.lblRelay.Location = new System.Drawing.Point(xCol2, yPos + 3);
-			this.lblRelay.AutoSize = true;
-			grpAndroid.Controls.Add(this.lblRelay);
-			
-			this.nudRelay = new CustomNumericUpDown();
-			this.nudRelay.Location = new System.Drawing.Point(xCol2 + 50, yPos);
-			this.nudRelay.Size = new System.Drawing.Size(60, 23);
-			grpAndroid.Controls.Add(this.nudRelay);
+			this.chkRelay = new CheckBox();
+			this.chkRelay.Text = "Relay Disconnection";
+			this.chkRelay.Location = new System.Drawing.Point(xCol2, yPos);
+			this.chkRelay.AutoSize = true;
+			grpAndroid.Controls.Add(this.chkRelay);
 			
 			this.lblInterrupt = new Label();
 			this.lblInterrupt.Text = "Interrupt:";
@@ -3146,7 +3140,6 @@ namespace DMR
 				this.txtEncryptKey.MaxLength = 32;
 				this.txtEncryptKey.KeyPress += Settings.smethod_54;
 			}
-			if (this.nudRelay != null) Settings.smethod_36(this.nudRelay, new Class13(0, 7, 1, 1m, 1));
 			if (this.nudInterrupt != null) Settings.smethod_36(this.nudInterrupt, new Class13(0, 7, 1, 1m, 1));
 			if (this.nudOutboundSlot != null) Settings.smethod_36(this.nudOutboundSlot, new Class13(0, 255, 1, 1m, 3));
 			if (this.nudChannelMode != null) Settings.smethod_36(this.nudChannelMode, new Class13(0, 255, 1, 1m, 3));
