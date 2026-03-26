@@ -238,20 +238,21 @@ namespace DMR
 								if (int.TryParse(encryptSwitch, out encryptSwitchVal))
 									channel.EncryptSwitch = encryptSwitchVal;
 								
-							// VALIDATE relay (MUST be 1 for all channels)
+							// VALIDATE relay - accept 0 (direct), 1 (disconnect), or 2 (normal)
+							// Default to 2 (disabled/normal operation) for working transmit
 							int relayVal;
 							if (int.TryParse(relay, out relayVal))
 							{
-								if (relayVal != 1)
+								if (relayVal != 0 && relayVal != 1 && relayVal != 2)
 								{
-									System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " relay=" + relayVal + " is invalid, forcing to 1");
-									relayVal = 1;
+									System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " relay=" + relayVal + " is invalid, forcing to 2 (default)");
+									relayVal = 2;
 								}
 								channel.Relay = relayVal;
 							}
 							else
 							{
-								channel.Relay = 1; // Default to 1
+								channel.Relay = 2; // Default to 2 (disabled/normal)
 							}
 							
 							// VALIDATE interrupt (2 for Digital, 0 for Analog)
