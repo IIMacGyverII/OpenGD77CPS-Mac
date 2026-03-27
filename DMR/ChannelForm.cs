@@ -2710,14 +2710,15 @@ namespace DMR
 		private TextBox txtEncryptKey;
 		private CheckBox chkRelay;
 		private Label lblInterrupt;
-		private CustomNumericUpDown nudInterrupt;
+		private ComboBox cmbInterrupt;
 		private CheckBox chkActive;
 		private Label lblOutboundSlot;
-		private CustomNumericUpDown nudOutboundSlot;
+		private ComboBox cmbOutboundSlot;
 		private Label lblChannelMode;
-		private CustomNumericUpDown nudChannelMode;
+		private ComboBox cmbChannelMode;
 		private Label lblAndroidContactType;
-		private CustomNumericUpDown nudAndroidContactType;
+		private ComboBox cmbAndroidContactType;
+		private ToolTip androidFieldsToolTip;
 
 		public static int CurCntCh
 		{
@@ -2801,11 +2802,11 @@ namespace DMR
 			// EncryptKey is CSV-only (can't be stored in binary codeplug, but save to memory for CSV export)
 			// Note: Key will be lost when saving to .g77 file!
 			if (this.chkRelay != null) value.Relay = this.chkRelay.Checked ? 1 : 2;
-			if (this.nudInterrupt != null) value.Interrupt = (int)this.nudInterrupt.Value;
+			if (this.cmbInterrupt != null) value.Interrupt = this.cmbInterrupt.SelectedIndex; // 0=OFF, 1=Open, 2=Transport
 			if (this.chkActive != null) value.Active = this.chkActive.Checked ? 1 : 0;
-			if (this.nudOutboundSlot != null) value.OutboundSlot = (int)this.nudOutboundSlot.Value;
-			if (this.nudChannelMode != null) value.ChannelMode = (int)this.nudChannelMode.Value;
-			if (this.nudAndroidContactType != null) value.AndroidContactType = (int)this.nudAndroidContactType.Value;
+			if (this.cmbOutboundSlot != null) value.OutboundSlot = this.cmbOutboundSlot.SelectedIndex + 1; // 0→1, 1→2
+			if (this.cmbChannelMode != null) value.ChannelMode = (this.cmbChannelMode.SelectedIndex == 0) ? 0 : 3; // 0=Direct, 1=Double Slot(3)
+			if (this.cmbAndroidContactType != null) value.AndroidContactType = this.cmbAndroidContactType.SelectedIndex; // 0=PERSON, 1=GROUP, 2=ALL
 			ChannelForm.data[index] = value;
 		}
 
@@ -2882,11 +2883,11 @@ namespace DMR
 			if (this.chkEncryptSwitch != null) this.chkEncryptSwitch.Checked = channelOne.EncryptSwitch != 0;
 			if (this.txtEncryptKey != null) this.txtEncryptKey.Text = ""; // Not stored in binary codeplug (only in CSV)
 			if (this.chkRelay != null) this.chkRelay.Checked = (channelOne.Relay == 1);
-			if (this.nudInterrupt != null) this.nudInterrupt.Value = channelOne.Interrupt;
+			if (this.cmbInterrupt != null) this.cmbInterrupt.SelectedIndex = Math.Min(channelOne.Interrupt, 2); // Clamp to 0-2
 			if (this.chkActive != null) this.chkActive.Checked = channelOne.Active != 0;
-			if (this.nudOutboundSlot != null) this.nudOutboundSlot.Value = channelOne.OutboundSlot;
-			if (this.nudChannelMode != null) this.nudChannelMode.Value = channelOne.ChannelMode;
-			if (this.nudAndroidContactType != null) this.nudAndroidContactType.Value = channelOne.AndroidContactType;
+			if (this.cmbOutboundSlot != null) this.cmbOutboundSlot.SelectedIndex = Math.Max(0, channelOne.OutboundSlot - 1); // 1→0, 2→1
+			if (this.cmbChannelMode != null) this.cmbChannelMode.SelectedIndex = (channelOne.ChannelMode == 0) ? 0 : 1; // 0→Direct, 3→Double Slot
+			if (this.cmbAndroidContactType != null) this.cmbAndroidContactType.SelectedIndex = Math.Min(channelOne.AndroidContactType, 2); // Clamp to 0-2
 			this.method_7();
 			this.method_9();
 			this.method_8();
@@ -3019,10 +3020,12 @@ namespace DMR
 			this.lblInterrupt.AutoSize = true;
 			grpAndroid.Controls.Add(this.lblInterrupt);
 			
-			this.nudInterrupt = new CustomNumericUpDown();
-			this.nudInterrupt.Location = new System.Drawing.Point(xCol3 + 65, yPos);
-			this.nudInterrupt.Size = new System.Drawing.Size(60, 23);
-			grpAndroid.Controls.Add(this.nudInterrupt);
+			this.cmbInterrupt = new ComboBox();
+			this.cmbInterrupt.Items.AddRange(new string[] { "OFF", "Open", "Transport" });
+			this.cmbInterrupt.DropDownStyle = ComboBoxStyle.DropDownList;
+			this.cmbInterrupt.Location = new System.Drawing.Point(xCol3 + 65, yPos);
+			this.cmbInterrupt.Size = new System.Drawing.Size(120, 23);
+			grpAndroid.Controls.Add(this.cmbInterrupt);
 			
 			yPos += spacing;
 			
@@ -3039,10 +3042,12 @@ namespace DMR
 			this.lblOutboundSlot.AutoSize = true;
 			grpAndroid.Controls.Add(this.lblOutboundSlot);
 			
-			this.nudOutboundSlot = new CustomNumericUpDown();
-			this.nudOutboundSlot.Location = new System.Drawing.Point(xCol2 + 100, yPos);
-			this.nudOutboundSlot.Size = new System.Drawing.Size(60, 23);
-			grpAndroid.Controls.Add(this.nudOutboundSlot);
+			this.cmbOutboundSlot = new ComboBox();
+			this.cmbOutboundSlot.Items.AddRange(new string[] { "Slot 1", "Slot 2" });
+			this.cmbOutboundSlot.DropDownStyle = ComboBoxStyle.DropDownList;
+			this.cmbOutboundSlot.Location = new System.Drawing.Point(xCol2 + 100, yPos);
+			this.cmbOutboundSlot.Size = new System.Drawing.Size(80, 23);
+			grpAndroid.Controls.Add(this.cmbOutboundSlot);
 			
 			this.lblChannelMode = new Label();
 			this.lblChannelMode.Text = "Channel Mode:";
@@ -3050,10 +3055,12 @@ namespace DMR
 			this.lblChannelMode.AutoSize = true;
 			grpAndroid.Controls.Add(this.lblChannelMode);
 			
-			this.nudChannelMode = new CustomNumericUpDown();
-			this.nudChannelMode.Location = new System.Drawing.Point(xCol3 + 105, yPos);
-			this.nudChannelMode.Size = new System.Drawing.Size(60, 23);
-			grpAndroid.Controls.Add(this.nudChannelMode);
+			this.cmbChannelMode = new ComboBox();
+			this.cmbChannelMode.Items.AddRange(new string[] { "Direct Mode", "Double Slot Mode" });
+			this.cmbChannelMode.DropDownStyle = ComboBoxStyle.DropDownList;
+			this.cmbChannelMode.Location = new System.Drawing.Point(xCol3 + 105, yPos);
+			this.cmbChannelMode.Size = new System.Drawing.Size(150, 23);
+			grpAndroid.Controls.Add(this.cmbChannelMode);
 			
 			yPos += spacing;
 			
@@ -3064,10 +3071,12 @@ namespace DMR
 			this.lblAndroidContactType.AutoSize = true;
 			grpAndroid.Controls.Add(this.lblAndroidContactType);
 			
-			this.nudAndroidContactType = new CustomNumericUpDown();
-			this.nudAndroidContactType.Location = new System.Drawing.Point(xCol1 + 95, yPos);
-			this.nudAndroidContactType.Size = new System.Drawing.Size(60, 23);
-			grpAndroid.Controls.Add(this.nudAndroidContactType);
+			this.cmbAndroidContactType = new ComboBox();
+			this.cmbAndroidContactType.Items.AddRange(new string[] { "PERSON (Private)", "GROUP (TalkGroup)", "ALL (Receive All)" });
+			this.cmbAndroidContactType.DropDownStyle = ComboBoxStyle.DropDownList;
+			this.cmbAndroidContactType.Location = new System.Drawing.Point(xCol1 + 95, yPos);
+			this.cmbAndroidContactType.Size = new System.Drawing.Size(160, 23);
+			grpAndroid.Controls.Add(this.cmbAndroidContactType);
 			
 			this.lblEncryptKey = new Label();
 			this.lblEncryptKey.Text = "Encrypt Key:";
@@ -3140,10 +3149,23 @@ namespace DMR
 				this.txtEncryptKey.MaxLength = 32;
 				this.txtEncryptKey.KeyPress += Settings.smethod_54;
 			}
-			if (this.nudInterrupt != null) Settings.smethod_36(this.nudInterrupt, new Class13(0, 7, 1, 1m, 1));
-			if (this.nudOutboundSlot != null) Settings.smethod_36(this.nudOutboundSlot, new Class13(0, 255, 1, 1m, 3));
-			if (this.nudChannelMode != null) Settings.smethod_36(this.nudChannelMode, new Class13(0, 255, 1, 1m, 3));
-			if (this.nudAndroidContactType != null) Settings.smethod_36(this.nudAndroidContactType, new Class13(0, 255, 1, 1m, 3));
+			
+			// Initialize tooltips for Android fields
+			this.androidFieldsToolTip = new ToolTip();
+			this.androidFieldsToolTip.SetToolTip(this.chkEncryptSwitch, "Enable voice encryption (both radios must use same key).\nMost repeaters do not support encryption.");
+			this.androidFieldsToolTip.SetToolTip(this.chkRelay, "Relay Disconnection: Disconnects repeater relay to prevent retransmission.\nDisable (unchecked) = Normal repeater operation.\nEnable (checked) = Blocks relay transmission.\nMost users should leave this DISABLED.");
+			this.androidFieldsToolTip.SetToolTip(this.cmbInterrupt, "Transmission Interruption:\nOFF = Cannot transmit when channel busy (recommended).\nOpen = Can interrupt other transmissions.\nTransport = Always transmit, ignores busy check (emergencies only).");
+			this.androidFieldsToolTip.SetToolTip(this.chkActive, "Current Channel Loaded: Mark this channel as active/loaded in the radio.");
+			this.androidFieldsToolTip.SetToolTip(this.cmbOutboundSlot, "DMR Time Slot for transmission.\nSlot 1 or Slot 2 - check your repeater configuration.\nMust match the repeater's expected slot for your talkgroup.");
+			this.androidFieldsToolTip.SetToolTip(this.cmbChannelMode, "DMR Channel Mode:\nDirect Mode = Simplex (radio-to-radio), both use same frequency.\nDouble Slot Mode = Repeater mode using TDMA time slots.");
+			this.androidFieldsToolTip.SetToolTip(this.cmbAndroidContactType, "Contact Type:\nPERSON = Private call to specific DMR ID.\nGROUP = TalkGroup call (most common).\nALL = Receive all calls (monitoring mode).");
+			this.androidFieldsToolTip.SetToolTip(this.txtEncryptKey, "Encryption Key (CSV only, not stored in binary codeplug).\nMax 32 characters. Lost when saving to .g77 file.");
+			
+			// Set default selections
+			if (this.cmbInterrupt != null) this.cmbInterrupt.SelectedIndex = 0; // Default to OFF
+			if (this.cmbOutboundSlot != null) this.cmbOutboundSlot.SelectedIndex = 0; // Default to Slot 1
+			if (this.cmbChannelMode != null) this.cmbChannelMode.SelectedIndex = 1; // Default to Double Slot Mode
+			if (this.cmbAndroidContactType != null) this.cmbAndroidContactType.SelectedIndex = 1; // Default to GROUP
 		}
 
 		private void method_1()
