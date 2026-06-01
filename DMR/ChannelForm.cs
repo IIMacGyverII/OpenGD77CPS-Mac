@@ -3112,33 +3112,33 @@ namespace DMR
 			this.txtEncryptKey.ReadOnly = false;
 			grpAndroid.Controls.Add(this.txtEncryptKey);
 			
-			// Row 4: Location fields
+			// Row 4: Location fields (use explicit coordinates — xCol2/xCol3 overlap with textboxes at this row)
 			yPos += spacing;
 			this.lblLatitude = new Label();
 			this.lblLatitude.Text = "Latitude:";
-			this.lblLatitude.Location = new System.Drawing.Point(xCol1, yPos + 3);
+			this.lblLatitude.Location = new System.Drawing.Point(15, yPos + 3);
 			this.lblLatitude.AutoSize = true;
 			grpAndroid.Controls.Add(this.lblLatitude);
 
 			this.txtLatitude = new TextBox();
-			this.txtLatitude.Location = new System.Drawing.Point(xCol1 + 65, yPos);
-			this.txtLatitude.Size = new System.Drawing.Size(130, 23);
+			this.txtLatitude.Location = new System.Drawing.Point(68, yPos);
+			this.txtLatitude.Size = new System.Drawing.Size(110, 23);
 			grpAndroid.Controls.Add(this.txtLatitude);
 
 			this.lblLongitude = new Label();
 			this.lblLongitude.Text = "Longitude:";
-			this.lblLongitude.Location = new System.Drawing.Point(xCol2, yPos + 3);
+			this.lblLongitude.Location = new System.Drawing.Point(190, yPos + 3);
 			this.lblLongitude.AutoSize = true;
 			grpAndroid.Controls.Add(this.lblLongitude);
 
 			this.txtLongitude = new TextBox();
-			this.txtLongitude.Location = new System.Drawing.Point(xCol2 + 75, yPos);
-			this.txtLongitude.Size = new System.Drawing.Size(130, 23);
+			this.txtLongitude.Location = new System.Drawing.Point(262, yPos);
+			this.txtLongitude.Size = new System.Drawing.Size(120, 23);
 			grpAndroid.Controls.Add(this.txtLongitude);
 
 			this.chkUseLocation = new CheckBox();
 			this.chkUseLocation.Text = "Use Location";
-			this.chkUseLocation.Location = new System.Drawing.Point(xCol3, yPos);
+			this.chkUseLocation.Location = new System.Drawing.Point(396, yPos);
 			this.chkUseLocation.AutoSize = true;
 			grpAndroid.Controls.Add(this.chkUseLocation);
 

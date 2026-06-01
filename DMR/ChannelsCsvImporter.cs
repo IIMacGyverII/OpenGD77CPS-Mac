@@ -413,7 +413,7 @@ namespace DMR
 		}
 
 		/// <summary>
-		/// Clear all existing channels
+		/// Clear all existing channels and their CSV-only static data
 		/// </summary>
 		private static void ClearAllChannels()
 		{
@@ -424,6 +424,11 @@ namespace DMR
 					ChannelForm.data.ClearIndex(i);
 				}
 			}
+			// Also clear static CSV-only arrays so stale data from a previous import doesn't persist
+			System.Array.Clear(ChannelForm.CsvEncryptKeys, 0, ChannelForm.CsvEncryptKeys.Length);
+			System.Array.Clear(ChannelForm.CsvLatitudes, 0, ChannelForm.CsvLatitudes.Length);
+			System.Array.Clear(ChannelForm.CsvLongitudes, 0, ChannelForm.CsvLongitudes.Length);
+			System.Array.Clear(ChannelForm.CsvUseLocations, 0, ChannelForm.CsvUseLocations.Length);
 		}
 	}
 }
