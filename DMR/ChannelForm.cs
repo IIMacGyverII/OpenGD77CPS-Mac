@@ -1158,16 +1158,10 @@ namespace DMR
 				}
 			}
 
-			// Note: EncryptKey, Latitude, Longitude, UseLocation are CSV-only fields handled
-			// in the import/export layer. They cannot be stored in the binary codeplug.
-			private string _encryptKey;
-			public string EncryptKey { get { return _encryptKey ?? ""; } set { _encryptKey = value; } }
-			private double _latitude;
-			public double Latitude { get { return _latitude; } set { _latitude = value; } }
-			private double _longitude;
-			public double Longitude { get { return _longitude; } set { _longitude = value; } }
-			private bool _useLocation;
-			public bool UseLocation { get { return _useLocation; } set { _useLocation = value; } }
+			// Note: EncryptKey, Latitude, Longitude, UseLocation are CSV-only fields.
+			// They are stored in ChannelForm.CsvXxx[] static arrays, NOT in this struct,
+			// because Marshal.PtrToStructure is used to deserialize ChannelOne from binary
+			// and any extra fields (especially reference types) corrupt the layout.
 
 			public int Power
 			{
@@ -2491,6 +2485,12 @@ namespace DMR
 
 		public static Channel data;
 
+		// CSV-only channel data (not stored in binary codeplug; keyed by channel index 0-based)
+		internal static string[] CsvEncryptKeys = new string[1024];
+		internal static double[] CsvLatitudes = new double[1024];
+		internal static double[] CsvLongitudes = new double[1024];
+		internal static bool[] CsvUseLocations = new bool[1024];
+
 	//	private IContainer components;
 
 		private CheckBox chkEnhancedChAccess;
@@ -2814,7 +2814,7 @@ namespace DMR
 			if (this.chkEncryptSwitch != null) value.EncryptSwitch = this.chkEncryptSwitch.Checked ? 1 : 0;
 			// EncryptKey is CSV-only (can't be stored in binary codeplug, but save to memory for CSV export)
 			// Note: Key will be lost when saving to .g77 file!
-			if (this.txtEncryptKey != null) value.EncryptKey = this.txtEncryptKey.Text;
+			if (this.txtEncryptKey != null) ChannelForm.CsvEncryptKeys[index] = this.txtEncryptKey.Text;
 			if (this.chkRelay != null) value.Relay = this.chkRelay.Checked ? 1 : 2;
 			if (this.cmbInterrupt != null) value.Interrupt = this.cmbInterrupt.SelectedIndex; // 0=OFF, 1=Open, 2=Transport
 			if (this.chkActive != null) value.Active = this.chkActive.Checked ? 1 : 0;
@@ -2822,9 +2822,9 @@ namespace DMR
 			if (this.cmbChannelMode != null) value.ChannelMode = (this.cmbChannelMode.SelectedIndex == 0) ? 0 : 3; // 0=Direct, 1=Double Slot(3)
 			if (this.cmbAndroidContactType != null) value.AndroidContactType = this.cmbAndroidContactType.SelectedIndex; // 0=PERSON, 1=GROUP, 2=ALL
 			// Location fields (CSV-only)
-			if (this.txtLatitude != null) { double lat; if (double.TryParse(this.txtLatitude.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lat)) value.Latitude = lat; }
-			if (this.txtLongitude != null) { double lon; if (double.TryParse(this.txtLongitude.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lon)) value.Longitude = lon; }
-			if (this.chkUseLocation != null) value.UseLocation = this.chkUseLocation.Checked;
+			if (this.txtLatitude != null) { double lat; if (double.TryParse(this.txtLatitude.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lat)) ChannelForm.CsvLatitudes[index] = lat; }
+			if (this.txtLongitude != null) { double lon; if (double.TryParse(this.txtLongitude.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lon)) ChannelForm.CsvLongitudes[index] = lon; }
+			if (this.chkUseLocation != null) ChannelForm.CsvUseLocations[index] = this.chkUseLocation.Checked;
 			ChannelForm.data[index] = value;
 		}
 
@@ -2899,7 +2899,7 @@ namespace DMR
 			this.chkEnhancedChAccess.Checked = channelOne.EnchancedChAccess;
 			// Android-specific fields
 			if (this.chkEncryptSwitch != null) this.chkEncryptSwitch.Checked = channelOne.EncryptSwitch != 0;
-			if (this.txtEncryptKey != null) this.txtEncryptKey.Text = channelOne.EncryptKey ?? "";
+			if (this.txtEncryptKey != null) this.txtEncryptKey.Text = ChannelForm.CsvEncryptKeys[index] ?? "";
 			if (this.chkRelay != null) this.chkRelay.Checked = (channelOne.Relay == 1);
 			if (this.cmbInterrupt != null) this.cmbInterrupt.SelectedIndex = Math.Min(channelOne.Interrupt, 2); // Clamp to 0-2
 			if (this.chkActive != null) this.chkActive.Checked = channelOne.Active != 0;
@@ -2907,9 +2907,9 @@ namespace DMR
 			if (this.cmbChannelMode != null) this.cmbChannelMode.SelectedIndex = (channelOne.ChannelMode == 0) ? 0 : 1; // 0→Direct, 3→Double Slot
 			if (this.cmbAndroidContactType != null) this.cmbAndroidContactType.SelectedIndex = Math.Min(channelOne.AndroidContactType, 2); // Clamp to 0-2
 			// Location fields
-			if (this.txtLatitude != null) this.txtLatitude.Text = channelOne.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
-			if (this.txtLongitude != null) this.txtLongitude.Text = channelOne.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
-			if (this.chkUseLocation != null) this.chkUseLocation.Checked = channelOne.UseLocation;
+			if (this.txtLatitude != null) this.txtLatitude.Text = ChannelForm.CsvLatitudes[index].ToString(System.Globalization.CultureInfo.InvariantCulture);
+			if (this.txtLongitude != null) this.txtLongitude.Text = ChannelForm.CsvLongitudes[index].ToString(System.Globalization.CultureInfo.InvariantCulture);
+			if (this.chkUseLocation != null) this.chkUseLocation.Checked = ChannelForm.CsvUseLocations[index];
 			this.method_7();
 			this.method_9();
 			this.method_8();

@@ -228,11 +228,11 @@ namespace DMR
 
 								double lat;
 								if (double.TryParse(latStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lat))
-									channel.Latitude = lat;
+									ChannelForm.CsvLatitudes[channelIndex] = lat;
 								double lon;
 								if (double.TryParse(lonStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lon))
-									channel.Longitude = lon;
-								channel.UseLocation = useLocationStr != null && useLocationStr.Trim().Equals("Yes", StringComparison.OrdinalIgnoreCase);
+									ChannelForm.CsvLongitudes[channelIndex] = lon;
+								ChannelForm.CsvUseLocations[channelIndex] = useLocationStr != null && useLocationStr.Trim().Equals("Yes", StringComparison.OrdinalIgnoreCase);
 
 								// Fields 28-35 (with fieldOffset applied):
 								// Android 37-col (fieldOffset=1): row[29..36] = EncryptSw..ContactType
@@ -297,14 +297,14 @@ namespace DMR
 								if (int.TryParse(contactTypeStr, out contactTypeVal))
 									channel.AndroidContactType = contactTypeVal;
 
-								// Store EncryptKey as CSV-only property
-								if (!string.IsNullOrEmpty(encryptKey))
-									channel.EncryptKey = encryptKey;
+									// Store EncryptKey as CSV-only (static array, not in struct)
+									if (!string.IsNullOrEmpty(encryptKey))
+										ChannelForm.CsvEncryptKeys[channelIndex] = encryptKey;
 
-								System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " Android fields imported: " +
-									"encrypt=" + encryptSwitch + ",relay=" + relay + ",interrupt=" + interrupt + 
-									",active=" + active + ",slot=" + outboundSlot + ",mode=" + channelMode + 
-									",contactType=" + contactTypeStr + ",lat=" + channel.Latitude + ",lon=" + channel.Longitude + ",useLoc=" + channel.UseLocation);
+									System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " Android fields imported: " +
+										"encrypt=" + encryptSwitch + ",relay=" + relay + ",interrupt=" + interrupt + 
+										",active=" + active + ",slot=" + outboundSlot + ",mode=" + channelMode + 
+										",contactType=" + contactTypeStr + ",lat=" + ChannelForm.CsvLatitudes[channelIndex] + ",lon=" + ChannelForm.CsvLongitudes[channelIndex] + ",useLoc=" + ChannelForm.CsvUseLocations[channelIndex]);
 							}
 
 							// Save channel back to data

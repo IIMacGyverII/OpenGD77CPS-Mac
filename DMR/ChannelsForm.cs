@@ -1213,13 +1213,13 @@ namespace DMR
 							csvRow.Add("None");
 							
 							// Column 25: Latitude
-							csvRow.Add(channelOne.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture));
+							csvRow.Add(ChannelForm.CsvLatitudes[i].ToString(System.Globalization.CultureInfo.InvariantCulture));
 							
 							// Column 26: Longitude
-							csvRow.Add(channelOne.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture));
+							csvRow.Add(ChannelForm.CsvLongitudes[i].ToString(System.Globalization.CultureInfo.InvariantCulture));
 							
 							// Column 27: Use Location
-							csvRow.Add(channelOne.UseLocation ? "Yes" : "No");
+							csvRow.Add(ChannelForm.CsvUseLocations[i] ? "Yes" : "No");
 							
 							// NEW FIELDS (28-35): Export actual Android-specific values from reserve fields
 							// These are stored in flagencrypt key3, reserve, and reserve2 bytes for binary compatibility
@@ -1229,8 +1229,8 @@ namespace DMR
 					// in binary .g77 codeplug. Encryption must be configured on Android device.
 					csvRow.Add("0");
 					
-					// Column 30: Encrypt Key (always empty - not stored in .g77 binary)
-					csvRow.Add("");
+// Column 30: Encrypt Key (read from in-memory CSV-only store)
+							csvRow.Add(ChannelForm.CsvEncryptKeys[i] ?? "");
 					
 						// Column 31: Relay
 						csvRow.Add(channelOne.Relay.ToString());
