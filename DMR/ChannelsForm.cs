@@ -876,6 +876,11 @@ namespace DMR
 							{
 								ChannelForm.data.ClearIndexAndReset(num);
 							}
+							// Also clear CSV-only static arrays so stale values from previous import don't persist
+							System.Array.Clear(ChannelForm.CsvEncryptKeys,  0, ChannelForm.CsvEncryptKeys.Length);
+							System.Array.Clear(ChannelForm.CsvLatitudes,    0, ChannelForm.CsvLatitudes.Length);
+							System.Array.Clear(ChannelForm.CsvLongitudes,   0, ChannelForm.CsvLongitudes.Length);
+							System.Array.Clear(ChannelForm.CsvUseLocations, 0, ChannelForm.CsvUseLocations.Length);
 						}
 
 					int rowNumber = 0;
@@ -977,7 +982,98 @@ namespace DMR
 				
 				// Column 17: Rx Only
 				if (col < cols.Count) value.OnlyRxString = cols[col++]; else col++;
-							
+
+						// Columns 18-24: Zone Skip, All Skip, TOT, VOX, No Beep, No Eco, APRS — not used in CPS, skip
+						for (int skipCol = 0; skipCol < 7; skipCol++) { if (col < cols.Count) col++; }
+
+						// Column 25 (raw 26 with _id): Latitude
+						if (col < cols.Count)
+						{
+							double lat;
+							if (double.TryParse(cols[col].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lat))
+								ChannelForm.CsvLatitudes[foundIndex] = lat;
+							col++;
+						}
+
+						// Column 26 (raw 27 with _id): Longitude
+						if (col < cols.Count)
+						{
+							double lon;
+							if (double.TryParse(cols[col].Trim(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lon))
+								ChannelForm.CsvLongitudes[foundIndex] = lon;
+							col++;
+						}
+
+						// Column 27 (raw 28 with _id): Use Location
+						if (col < cols.Count)
+						{
+							ChannelForm.CsvUseLocations[foundIndex] = cols[col].Trim().Equals("Yes", StringComparison.OrdinalIgnoreCase);
+							col++;
+						}
+
+						// Column 28 (raw 29 with _id): Encrypt Switch
+						if (col < cols.Count)
+						{
+							int encSw;
+							if (int.TryParse(cols[col].Trim(), out encSw)) value.EncryptSwitch = encSw;
+							col++;
+						}
+
+						// Column 29 (raw 30 with _id): Encrypt Key (CSV-only)
+						if (col < cols.Count)
+						{
+							string encKey = cols[col].Trim();
+							if (!string.IsNullOrEmpty(encKey)) ChannelForm.CsvEncryptKeys[foundIndex] = encKey;
+							col++;
+						}
+
+						// Column 30 (raw 31 with _id): Relay (0 invalid → coerce to 2)
+						if (col < cols.Count)
+						{
+							int relayVal;
+							if (int.TryParse(cols[col].Trim(), out relayVal))
+							{
+								if (relayVal == 0 || relayVal > 2) relayVal = 2;
+								value.Relay = relayVal;
+							}
+							col++;
+						}
+
+						// Column 31 (raw 32 with _id): Interrupt (2=Digital, 0=Analog)
+						if (col < cols.Count)
+						{
+							int interruptVal;
+							if (int.TryParse(cols[col].Trim(), out interruptVal)) value.Interrupt = interruptVal;
+							col++;
+						}
+
+						// Column 32 (raw 33 with _id): Active — skip (Android-side concept)
+						if (col < cols.Count) col++;
+
+						// Column 33 (raw 34 with _id): Outbound Slot (Android 0-based → CPS 1-based)
+						if (col < cols.Count)
+						{
+							int slotVal;
+							if (int.TryParse(cols[col].Trim(), out slotVal)) value.OutboundSlot = slotVal + 1;
+							col++;
+						}
+
+						// Column 34 (raw 35 with _id): Channel Mode
+						if (col < cols.Count)
+						{
+							int modeVal;
+							if (int.TryParse(cols[col].Trim(), out modeVal)) value.ChannelMode = modeVal;
+							col++;
+						}
+
+						// Column 35 (raw 36 with _id): Contact Type
+						if (col < cols.Count)
+						{
+							int ctVal;
+							if (int.TryParse(cols[col].Trim(), out ctVal)) value.AndroidContactType = ctVal;
+							col++;
+						}
+
 							// Handle contact lookup/creation
 							if (!string.IsNullOrEmpty(contactName) && contactName != "None")
 							{
