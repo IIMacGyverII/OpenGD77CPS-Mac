@@ -365,7 +365,7 @@
 	</HelpForm>
 	<MainForm Text="Radioddity GD-77 CPS 3.0.6 Community Edition">
 		<TreeView>
-			<TreeNode Id="Model" Text="GD-77" />
+			<TreeNode Id="Model" Text="Ulefone Armor 26" />
 			<TreeNode Id="BasicInfo" Text="Basic Information" />
 			<TreeNode Id="BootItem" Text="Boot Item" />
 			<TreeNode Id="Menu" Text="Menu" />

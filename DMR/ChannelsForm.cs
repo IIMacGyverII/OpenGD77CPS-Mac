@@ -1242,8 +1242,8 @@ namespace DMR
 						csvRow.Add(channelOne.Active.ToString());
 						
 						// Column 34: Outbound Slot
-						csvRow.Add(channelOne.OutboundSlot.ToString());
-						
+							// FIX: CPS model is 1-based (1=Slot1,2=Slot2), Android CSV expects 0-based (0=Slot1,1=Slot2)
+							csvRow.Add(Math.Max(0, channelOne.OutboundSlot - 1).ToString());
 						// Column 35: Channel Mode
 						csvRow.Add(channelOne.ChannelMode.ToString());
 						

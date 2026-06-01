@@ -4457,14 +4457,7 @@ namespace DMR
 		{
 			if (MainForm.dicTree.ContainsKey(treeNode_0.Name))
 			{
-				if (treeNode_0.Name == "Model")
-				{
-					treeNode_0.Text = GeneralSetForm.data.RadioName;// MainForm.dicTree[treeNode_0.Name];
-				}
-				else
-				{
-					treeNode_0.Text = MainForm.dicTree[treeNode_0.Name];
-				}
+				treeNode_0.Text = MainForm.dicTree[treeNode_0.Name];
 			}
 		}
 
@@ -4479,14 +4472,7 @@ namespace DMR
 		{
 			if (MainForm.dicTree.ContainsKey(treeNode_0.Name))
 			{
-				if (treeNode_0.Name == "Model")
-				{
-					treeNode_0.Text = GeneralSetForm.data.RadioName;// MainForm.dicTree[treeNode_0.Name];
-				}
-				else
-				{
-					treeNode_0.Text = MainForm.dicTree[treeNode_0.Name];
-				}
+				treeNode_0.Text = MainForm.dicTree[treeNode_0.Name];
 			}
 		}
 

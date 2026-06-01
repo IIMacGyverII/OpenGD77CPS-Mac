@@ -2992,7 +2992,7 @@ namespace DMR
 			// Create a group box for Android-specific fields
 			var grpAndroid = new GroupBox();
 			grpAndroid.Text = "Android-Specific Fields";
-			grpAndroid.Location = new System.Drawing.Point(10, 580);
+			grpAndroid.Location = new System.Drawing.Point(10, 655);
 			grpAndroid.Size = new System.Drawing.Size(740, 200);
 			grpAndroid.TabIndex = 100;
 			
@@ -3080,13 +3080,13 @@ namespace DMR
 			
 			this.lblEncryptKey = new Label();
 			this.lblEncryptKey.Text = "Encrypt Key:";
-			this.lblEncryptKey.Location = new System.Drawing.Point(xCol2, yPos + 3);
+			this.lblEncryptKey.Location = new System.Drawing.Point(xCol3, yPos + 3);
 			this.lblEncryptKey.AutoSize = true;
 			grpAndroid.Controls.Add(this.lblEncryptKey);
 			
 			this.txtEncryptKey = new TextBox();
-			this.txtEncryptKey.Location = new System.Drawing.Point(xCol2 + 85, yPos);
-			this.txtEncryptKey.Size = new System.Drawing.Size(300, 23);
+			this.txtEncryptKey.Location = new System.Drawing.Point(xCol3 + 85, yPos);
+			this.txtEncryptKey.Size = new System.Drawing.Size(250, 23);
 			this.txtEncryptKey.ReadOnly = false;
 			grpAndroid.Controls.Add(this.txtEncryptKey);
 			

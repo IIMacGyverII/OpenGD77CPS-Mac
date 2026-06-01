@@ -217,21 +217,21 @@ namespace DMR
 							channel.TxTone = txTone;
 							channel.PowerString = power;
 
-							// NEW FIELDS (29-36): Parse Android-specific fields and store in reserve bytes
+							// NEW FIELDS (28-35): Parse Android-specific fields and store in reserve bytes
 							if (hasNewFields && row.Count >= minFields)
 							{
-								// Fields 29-36 (with fieldOffset applied):
-								// 29: Encrypt Switch, 30: Encrypt Key, 31: Relay, 32: Interrupt,
-								// 33: Active, 34: Outbound Slot, 35: Channel Mode, 36: Contact Type
+								// Fields 28-35 (with fieldOffset applied):
+								// Android 37-col (fieldOffset=1): row[29..36] = EncryptSw..ContactType
+								// OpenGD77 36-col (fieldOffset=0): row[28..35] = EncryptSw..ContactType
 								
-								string encryptSwitch = GetField(row, 29, fieldOffset);
-								string encryptKey = GetField(row, 30, fieldOffset);  // Cannot store (string)
-								string relay = GetField(row, 31, fieldOffset);
-								string interrupt = GetField(row, 32, fieldOffset);
-								string active = GetField(row, 33, fieldOffset);
-								string outboundSlot = GetField(row, 34, fieldOffset);
-								string channelMode = GetField(row, 35, fieldOffset);
-								string contactTypeStr = GetField(row, 36, fieldOffset);
+								string encryptSwitch = GetField(row, 28, fieldOffset);
+								string encryptKey = GetField(row, 29, fieldOffset);  // Cannot store (string)
+								string relay = GetField(row, 30, fieldOffset);
+								string interrupt = GetField(row, 31, fieldOffset);
+								string active = GetField(row, 32, fieldOffset);
+								string outboundSlot = GetField(row, 33, fieldOffset);
+								string channelMode = GetField(row, 34, fieldOffset);
+								string contactTypeStr = GetField(row, 35, fieldOffset);
 								
 								// Store in reserve fields (now accessible via properties)
 								int encryptSwitchVal;
@@ -273,11 +273,10 @@ namespace DMR
 								channel.Interrupt = channelType.Equals("Digital", StringComparison.OrdinalIgnoreCase) ? 2 : 0;
 							}
 								int outboundSlotVal;
-								if (int.TryParse(outboundSlot, out outboundSlotVal))
-									channel.OutboundSlot = outboundSlotVal;
-								
-								int channelModeVal;
-								if (int.TryParse(channelMode, out channelModeVal))
+							if (int.TryParse(outboundSlot, out outboundSlotVal))
+								channel.OutboundSlot = outboundSlotVal + 1;  // Android 0-based (0=Slot1,1=Slot2) → CPS 1-based (1=Slot1,2=Slot2)
+							int channelModeVal;
+							if (int.TryParse(channelMode, out channelModeVal))
 									channel.ChannelMode = channelModeVal;
 								
 								int contactTypeVal;
