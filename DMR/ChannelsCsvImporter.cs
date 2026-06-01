@@ -220,6 +220,20 @@ namespace DMR
 							// NEW FIELDS (28-35): Parse Android-specific fields and store in reserve bytes
 							if (hasNewFields && row.Count >= minFields)
 							{
+								// Fields 25-27: Location (Latitude, Longitude, Use Location)
+								// These are CSV-only fields stored as properties on ChannelOne
+								string latStr = GetField(row, 25, fieldOffset);
+								string lonStr = GetField(row, 26, fieldOffset);
+								string useLocationStr = GetField(row, 27, fieldOffset);
+
+								double lat;
+								if (double.TryParse(latStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lat))
+									channel.Latitude = lat;
+								double lon;
+								if (double.TryParse(lonStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lon))
+									channel.Longitude = lon;
+								channel.UseLocation = useLocationStr != null && useLocationStr.Trim().Equals("Yes", StringComparison.OrdinalIgnoreCase);
+
 								// Fields 28-35 (with fieldOffset applied):
 								// Android 37-col (fieldOffset=1): row[29..36] = EncryptSw..ContactType
 								// OpenGD77 36-col (fieldOffset=0): row[28..35] = EncryptSw..ContactType
@@ -282,12 +296,15 @@ namespace DMR
 								int contactTypeVal;
 								if (int.TryParse(contactTypeStr, out contactTypeVal))
 									channel.AndroidContactType = contactTypeVal;
-								
-								// Note: EncryptKey (string) cannot be stored in binary codeplug
+
+								// Store EncryptKey as CSV-only property
+								if (!string.IsNullOrEmpty(encryptKey))
+									channel.EncryptKey = encryptKey;
+
 								System.Diagnostics.Debug.WriteLine("CH" + channelNumber + " Android fields imported: " +
 									"encrypt=" + encryptSwitch + ",relay=" + relay + ",interrupt=" + interrupt + 
 									",active=" + active + ",slot=" + outboundSlot + ",mode=" + channelMode + 
-									",contactType=" + contactTypeStr);
+									",contactType=" + contactTypeStr + ",lat=" + channel.Latitude + ",lon=" + channel.Longitude + ",useLoc=" + channel.UseLocation);
 							}
 
 							// Save channel back to data

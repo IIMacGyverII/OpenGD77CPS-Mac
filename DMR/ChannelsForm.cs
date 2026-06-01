@@ -1212,14 +1212,14 @@ namespace DMR
 							// Column 24: APRS (None)
 							csvRow.Add("None");
 							
-							// Column 25: Latitude (0.128)
-							csvRow.Add("0.128");
+							// Column 25: Latitude
+							csvRow.Add(channelOne.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture));
 							
-							// Column 26: Longitude (0.008)
-							csvRow.Add("0.008");
+							// Column 26: Longitude
+							csvRow.Add(channelOne.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture));
 							
-							// Column 27: Use Location (No)
-							csvRow.Add("No");
+							// Column 27: Use Location
+							csvRow.Add(channelOne.UseLocation ? "Yes" : "No");
 							
 							// NEW FIELDS (28-35): Export actual Android-specific values from reserve fields
 							// These are stored in flagencrypt key3, reserve, and reserve2 bytes for binary compatibility

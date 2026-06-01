@@ -1158,8 +1158,16 @@ namespace DMR
 				}
 			}
 
-			// Note: EncryptKey (string) is handled in CSV import/export layer
-			// It cannot be stored in the binary codeplug without breaking compatibility
+			// Note: EncryptKey, Latitude, Longitude, UseLocation are CSV-only fields handled
+			// in the import/export layer. They cannot be stored in the binary codeplug.
+			private string _encryptKey;
+			public string EncryptKey { get { return _encryptKey ?? ""; } set { _encryptKey = value; } }
+			private double _latitude;
+			public double Latitude { get { return _latitude; } set { _latitude = value; } }
+			private double _longitude;
+			public double Longitude { get { return _longitude; } set { _longitude = value; } }
+			private bool _useLocation;
+			public bool UseLocation { get { return _useLocation; } set { _useLocation = value; } }
 
 			public int Power
 			{
@@ -2718,6 +2726,11 @@ namespace DMR
 		private ComboBox cmbChannelMode;
 		private Label lblAndroidContactType;
 		private ComboBox cmbAndroidContactType;
+		private Label lblLatitude;
+		private TextBox txtLatitude;
+		private Label lblLongitude;
+		private TextBox txtLongitude;
+		private CheckBox chkUseLocation;
 		private ToolTip androidFieldsToolTip;
 
 		public static int CurCntCh
@@ -2801,12 +2814,17 @@ namespace DMR
 			if (this.chkEncryptSwitch != null) value.EncryptSwitch = this.chkEncryptSwitch.Checked ? 1 : 0;
 			// EncryptKey is CSV-only (can't be stored in binary codeplug, but save to memory for CSV export)
 			// Note: Key will be lost when saving to .g77 file!
+			if (this.txtEncryptKey != null) value.EncryptKey = this.txtEncryptKey.Text;
 			if (this.chkRelay != null) value.Relay = this.chkRelay.Checked ? 1 : 2;
 			if (this.cmbInterrupt != null) value.Interrupt = this.cmbInterrupt.SelectedIndex; // 0=OFF, 1=Open, 2=Transport
 			if (this.chkActive != null) value.Active = this.chkActive.Checked ? 1 : 0;
 			if (this.cmbOutboundSlot != null) value.OutboundSlot = this.cmbOutboundSlot.SelectedIndex + 1; // 0→1, 1→2
 			if (this.cmbChannelMode != null) value.ChannelMode = (this.cmbChannelMode.SelectedIndex == 0) ? 0 : 3; // 0=Direct, 1=Double Slot(3)
 			if (this.cmbAndroidContactType != null) value.AndroidContactType = this.cmbAndroidContactType.SelectedIndex; // 0=PERSON, 1=GROUP, 2=ALL
+			// Location fields (CSV-only)
+			if (this.txtLatitude != null) { double lat; if (double.TryParse(this.txtLatitude.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lat)) value.Latitude = lat; }
+			if (this.txtLongitude != null) { double lon; if (double.TryParse(this.txtLongitude.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lon)) value.Longitude = lon; }
+			if (this.chkUseLocation != null) value.UseLocation = this.chkUseLocation.Checked;
 			ChannelForm.data[index] = value;
 		}
 
@@ -2881,13 +2899,17 @@ namespace DMR
 			this.chkEnhancedChAccess.Checked = channelOne.EnchancedChAccess;
 			// Android-specific fields
 			if (this.chkEncryptSwitch != null) this.chkEncryptSwitch.Checked = channelOne.EncryptSwitch != 0;
-			if (this.txtEncryptKey != null) this.txtEncryptKey.Text = ""; // Not stored in binary codeplug (only in CSV)
+			if (this.txtEncryptKey != null) this.txtEncryptKey.Text = channelOne.EncryptKey ?? "";
 			if (this.chkRelay != null) this.chkRelay.Checked = (channelOne.Relay == 1);
 			if (this.cmbInterrupt != null) this.cmbInterrupt.SelectedIndex = Math.Min(channelOne.Interrupt, 2); // Clamp to 0-2
 			if (this.chkActive != null) this.chkActive.Checked = channelOne.Active != 0;
 			if (this.cmbOutboundSlot != null) this.cmbOutboundSlot.SelectedIndex = Math.Max(0, channelOne.OutboundSlot - 1); // 1→0, 2→1
 			if (this.cmbChannelMode != null) this.cmbChannelMode.SelectedIndex = (channelOne.ChannelMode == 0) ? 0 : 1; // 0→Direct, 3→Double Slot
 			if (this.cmbAndroidContactType != null) this.cmbAndroidContactType.SelectedIndex = Math.Min(channelOne.AndroidContactType, 2); // Clamp to 0-2
+			// Location fields
+			if (this.txtLatitude != null) this.txtLatitude.Text = channelOne.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+			if (this.txtLongitude != null) this.txtLongitude.Text = channelOne.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+			if (this.chkUseLocation != null) this.chkUseLocation.Checked = channelOne.UseLocation;
 			this.method_7();
 			this.method_9();
 			this.method_8();
@@ -3090,15 +3112,48 @@ namespace DMR
 			this.txtEncryptKey.ReadOnly = false;
 			grpAndroid.Controls.Add(this.txtEncryptKey);
 			
+			// Row 4: Location fields
+			yPos += spacing;
+			this.lblLatitude = new Label();
+			this.lblLatitude.Text = "Latitude:";
+			this.lblLatitude.Location = new System.Drawing.Point(xCol1, yPos + 3);
+			this.lblLatitude.AutoSize = true;
+			grpAndroid.Controls.Add(this.lblLatitude);
+
+			this.txtLatitude = new TextBox();
+			this.txtLatitude.Location = new System.Drawing.Point(xCol1 + 65, yPos);
+			this.txtLatitude.Size = new System.Drawing.Size(130, 23);
+			grpAndroid.Controls.Add(this.txtLatitude);
+
+			this.lblLongitude = new Label();
+			this.lblLongitude.Text = "Longitude:";
+			this.lblLongitude.Location = new System.Drawing.Point(xCol2, yPos + 3);
+			this.lblLongitude.AutoSize = true;
+			grpAndroid.Controls.Add(this.lblLongitude);
+
+			this.txtLongitude = new TextBox();
+			this.txtLongitude.Location = new System.Drawing.Point(xCol2 + 75, yPos);
+			this.txtLongitude.Size = new System.Drawing.Size(130, 23);
+			grpAndroid.Controls.Add(this.txtLongitude);
+
+			this.chkUseLocation = new CheckBox();
+			this.chkUseLocation.Text = "Use Location";
+			this.chkUseLocation.Location = new System.Drawing.Point(xCol3, yPos);
+			this.chkUseLocation.AutoSize = true;
+			grpAndroid.Controls.Add(this.chkUseLocation);
+
 			// Add info label
 			yPos += spacing + 10;
 			var lblInfo = new Label();
-			lblInfo.Text = "Note: These fields are Android-specific and stored in reserve bytes. EncryptKey cannot be stored in binary codeplug.";
+			lblInfo.Text = "Note: These fields are Android-specific. EncryptKey, Latitude, Longitude and Use Location are CSV-only (not stored in binary codeplug).";
 			lblInfo.Location = new System.Drawing.Point(xCol1, yPos);
 			lblInfo.Size = new System.Drawing.Size(700, 30);
 			lblInfo.ForeColor = System.Drawing.Color.DarkBlue;
 			grpAndroid.Controls.Add(lblInfo);
-			
+
+			// Expand group box to fit new row
+			grpAndroid.Size = new System.Drawing.Size(740, yPos + 45);
+
 			// Add the group box to the form
 			this.pnlChannel.Controls.Add(grpAndroid);
 		}
