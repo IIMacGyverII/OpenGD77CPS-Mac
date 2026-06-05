@@ -6,6 +6,8 @@ namespace ReadWriteCsv
 {
 	public class CsvFileReader : StreamReader
 	{
+		private bool _firstRow = true;
+
         public CsvFileReader(Stream stream) : base(stream)
 		{
 		}
@@ -21,6 +23,11 @@ namespace ReadWriteCsv
 		public bool ReadRow(CsvRow row)
 		{
 			row.LineText = this.ReadLine();
+			if (_firstRow)
+			{
+				row.LineText = CsvEncoding.StripBom(row.LineText);
+				_firstRow = false;
+			}
 			if (string.IsNullOrEmpty(row.LineText))
 			{
 				return false;

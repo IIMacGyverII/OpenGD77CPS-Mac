@@ -23,7 +23,7 @@ namespace DMR
 		{
 			try
 			{
-				using (CsvFileWriter writer = new CsvFileWriter(filePath, false, Encoding.UTF8))
+				using (CsvFileWriter writer = new CsvFileWriter(filePath, false, CsvEncoding.Utf8NoBom))
 				{
 					// Write header row
 					CsvRow headerRow = new CsvRow();

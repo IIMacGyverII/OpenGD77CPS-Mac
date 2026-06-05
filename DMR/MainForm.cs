@@ -192,6 +192,14 @@ namespace DMR
 
 		private ToolStripButton tsbtnAbout;
 
+		private ToolStripSeparator toolStripSeparatorAndroid;
+
+		private ToolStripButton tsbtnImportAndroid;
+
+		private ToolStripButton tsbtnExportAndroid;
+
+		private ToolStripStatusLabel slblForkVersion;
+
 		private ToolStripMenuItem tsmiClear;
 
 		private ToolStripSeparator toolStripSeparator4;
@@ -394,10 +402,14 @@ namespace DMR
 			this.tsbtnOpen = new ToolStripButton();
 			this.tsbtnSave = new ToolStripButton();
 			this.toolStripSeparator2 = new ToolStripSeparator();
+			this.tsbtnImportAndroid = new ToolStripButton();
+			this.tsbtnExportAndroid = new ToolStripButton();
+			this.toolStripSeparatorAndroid = new ToolStripSeparator();
 			this.tsbtnRead = new ToolStripButton();
 			this.tsbtnWrite = new ToolStripButton();
 			this.toolStripSeparator3 = new ToolStripSeparator();
 			this.tsbtnAbout = new ToolStripButton();
+			this.slblForkVersion = new ToolStripStatusLabel();
 			this.mnsMain.SuspendLayout();
 			this.cmsGroup.SuspendLayout();
 			this.cmsSub.SuspendLayout();
@@ -998,9 +1010,10 @@ namespace DMR
 			this.tvwMain.NodeMouseClick += this.tvwMain_NodeMouseClick;
 			this.tvwMain.BeforeLabelEdit += this.tvwMain_BeforeLabelEdit;
 			this.tvwMain.KeyDown += this.tvwMain_KeyDown;
-			this.ssrMain.Items.AddRange(new ToolStripItem[1]
+			this.ssrMain.Items.AddRange(new ToolStripItem[2]
 			{
-				this.slblComapny
+				this.slblComapny,
+				this.slblForkVersion
 			});
 			this.ssrMain.Location = new Point(234, 687);
 			this.ssrMain.Name = "ssrMain";
@@ -1011,12 +1024,18 @@ namespace DMR
 			this.slblComapny.Name = "slblComapny";
 			this.slblComapny.Size = new Size(63, 17);
 			this.slblComapny.Text = "Prompt：";
-			this.tsrMain.Items.AddRange(new ToolStripItem[8]
+			this.slblForkVersion.Name = "slblForkVersion";
+			this.slblForkVersion.Spring = true;
+			this.slblForkVersion.TextAlign = ContentAlignment.MiddleRight;
+			this.tsrMain.Items.AddRange(new ToolStripItem[10]
 			{
 				this.tsbtnNew,
 				this.tsbtnOpen,
 				this.tsbtnSave,
 				this.toolStripSeparator2,
+				this.tsbtnImportAndroid,
+				this.tsbtnExportAndroid,
+				this.toolStripSeparatorAndroid,
 				this.tsbtnRead,
 				this.tsbtnWrite,
 				this.toolStripSeparator3,
@@ -1051,7 +1070,22 @@ namespace DMR
 			this.tsbtnSave.Click += this.tsbtnSave_Click;
 			this.toolStripSeparator2.Name = "toolStripSeparator2";
 			this.toolStripSeparator2.Size = new Size(6, 25);
+			this.tsbtnImportAndroid.DisplayStyle = ToolStripItemDisplayStyle.Text;
+			this.tsbtnImportAndroid.Name = "tsbtnImportAndroid";
+			this.tsbtnImportAndroid.Size = new Size(100, 22);
+			this.tsbtnImportAndroid.Text = "Import Android";
+			this.tsbtnImportAndroid.ToolTipText = "Import PriInterPhone backup folder (File → Import CSV, Path B)";
+			this.tsbtnImportAndroid.Click += this.tsmiImportCsv_Click;
+			this.tsbtnExportAndroid.DisplayStyle = ToolStripItemDisplayStyle.Text;
+			this.tsbtnExportAndroid.Name = "tsbtnExportAndroid";
+			this.tsbtnExportAndroid.Size = new Size(100, 22);
+			this.tsbtnExportAndroid.Text = "Export Android";
+			this.tsbtnExportAndroid.ToolTipText = "Export Android-format CSV (UTF-8, no BOM)";
+			this.tsbtnExportAndroid.Click += this.tsmiExportCsv_Click;
+			this.toolStripSeparatorAndroid.Name = "toolStripSeparatorAndroid";
+			this.toolStripSeparatorAndroid.Size = new Size(6, 25);
 			this.tsbtnRead.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			this.tsbtnRead.Visible = false;
 			this.tsbtnRead.Image = (Image)componentResourceManager.GetObject("tsbtnRead.Image");
 			this.tsbtnRead.ImageTransparentColor = Color.Magenta;
 			this.tsbtnRead.Name = "tsbtnRead";
@@ -1064,8 +1098,10 @@ namespace DMR
 			this.tsbtnWrite.Name = "tsbtnWrite";
 			this.tsbtnWrite.Size = new Size(23, 22);
 			this.tsbtnWrite.Text = "Write";
+			this.tsbtnWrite.Visible = false;
 			this.tsbtnWrite.Click += this.tsbtnWrite_Click;
 			this.toolStripSeparator3.Name = "toolStripSeparator3";
+			this.toolStripSeparator3.Visible = false;
 			this.toolStripSeparator3.Size = new Size(6, 25);
 			this.tsbtnAbout.DisplayStyle = ToolStripItemDisplayStyle.Image;
 			this.tsbtnAbout.Image = (Image)componentResourceManager.GetObject("tsbtnAbout.Image");
@@ -1365,14 +1401,28 @@ namespace DMR
 			{
 				base.FormClosing += this.MainForm_FormClosing;
 			}
+
+			this.UpdateForkChrome();
+		}
+
+		private void UpdateForkChrome()
+		{
+#if OpenGD77
+			this.slblForkVersion.Text = AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION
+				+ " — use File → Import CSV for phone backups (not channel-grid Import)";
+#endif
 		}
 
 		private string getMainTitleStub()
 		{
+#if OpenGD77
+			return MainForm.PRODUCT_NAME + " — " + AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION;
+#else
 			Version ver = AssemblyName.GetAssemblyName(System.Reflection.Assembly.GetExecutingAssembly().Location).Version;//.ToString();
 			DateTime dt = new DateTime(2000, 1, 1, 0, 0, 0).AddDays(ver.Build).AddSeconds(ver.Revision * 2);
 
 			return MainForm.PRODUCT_NAME + " (Build date " + dt.ToString("yyyyMMdd")+ ")";
+#endif
 		}
 
 
@@ -3236,6 +3286,7 @@ namespace DMR
 			MessageBoxIcon icon = hasErrors ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
 			
 			MessageBox.Show(results.ToString(), title, MessageBoxButtons.OK, icon);
+			this.UpdateForkChrome();
 			
 			// Refresh all tree nodes
 			this.InitTree();
@@ -3348,11 +3399,14 @@ namespace DMR
 				hasErrors = true;
 			}
 			
+			results.Append("\nEncoding: UTF-8 (no BOM) for all CSV files.");
+
 			// Show results
 			string title = hasErrors ? "Export Completed with Errors" : "Export Complete";
 			MessageBoxIcon icon = hasErrors ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
 			
 			MessageBox.Show(results.ToString(), title, MessageBoxButtons.OK, icon);
+			this.UpdateForkChrome();
 		}
 
 		// Helper method to count valid contacts

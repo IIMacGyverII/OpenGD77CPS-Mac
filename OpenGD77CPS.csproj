@@ -314,6 +314,7 @@
     <Compile Include="DMR\TGListsCsvExporter.cs" />
     <Compile Include="DMR\TGListsCsvImporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReadWriteCsv\CsvEncoding.cs" />
     <Compile Include="ReadWriteCsv\CsvFileReader.cs" />
     <Compile Include="ReadWriteCsv\CsvFileWriter.cs" />
     <Compile Include="ReadWriteCsv\CsvRow.cs" />

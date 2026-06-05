@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** Planning — not implemented
+**Status:** In progress — Tier 1A/1.6 started (v1.2.1): CSV UTF-8 no BOM, Android import/export toolbar, fork status bar
 
 ---
 
@@ -57,7 +57,7 @@ A full port to WPF, Avalonia, MAUI, or Electron is possible but is a **multi-mon
 | Improvement | Description | Primary files |
 |-------------|-------------|---------------|
 | **Android backup toolbar** | Dedicated buttons: *Import Android backup…*, *Export Android backup…*, *Open backup folder*, *Help* (link to fork README / release notes). | `MainForm.cs` |
-| **First-run / welcome dialog** | On first launch (or until dismissed): explain 5-file backup folder, Path B only, link to `RELEASE_NOTES_20260601.md` in phonedmrapp. | New `AndroidWorkflowForm.cs` |
+| **First-run / welcome dialog** | On first launch (or until dismissed): explain 5-file backup folder, Path B only, link to [fork release notes](https://github.com/IIMacGyverII/OpenGD77CPS-Mac/releases) / `docs/RELEASE_NOTES_v1.2.0.md`. | New `AndroidWorkflowForm.cs` |
 | **Menu declutter** | Move USB Read/Write, firmware loader, calibration, stock OpenGD77 extras under **Advanced → Stock OpenGD77 / USB** (collapsed by default). | `MainForm.cs` |
 | **Status bar hint** | Persistent text: `PriInterPhone CSV fork v{FORK_VERSION} — use File → Import CSV for Android backups`. | `MainForm.cs` |
 
@@ -362,6 +362,68 @@ Right-click any contact DMR ID field → **"Look up on RadioID.net"** opens `htt
 
 ---
 
+## Dead code inventory
+
+Identified by source analysis (June 5, 2026). These do **not** need to be fixed before UI work but should be cleaned up opportunistically — they add confusion when navigating the codebase.
+
+### `ChannelsCsvImporter` vs live Path B (read carefully)
+
+There are **two** `ImportFromCsvFile` overloads on `ChannelsForm`:
+
+| Symbol | Status | Evidence |
+|--------|--------|----------|
+| `ImportFromCsvFile(..., MainForm, ...)` at **~line 621** | **LIVE — Path B** | `MainForm.cs:3183` batch Android import; large inline CSV parser |
+| `ImportFromCsvFile(..., Form, ...)` at **~line 1874** | **Dead overload** | Only calls `ChannelsCsvImporter.ImportChannelsFromCsv` |
+| `ChannelsCsvImporter.ImportChannelsFromCsv()` | **Dead** | Only reached from the dead `Form` overload above |
+
+> **Do not delete** the method at line 621 — that is production Path B.
+>
+> **Options for cleanup:**
+> - **Delete** the `Form` overload (~1874) and `ChannelsCsvImporter.cs` if you are not migrating.
+> - **Activate (preferred):** Move Path B body from line 621 into `ChannelsCsvImporter`, then call it from a single `MainForm` overload.
+> - **Rename** activated class to `AndroidChannelsImporter` for Tier 2.2 `AndroidBackupForm`.
+
+---
+
+### Confirmed dead: `VoteScanForm.cs`
+
+`VoteScanForm` has 7 references — all inside `VoteScanForm.cs` itself (class definition, constructor, event wires, `InitializeComponent`). No external file instantiates or references it.
+
+| File | External refs |
+|------|---------------|
+| `MainForm.cs` | 0 |
+| Any other `*.cs` | 0 |
+
+**Recommendation:** Safe to delete or move to `Unused/` folder. This is a stock OpenGD77 form for a feature (vote scan) that has no relevance to the PriInterPhone fork.
+
+---
+
+### Likely orphaned (stock OpenGD77, not exposed in fork UI)
+
+These forms have non-zero external references (they're wired into the dock/menu system from the original decompiled code) but are not meaningful for the PriInterPhone CSV workflow. They should not be deleted without auditing the menu system, but they are candidates for hiding under **Advanced → Stock OpenGD77** (Tier 1.1 menu declutter):
+
+| Form | Purpose | Fork relevance |
+|------|---------|----------------|
+| `AttachmentForm.cs` | DMR attachment message form | Stock GD-77 only |
+| `BootItemForm.cs` | Boot display items | Stock GD-77 only |
+| `ButtonForm.cs` | Programmable button config | Stock GD-77 only |
+| `EmergencyForm.cs` | Emergency system config | Stock GD-77 only |
+| `EncryptForm.cs` | Encryption key management | Partially relevant — fork sets encrypt via channel CSV |
+| `SignalingBasicForm.cs` | DTMF/2-tone signaling | Stock GD-77 only |
+| `TextMsgForm.cs` | Predefined text messages | Stock GD-77 only |
+
+---
+
+### What not to do with dead code
+
+| Anti-pattern | Reason |
+|--------------|--------|
+| Delete `ChannelsCsvImporter` without activating its logic elsewhere | The class has correct import logic; better to activate than throw it away |
+| Delete stock forms without auditing `MainForm` menu wiring | Hidden menu items will `NullReferenceException` at runtime if their target form is gone |
+| Rename dead-code methods before removing them | Creates merge noise; just delete |
+
+---
+
 ## What not to do
 
 | Anti-pattern | Reason |
@@ -383,19 +445,21 @@ Right-click any contact DMR ID field → **"Look up on RadioID.net"** opens `htt
 
 ```mermaid
 flowchart TD
+  A0[Tier 1.6: CSV UTF-8 no BOM]
   A[Tier 1A: Toolbar + welcome + menu declutter]
   B[Tier 1B: Dark theme + DPI + fonts]
   C[Tier 1C: ChannelForm Android GroupBox + tooltips]
   D[Tier 2A: AndroidBackupForm + validation]
   E[Tier 2B: Grid polish + import summary dialog]
   F[Tier 3: Hybrid or thin Studio - optional]
-  A --> B --> C --> D --> E
+  A0 --> A --> B --> C --> D --> E
   E -.-> F
 ```
 
 | Phase | Deliverables | Fork version bump |
 |-------|--------------|-------------------|
-| **1A** | Toolbar, welcome dialog, Advanced submenu | PATCH (e.g. 1.2.1) |
+| **1.6** | `CsvEncoding` helper, UTF-8 no BOM read/write | PATCH (e.g. 1.2.1) — **started** |
+| **1A** | Toolbar, welcome dialog, Advanced submenu | PATCH (e.g. 1.2.1) — **partial** (toolbar + status) |
 | **1B** | Theme helper, DockPanel skin, manifest DPI | PATCH |
 | **1C** | Android field grouping on `ChannelForm` | MINOR (e.g. 1.3.0) |
 | **2A** | `AndroidBackupForm` | MINOR |
@@ -449,8 +513,9 @@ Run after every UI phase; CSV behavior must not regress.
 ## References
 
 - [CODEBASE_DEEP_DIVE.md](CODEBASE_DEEP_DIVE.md) — three import paths, static arrays, column map  
-- [phonedmrapp/OpenGD77Fork/RELEASE_NOTES_20260601.md](../../phonedmrapp/OpenGD77Fork/RELEASE_NOTES_20260601.md) — fork v1.2.0 behavior  
-- [phonedmrapp/.github/copilot-instructions.md](../../phonedmrapp/.github/copilot-instructions.md) — OpenGD77 fork build & versioning rules  
+- [RELEASE_NOTES_v1.2.0.md](RELEASE_NOTES_v1.2.0.md) — fork release summary  
+- [phonedmrapp OpenGD77Fork release notes](https://github.com/IIMacGyverII/phonedmrapp/blob/main/OpenGD77Fork/RELEASE_NOTES_20260601.md) — extended changelog  
+- [phonedmrapp copilot-instructions (OpenGD77 section)](https://github.com/IIMacGyverII/phonedmrapp/blob/main/.github/copilot-instructions.md) — build & versioning rules
 - [Dock Panel Suite](https://github.com/dockpanelsuite/dockpanelsuite) — docking skin API  
 
 ---
@@ -461,3 +526,5 @@ Run after every UI phase; CSV behavior must not regress.
 |------|---------|-------|
 | 2026-06-05 | 1.0 | Initial plan from architecture review |
 | 2026-06-05 | 1.1 | Added §1.6–1.9 (CSV encoding guard, health panel, contact type badge, keyboard shortcuts); §2.5–2.10 (diff preview, contact integrity checker, revert, bulk edit, column toggle, ADB auto-detect); §3.4 (DMR ID lookup); 4 new anti-patterns; roadmap phases 2C/2D/3A |
+| 2026-06-05 | 1.2 | Added dead code inventory: `ChannelsCsvImporter` (never reached), `VoteScanForm` (zero external refs), stock GD-77 orphan forms; anti-patterns for dead code cleanup |
+| 2026-06-05 | 1.3 | Fixed Path B vs dead overload table; roadmap includes §1.6; GitHub-safe reference links; status → in progress |

@@ -8,8 +8,8 @@
 
 | | |
 |---|---|
-| **Latest release** | [**v1.2.0**](https://github.com/IIMacGyverII/OpenGD77CPS-Mac/releases/latest) |
-| **Asset** | `OpenGD77CPS-Mac_Build_20260601_142528.zip` |
+| **Latest release** | [**v1.2.1**](https://github.com/IIMacGyverII/OpenGD77CPS-Mac/releases/latest) (or [v1.2.0](https://github.com/IIMacGyverII/OpenGD77CPS-Mac/releases/tag/v1.2.0) zip until v1.2.1 asset is published) |
+| **Asset** | Build from source for v1.2.1; previous binary: `OpenGD77CPS-Mac_Build_20260601_142528.zip` (v1.2.0) |
 | **Requires** | Windows 7+, [.NET Framework 4.8](https://dotnet.microsoft.com/download/dotnet-framework/net48) |
 | **Phone module** | [DMRModHooks v3.4.0+](https://github.com/IIMacGyverII/phonedmrapp/releases) (LSPosed) for full import fixes on device |
 
@@ -63,7 +63,6 @@ Details: [docs/RELEASE_NOTES_v1.2.0.md](docs/RELEASE_NOTES_v1.2.0.md)
 | Doc | Description |
 |-----|-------------|
 | [docs/CODEBASE_DEEP_DIVE.md](docs/CODEBASE_DEEP_DIVE.md) | Import paths A/B/C, column map, pitfalls |
-| [docs/UI_MODERNIZATION_PLAN.md](docs/UI_MODERNIZATION_PLAN.md) | Planned UI/UX improvements |
 | [phonedmrapp OpenGD77Fork notes](https://github.com/IIMacGyverII/phonedmrapp/tree/main/OpenGD77Fork) | Release zips mirrored in main Android repo |
 
 ## Build from source
@@ -113,5 +112,5 @@ Inherits license terms from the original OpenGD77 CPS project. See `LICENSE` if 
 
 ---
 
-**Fork version:** 1.2.0  
+**Fork version:** 1.2.1  
 **Last updated:** June 5, 2026

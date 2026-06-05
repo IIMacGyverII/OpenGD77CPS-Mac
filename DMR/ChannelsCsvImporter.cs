@@ -43,7 +43,7 @@ namespace DMR
 					ClearAllChannels();
 				}
 
-				using (CsvFileReader reader = new CsvFileReader(filePath, Encoding.UTF8))
+				using (CsvFileReader reader = new CsvFileReader(filePath, CsvEncoding.Utf8NoBom))
 				{
 					CsvRow headerRow = new CsvRow();
 					

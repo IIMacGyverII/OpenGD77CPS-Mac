@@ -249,7 +249,7 @@ namespace DMR
 
 			if (saveFileDialog.ShowDialog() == DialogResult.OK && saveFileDialog.FileName != null)
 			{
-				using (CsvFileWriter csvFileWriter = new CsvFileWriter(new FileStream(saveFileDialog.FileName, FileMode.Create), Encoding.Default))
+				using (CsvFileWriter csvFileWriter = new CsvFileWriter(new FileStream(saveFileDialog.FileName, FileMode.Create), CsvEncoding.Utf8NoBom))
 				{
 					CsvRow csvRow = new CsvRow();
 					csvRow.AddRange(SZ_EXPORT_HEADER_TEXT);
@@ -347,7 +347,7 @@ namespace DMR
 			openFileDialog.Filter = "csv files|*.csv";
 			if (openFileDialog.ShowDialog() == DialogResult.OK && openFileDialog.FileName != null)
 			{
-				using (CsvFileReader csvFileReader = new CsvFileReader(openFileDialog.FileName, Encoding.Default))
+				using (CsvFileReader csvFileReader = new CsvFileReader(openFileDialog.FileName, CsvEncoding.Utf8NoBom))
 				{
 					CsvRow csvRow = new CsvRow();
 					csvFileReader.ReadRow(csvRow);
@@ -635,7 +635,7 @@ namespace DMR
 
 			try
 			{
-				using (CsvFileReader csvFileReader = new CsvFileReader(filePath, Encoding.Default))
+				using (CsvFileReader csvFileReader = new CsvFileReader(filePath, CsvEncoding.Utf8NoBom))
 				{
 					CsvRow csvRow = new CsvRow();
 					csvFileReader.ReadRow(csvRow);
@@ -1164,7 +1164,7 @@ namespace DMR
 		{
 			try
 			{
-				using (CsvFileWriter csvFileWriter = new CsvFileWriter(new FileStream(filePath, FileMode.Create), Encoding.Default))
+				using (CsvFileWriter csvFileWriter = new CsvFileWriter(new FileStream(filePath, FileMode.Create), CsvEncoding.Utf8NoBom))
 				{
 					// Write header - Android format with all 37 fields (includes _id)
 					CsvRow csvRow = new CsvRow();
