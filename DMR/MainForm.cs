@@ -1005,7 +1005,7 @@ namespace DMR
 			dockPaneStripToolWindowGradient.InactiveTabGradient = tabGradient7;
 			dockPaneStripSkin.ToolWindowGradient = dockPaneStripToolWindowGradient;
 			dockPanelSkin.DockPaneStripSkin = dockPaneStripSkin;
-			this.dockPanel.Skin = dockPanelSkin;
+			// DockPanel Suite 3.x: Skin is applied via internal theme; fork chrome uses Theme.ApplyForkChrome on menu/toolbar/status.
 			this.dockPanel.TabIndex = 6;
 			this.pnlTvw.Controls.Add(this.tvwMain);
 			this.pnlTvw.Dock = DockStyle.Left;
@@ -1050,7 +1050,7 @@ namespace DMR
 			this.slblForkVersion.Name = "slblForkVersion";
 			this.slblForkVersion.Spring = true;
 			this.slblForkVersion.TextAlign = ContentAlignment.MiddleRight;
-			this.tsrMain.Items.AddRange(new ToolStripItem[10]
+			this.tsrMain.Items.AddRange(new ToolStripItem[11]
 			{
 				this.tsbtnNew,
 				this.tsbtnOpen,
@@ -1434,7 +1434,6 @@ namespace DMR
 		{
 #if OpenGD77
 			Theme.ApplyForkChrome(this, this.mnsMain, this.tsrMain, this.ssrMain);
-			Theme.ApplyDockPanelSkin(this.dockPanel);
 			this.slblForkVersion.Text = AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION
 				+ " — Path B: File → Import Android backup (not channel-grid Import)";
 			this.UpdateCodeplugHealth();
@@ -1464,7 +1463,7 @@ namespace DMR
 					analog++;
 					break;
 				}
-				ChannelOne ch = ChannelForm.data[i];
+				ChannelForm.ChannelOne ch = ChannelForm.data[i];
 				if (ch.Relay == 0)
 				{
 					relayZero++;

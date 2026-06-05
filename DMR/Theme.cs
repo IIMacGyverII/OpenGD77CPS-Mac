@@ -1,6 +1,5 @@
 using System.Drawing;
 using System.Windows.Forms;
-using WeifenLuo.WinFormsUI.Docking;
 
 namespace DMR
 {
@@ -31,50 +30,6 @@ namespace DMR
 			{
 				ApplyStatusStrip(status);
 			}
-		}
-
-		public static void ApplyDockPanelSkin(DockPanel dockPanel)
-		{
-			if (dockPanel == null)
-			{
-				return;
-			}
-
-			DockPanelSkin skin = new DockPanelSkin();
-			AutoHideStripSkin autoHide = new AutoHideStripSkin();
-			DockPanelGradient autoHideGradient = new DockPanelGradient
-			{
-				StartColor = Chrome,
-				EndColor = Background
-			};
-			autoHide.DockStripGradient = autoHideGradient;
-			skin.AutoHideStripSkin = autoHide;
-
-			DockPaneStripSkin paneStrip = new DockPaneStripSkin();
-			DockPaneStripGradient paneGradient = new DockPaneStripGradient();
-			paneGradient.DockStripGradient.StartColor = Chrome;
-			paneGradient.DockStripGradient.EndColor = Background;
-			paneGradient.ActiveTabGradient.StartColor = Accent;
-			paneGradient.ActiveTabGradient.EndColor = Background;
-			paneGradient.ActiveTabGradient.TextColor = Foreground;
-			paneGradient.InactiveTabGradient.StartColor = Chrome;
-			paneGradient.InactiveTabGradient.EndColor = Background;
-			paneGradient.InactiveTabGradient.TextColor = MutedForeground;
-			paneStrip.DockPaneStripGradient = paneGradient;
-
-			DockPaneStripToolWindowGradient toolGradient = new DockPaneStripToolWindowGradient();
-			toolGradient.DockStripGradient.StartColor = Chrome;
-			toolGradient.DockStripGradient.EndColor = Background;
-			toolGradient.ActiveCaptionGradient.StartColor = Accent;
-			toolGradient.ActiveCaptionGradient.EndColor = Background;
-			toolGradient.ActiveCaptionGradient.TextColor = Foreground;
-			toolGradient.InactiveCaptionGradient.StartColor = Chrome;
-			toolGradient.InactiveCaptionGradient.EndColor = Background;
-			toolGradient.InactiveCaptionGradient.TextColor = MutedForeground;
-			paneStrip.DockPaneStripToolWindowGradient = toolGradient;
-			skin.DockPaneStripSkin = paneStrip;
-
-			dockPanel.Skin = skin;
 		}
 
 		private static void ApplyMenuStrip(MenuStrip menu)
