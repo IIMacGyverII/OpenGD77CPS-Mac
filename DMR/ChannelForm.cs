@@ -3005,6 +3005,7 @@ namespace DMR
 				
 				// Create Android-specific controls programmatically
 				this.CreateAndroidControls();
+				Theme.ApplyStandardEditorColors(this);
 				
 				ChannelForm.data.ChModeChangeEvent += this.method_2;
 				this.BbRiogasSx();

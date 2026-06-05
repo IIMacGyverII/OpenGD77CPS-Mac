@@ -39,7 +39,7 @@ namespace DMR
 			this.MinimumSize = new Size(540, 480);
 			this.ClientSize = new Size(540, 460);
 			this.Font = new Font("Segoe UI", 9.75f);
-			Theme.ApplyForkChrome(this, null, null, null);
+			Theme.ApplyForkDialog(this);
 
 			this.lblHint = new Label
 			{

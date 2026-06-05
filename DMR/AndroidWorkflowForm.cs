@@ -28,7 +28,7 @@ namespace DMR
 			this.StartPosition = FormStartPosition.CenterParent;
 			this.ClientSize = new Size(520, 360);
 			this.Font = new Font("Segoe UI", 9.75f);
-			Theme.ApplyForkChrome(this, null, null, null);
+			Theme.ApplyForkDialog(this);
 
 			Label intro = new Label
 			{

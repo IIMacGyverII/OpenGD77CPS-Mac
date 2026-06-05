@@ -1475,6 +1475,8 @@ namespace DMR
 		{
 #if OpenGD77
 			Theme.ApplyForkChrome(this, this.mnsMain, this.tsrMain, this.ssrMain);
+			// Keep default text color on the shell so MDI/dock editors keep black labels on gray panels.
+			this.ForeColor = SystemColors.ControlText;
 			this.slblForkVersion.Text = AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION
 				+ " — Path B: File → Import Android backup (not channel-grid Import)";
 			this.UpdateCodeplugHealth();
