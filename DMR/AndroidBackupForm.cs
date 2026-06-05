@@ -22,6 +22,8 @@ namespace DMR
 		private readonly Button btnExportAll;
 		private readonly Button btnOpenFolder;
 		private readonly Label lblHint;
+		private readonly CheckBox chkIntegrity;
+		private readonly TextBox txtIntegrity;
 		private AndroidBackupValidationResult lastValidation;
 
 		private static readonly string[] BackupFiles = new string[]
@@ -39,8 +41,8 @@ namespace DMR
 			this.Text = "Android backup — Path B";
 			this.StartPosition = FormStartPosition.CenterParent;
 			this.FormBorderStyle = FormBorderStyle.Sizable;
-			this.MinimumSize = new Size(540, 480);
-			this.ClientSize = new Size(540, 460);
+			this.MinimumSize = new Size(540, 500);
+			this.ClientSize = new Size(540, 500);
 			this.Font = new Font("Segoe UI", 9.75f);
 			Theme.ApplyForkDialog(this);
 
@@ -99,17 +101,40 @@ namespace DMR
 			this.txtValidation = new TextBox
 			{
 				Location = new Point(12, 248),
-				Size = new Size(516, 180),
+				Size = new Size(516, 110),
 				Multiline = true,
 				ReadOnly = true,
 				ScrollBars = ScrollBars.Vertical,
 				Font = new Font("Consolas", 9f),
-				Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+			};
+
+			this.chkIntegrity = new CheckBox
+			{
+				Location = new Point(12, 364),
+				Size = new Size(516, 20),
+				AutoSize = true,
+				Visible = false,
+				Text = "Contact integrity warnings"
+			};
+			this.chkIntegrity.CheckedChanged += this.chkIntegrity_CheckedChanged;
+
+			this.txtIntegrity = new TextBox
+			{
+				Location = new Point(12, 386),
+				Size = new Size(516, 72),
+				Multiline = true,
+				ReadOnly = true,
+				Visible = false,
+				ScrollBars = ScrollBars.Vertical,
+				Font = new Font("Consolas", 9f),
+				ForeColor = Color.Khaki,
+				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
 			};
 
 			this.btnImportAll = new Button
 			{
-				Location = new Point(12, 402),
+				Location = new Point(12, 466),
 				Size = new Size(130, 28),
 				Text = "Import all (Path B)",
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
@@ -118,7 +143,7 @@ namespace DMR
 
 			this.btnExportAll = new Button
 			{
-				Location = new Point(148, 402),
+				Location = new Point(148, 466),
 				Size = new Size(100, 28),
 				Text = "Export all",
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
@@ -127,7 +152,7 @@ namespace DMR
 
 			this.btnOpenFolder = new Button
 			{
-				Location = new Point(254, 402),
+				Location = new Point(254, 466),
 				Size = new Size(100, 28),
 				Text = "Open folder",
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
@@ -136,7 +161,7 @@ namespace DMR
 
 			Button btnClose = new Button
 			{
-				Location = new Point(428, 402),
+				Location = new Point(428, 466),
 				Size = new Size(100, 28),
 				Text = "Close",
 				DialogResult = DialogResult.OK,
@@ -152,6 +177,8 @@ namespace DMR
 			this.Controls.Add(this.lnkUsbHelp);
 			this.Controls.Add(this.lstFiles);
 			this.Controls.Add(this.txtValidation);
+			this.Controls.Add(this.chkIntegrity);
+			this.Controls.Add(this.txtIntegrity);
 			this.Controls.Add(this.btnImportAll);
 			this.Controls.Add(this.btnExportAll);
 			this.Controls.Add(this.btnOpenFolder);
@@ -212,6 +239,12 @@ namespace DMR
 			AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, this.txtFolder.Text.Trim());
 		}
 
+		private void chkIntegrity_CheckedChanged(object sender, EventArgs e)
+		{
+			this.txtIntegrity.Visible = this.chkIntegrity.Visible && this.chkIntegrity.Checked
+				&& !string.IsNullOrEmpty(this.txtIntegrity.Text);
+		}
+
 		private bool SetFolder(string folderPath, bool showErrors)
 		{
 			folderPath = folderPath == null ? "" : folderPath.Trim();
@@ -246,7 +279,14 @@ namespace DMR
 				AndroidImportDiffResult diff = AndroidImportDiff.Compute(channelsPath);
 				log.Append("\n\n").Append(diff.Summary);
 			}
+			AndroidContactIntegrityResult integrity = AndroidContactIntegrityChecker.CheckFolder(folderPath);
+			log.Append("\n\n").Append(integrity.Summary);
 			this.txtValidation.Text = log.ToString();
+			this.chkIntegrity.Visible = integrity.HasWarnings;
+			this.chkIntegrity.Text = integrity.Summary;
+			this.chkIntegrity.Checked = integrity.HasWarnings;
+			this.txtIntegrity.Text = integrity.DetailText;
+			this.txtIntegrity.Visible = integrity.HasWarnings && this.chkIntegrity.Checked;
 			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
 			return true;
 		}

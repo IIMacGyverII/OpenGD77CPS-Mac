@@ -43,6 +43,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>DMR_32512.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <UseVSHostingProcess>false</UseVSHostingProcess>
@@ -73,6 +74,9 @@
     <DefineConstants>OpenGD77</DefineConstants>
     <OutputPath>bin\Debug_OpenGD77\</OutputPath>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="app.manifest" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -195,6 +199,7 @@
     <Compile Include="DMR\AndroidBackupFolderPicker.cs" />
     <Compile Include="DMR\AndroidAdbBackup.cs" />
     <Compile Include="DMR\AndroidAdbPickForm.cs" />
+    <Compile Include="DMR\AndroidContactIntegrityChecker.cs" />
     <Compile Include="DMR\AndroidBackupValidator.cs" />
     <Compile Include="DMR\AndroidImportDiff.cs" />
     <Compile Include="DMR\AndroidImportDiffForm.cs" />

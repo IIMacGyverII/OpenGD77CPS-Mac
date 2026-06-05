@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** In progress — v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
+**Status:** In progress — v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
 
 ---
 
@@ -105,6 +105,8 @@ A full port to WPF, Avalonia, MAUI, or Electron is possible but is a **multi-mon
 **Acceptance criteria**
 
 - No clipped labels on Channel form Android section at 125–150% display scale.
+
+**Shipped (partial):** v1.3.3 — `app.manifest` Per-Monitor V2 DPI awareness.
 
 ---
 
@@ -275,6 +277,8 @@ After import (or on-demand), cross-reference `channel_txContact` values in Chann
 | Channel mode unknown | `channel_mode=5 is not 0 (Direct) or 3/4 (Double slot)` |
 
 Show as a collapsible warning panel in `AndroidBackupForm` before the user closes the session.
+
+**Shipped:** v1.3.3 — `AndroidContactIntegrityChecker.cs`; expandable warnings in `AndroidBackupForm`.
 
 ---
 
