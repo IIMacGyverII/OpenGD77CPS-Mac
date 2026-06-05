@@ -1022,8 +1022,9 @@ namespace DMR
 			dockPaneStripToolWindowGradient.InactiveTabGradient = tabGradient7;
 			dockPaneStripSkin.ToolWindowGradient = dockPaneStripToolWindowGradient;
 			dockPanelSkin.DockPaneStripSkin = dockPaneStripSkin;
-			Theme.ApplyDarkDockPanelSkin(dockPanelSkin);
-			this.dockPanel.Skin = dockPanelSkin;
+			WeifenLuo.WinFormsUI.Docking.VS2005Theme forkDockTheme = new WeifenLuo.WinFormsUI.Docking.VS2005Theme();
+			Theme.ApplyDarkDockPanelSkin(forkDockTheme.Skin);
+			this.dockPanel.Theme = forkDockTheme;
 			this.dockPanel.DockBackColor = Theme.Background;
 			this.dockPanel.TabIndex = 6;
 			this.pnlTvw.Controls.Add(this.tvwMain);
