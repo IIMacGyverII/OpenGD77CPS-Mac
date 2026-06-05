@@ -16,6 +16,7 @@ namespace DMR
 		private readonly ListView lstFiles;
 		private readonly TextBox txtValidation;
 		private readonly Button btnBrowse;
+		private readonly Button btnPullAdb;
 		private readonly LinkLabel lnkUsbHelp;
 		private readonly Button btnImportAll;
 		private readonly Button btnExportAll;
@@ -47,7 +48,7 @@ namespace DMR
 			{
 				Location = new Point(12, 12),
 				Size = new Size(516, 48),
-				Text = "Copy the phone backup folder to your PC first (USB copy to Desktop). Then browse or paste the local path here. Path B validation + diff preview. Order: Contacts → TG_Lists → Channels → Zones."
+				Text = "Import Path B backups: Pull from phone (ADB, USB debugging) or copy folder to PC and browse/paste. Validation + diff preview. Order: Contacts → TG_Lists → Channels → Zones."
 			};
 
 			this.txtFolder = new TextBox
@@ -67,17 +68,25 @@ namespace DMR
 			};
 			this.btnBrowse.Click += this.btnBrowse_Click;
 
+			this.btnPullAdb = new Button
+			{
+				Location = new Point(12, 88),
+				Size = new Size(150, 27),
+				Text = "Pull from phone (ADB)…"
+			};
+			this.btnPullAdb.Click += this.btnPullAdb_Click;
+
 			this.lnkUsbHelp = new LinkLabel
 			{
-				Location = new Point(12, 90),
+				Location = new Point(168, 93),
 				AutoSize = true,
-				Text = "Phone USB folder blocked? Copy to PC first (help)"
+				Text = "MTP/USB browse blocked? Use ADB or copy to PC (help)"
 			};
 			this.lnkUsbHelp.LinkClicked += this.lnkUsbHelp_LinkClicked;
 
 			this.lstFiles = new ListView
 			{
-				Location = new Point(12, 112),
+				Location = new Point(12, 120),
 				Size = new Size(516, 120),
 				View = View.Details,
 				FullRowSelect = true,
@@ -89,7 +98,7 @@ namespace DMR
 
 			this.txtValidation = new TextBox
 			{
-				Location = new Point(12, 240),
+				Location = new Point(12, 248),
 				Size = new Size(516, 180),
 				Multiline = true,
 				ReadOnly = true,
@@ -139,6 +148,7 @@ namespace DMR
 			this.Controls.Add(this.lblHint);
 			this.Controls.Add(this.txtFolder);
 			this.Controls.Add(this.btnBrowse);
+			this.Controls.Add(this.btnPullAdb);
 			this.Controls.Add(this.lnkUsbHelp);
 			this.Controls.Add(this.lstFiles);
 			this.Controls.Add(this.txtValidation);
@@ -164,6 +174,23 @@ namespace DMR
 			if (picked != null)
 			{
 				this.SetFolder(picked, true);
+			}
+		}
+
+		private void btnPullAdb_Click(object sender, EventArgs e)
+		{
+			string pulled = AndroidAdbBackup.TryPickPulledFolder(this);
+			if (!string.IsNullOrEmpty(pulled))
+			{
+				this.SetFolder(pulled, true);
+			}
+			else if (!AndroidAdbBackup.IsAdbAvailable())
+			{
+				MessageBox.Show(this,
+					"adb.exe was not found.\n\nInstall Android platform-tools, add adb to PATH, or use ADB path… in the pull dialog.\n\nYou can still copy the backup folder to your PC and use Browse PC…",
+					"ADB not available",
+					MessageBoxButtons.OK,
+					MessageBoxIcon.Information);
 			}
 		}
 

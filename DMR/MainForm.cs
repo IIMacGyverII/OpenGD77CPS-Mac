@@ -3361,11 +3361,33 @@ namespace DMR
 		{
 			if (string.IsNullOrEmpty(folderPath))
 			{
-				string lastFolder = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
-				folderPath = AndroidBackupFolderPicker.PickFolder(this, lastFolder, false);
+				if (AndroidAdbBackup.IsAdbAvailable())
+				{
+					DialogResult source = MessageBox.Show(this,
+						"Pull backup from phone via ADB (USB debugging)?\n\n" +
+						"Yes = list phone backups and pull to PC\n" +
+						"No = browse a folder already on this PC\n" +
+						"Cancel = abort import",
+						"Import Android backup",
+						MessageBoxButtons.YesNoCancel,
+						MessageBoxIcon.Question);
+					if (source == DialogResult.Cancel)
+					{
+						return;
+					}
+					if (source == DialogResult.Yes)
+					{
+						folderPath = AndroidAdbBackup.TryPickPulledFolder(this);
+					}
+				}
 				if (string.IsNullOrEmpty(folderPath))
 				{
-					return;
+					string lastFolder = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
+					folderPath = AndroidBackupFolderPicker.PickFolder(this, lastFolder, false);
+					if (string.IsNullOrEmpty(folderPath))
+					{
+						return;
+					}
 				}
 			}
 			else if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))

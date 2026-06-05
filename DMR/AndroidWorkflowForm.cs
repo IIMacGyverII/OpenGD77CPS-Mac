@@ -38,7 +38,7 @@ namespace DMR
 					"This build is for PriInterPhone / DMRModHooks on Android — not stock Radioddity GD-77.\n\n" +
 					"Phone workflow:\n" +
 					"1. Export the 5-file backup folder from the radio app (Contacts, TG_Lists, Channels, Zones, DTMF).\n" +
-					"2. Copy that folder to your PC (Desktop/Documents). Do not browse inside the phone USB path in CPS — copy first.\n" +
+					"2. On PC: use Pull from phone (ADB) if USB debugging is on, or copy the folder to Desktop/Documents (MTP browse in CPS does not work).\n" +
 					"3. On PC use File → Import CSV Files… or toolbar Import Android (Ctrl+I). That is Path B (37-column Android headers).\n" +
 					"4. Edit channels in the tree; Android-only fields live in the PriInterPhone section on each channel.\n" +
 					"5. Export with File → Export CSV… or toolbar Export Android (Ctrl+E). Files are UTF-8 without BOM.\n\n" +
