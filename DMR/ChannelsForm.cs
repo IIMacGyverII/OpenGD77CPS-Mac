@@ -1453,6 +1453,7 @@ namespace DMR
 				this.dgvChannels.Columns.Add(dataGridViewTextBoxColumn);
 			}
 			this.RestoreColumnVisibility();
+			this.dgvChannels.CellDoubleClick += this.dgvChannels_CellDoubleClick;
 			Settings.smethod_37(this.cmbAddChMode, ChannelForm.SZ_CH_MODE);
 			Settings.smethod_37(this.cmbChMode, ChannelForm.SZ_CH_MODE);
 			Settings.smethod_37(this.cmbPower, ChannelForm.SZ_POWER);
@@ -1522,7 +1523,19 @@ namespace DMR
 
 		private void dgvChannels_RowHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
 		{
-			this.OpenSelectedChannelEditor();
+			if (e.RowIndex >= 0 && e.RowIndex < this.dgvChannels.Rows.Count)
+			{
+				this.OpenChannelEditorForRow(this.dgvChannels.Rows[e.RowIndex]);
+			}
+		}
+
+		private void dgvChannels_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+		{
+			if (e.RowIndex < 0 || e.RowIndex >= this.dgvChannels.Rows.Count)
+			{
+				return;
+			}
+			this.OpenChannelEditorForRow(this.dgvChannels.Rows[e.RowIndex]);
 		}
 
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -1550,13 +1563,51 @@ namespace DMR
 
 		private void OpenSelectedChannelEditor()
 		{
-			MainForm mainForm = base.MdiParent as MainForm;
-			if (mainForm == null || this.dgvChannels.CurrentRow == null)
+			if (this.dgvChannels.CurrentRow == null)
 			{
 				return;
 			}
-			int index = (int)this.dgvChannels.CurrentRow.Tag;
-			mainForm.DispChildForm(typeof(ChannelForm), index);
+			this.OpenChannelEditorForRow(this.dgvChannels.CurrentRow);
+		}
+
+		private void OpenChannelEditorForRow(DataGridViewRow row)
+		{
+			if (row == null || row.Tag == null)
+			{
+				return;
+			}
+			MainForm mainForm = this.GetMainForm();
+			if (mainForm == null)
+			{
+				return;
+			}
+			mainForm.OpenChannelEditorByDataIndex((int)row.Tag);
+		}
+
+		private MainForm GetMainForm()
+		{
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm != null)
+			{
+				return mainForm;
+			}
+			for (Form parent = this.ParentForm; parent != null; parent = parent.ParentForm)
+			{
+				mainForm = parent as MainForm;
+				if (mainForm != null)
+				{
+					return mainForm;
+				}
+			}
+			foreach (Form openForm in Application.OpenForms)
+			{
+				mainForm = openForm as MainForm;
+				if (mainForm != null)
+				{
+					return mainForm;
+				}
+			}
+			return null;
 		}
 
 		private void DuplicateSelectedChannels()

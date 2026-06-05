@@ -4604,10 +4604,69 @@ namespace DMR
 
 		public void DispChildForm(Type type, int index)
 		{
+			if (type == typeof(ChannelForm))
+			{
+				this.OpenChannelEditorByDataIndex(index);
+				return;
+			}
 			TreeNode treeNodeByTypeAndIndex = this.GetTreeNodeByTypeAndIndex(type, index, this.tvwMain.Nodes);
 			if (treeNodeByTypeAndIndex != null)
 			{
 				this.method_7(treeNodeByTypeAndIndex, true);
+			}
+		}
+
+		public void OpenChannelEditorByDataIndex(int dataIndex)
+		{
+			if (dataIndex < 0 || !ChannelForm.data.DataIsValid(dataIndex))
+			{
+				return;
+			}
+			TreeNode channelNode = this.GetTreeNodeByTypeAndIndex(typeof(ChannelForm), dataIndex, this.tvwMain.Nodes);
+			if (channelNode == null)
+			{
+				TreeNode channelsRoot = this.ForkLayoutFindNode(typeof(ChannelsForm));
+				if (channelsRoot != null)
+				{
+					this.InitChannels(channelsRoot);
+					channelNode = this.GetTreeNodeByTypeAndIndex(typeof(ChannelForm), dataIndex, this.tvwMain.Nodes);
+				}
+			}
+			if (channelNode != null)
+			{
+				this.method_7(channelNode, true);
+				return;
+			}
+			this.OpenChannelEditorDirect(dataIndex);
+		}
+
+		private void OpenChannelEditorDirect(int dataIndex)
+		{
+			TreeNode channelNode = this.GetTreeNodeByType(typeof(ChannelForm), dataIndex);
+			foreach (Form form in base.MdiChildren)
+			{
+				if (form.GetType() != typeof(ChannelForm))
+				{
+					continue;
+				}
+				form.Tag = dataIndex;
+				IDisp disp = form as IDisp;
+				if (disp != null && channelNode != null)
+				{
+					disp.Node = channelNode;
+					disp.DispData();
+				}
+				else if (disp != null)
+				{
+					disp.DispData();
+				}
+				form.Activate();
+				form.BringToFront();
+				return;
+			}
+			if (channelNode != null)
+			{
+				this.method_7(channelNode, true);
 			}
 		}
 
