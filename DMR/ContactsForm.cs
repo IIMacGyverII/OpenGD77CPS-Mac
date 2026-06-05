@@ -38,6 +38,7 @@ namespace DMR
 		private Button btnImport;
 		private Button btnExport;
 		private Button btnInternetDownload;
+		private Button btnLookupDmrId;
 		private ContextMenuStrip cmsCallIdGrid;
 		private static readonly string[] SZ_HEADER_TEXT;
 
@@ -267,6 +268,7 @@ namespace DMR
 			this.dgvContacts.Size = new System.Drawing.Size(913, 292);
 			this.dgvContacts.TabIndex = 9;
 			this.dgvContacts.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvContacts_RowHeaderMouseDoubleClick);
+			this.dgvContacts.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvContacts_CallIdCellDoubleClick);
 			this.dgvContacts.RowPostPaint += new System.Windows.Forms.DataGridViewRowPostPaintEventHandler(this.dgvContacts_RowPostPaint);
 			this.dgvContacts.SelectionChanged += new System.EventHandler(this.dgvContacts_SelectionChanged);
 			// 
@@ -390,8 +392,54 @@ namespace DMR
 			Settings.smethod_68(this);
 			this.method_2();
 			this.EnsureCallIdGridContextMenu();
+			this.EnsureDmrIdLookupUi();
 			this.DispData();
 			this.cmbAddType.SelectedIndex = 0;
+		}
+
+		private void EnsureDmrIdLookupUi()
+		{
+			if (this.btnLookupDmrId != null)
+			{
+				return;
+			}
+			this.btnLookupDmrId = DmrIdLookup.CreateLookupButton(() => this.GetSelectedCallId(), this);
+			this.btnLookupDmrId.Location = new System.Drawing.Point(556, 42);
+			this.btnLookupDmrId.Enabled = false;
+			Label lblLookupHint = new Label();
+			lblLookupHint.Text = "Call ID: double-click cell or use Look up button for RadioID.net";
+			lblLookupHint.AutoSize = true;
+			lblLookupHint.Location = new System.Drawing.Point(22, 56);
+			lblLookupHint.ForeColor = System.Drawing.SystemColors.GrayText;
+			this.pnlContact.Controls.Add(this.btnLookupDmrId);
+			this.pnlContact.Controls.Add(lblLookupHint);
+			this.btnLookupDmrId.BringToFront();
+			lblLookupHint.BringToFront();
+		}
+
+		private string GetSelectedCallId()
+		{
+			if (this.dgvContacts.CurrentRow == null)
+			{
+				return null;
+			}
+			object cellValue = this.dgvContacts.CurrentRow.Cells[2].Value;
+			return cellValue == null ? null : cellValue.ToString();
+		}
+
+		private void RefreshDmrIdLookupUi()
+		{
+			DmrIdLookup.UpdateLookupEnabled(this.btnLookupDmrId, this.GetSelectedCallId());
+		}
+
+		private void dgvContacts_CallIdCellDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+		{
+			if (e.RowIndex < 0 || e.ColumnIndex != 2)
+			{
+				return;
+			}
+			object cellValue = this.dgvContacts.Rows[e.RowIndex].Cells[2].Value;
+			DmrIdLookup.TryOpenFromText(cellValue == null ? null : cellValue.ToString(), this);
 		}
 
 		private void EnsureCallIdGridContextMenu()
@@ -422,7 +470,7 @@ namespace DMR
 				e.Cancel = true;
 				return;
 			}
-			this.cmsCallIdGrid.Items.Add("Look up on RadioID.net", null, (s, args) => DmrIdLookup.OpenInBrowser(dmrId));
+			this.cmsCallIdGrid.Items.Add(DmrIdLookup.MenuText, null, (s, args) => DmrIdLookup.OpenInBrowser(dmrId));
 		}
 
 		private void btnAdd_Click(object sender, EventArgs e)
@@ -919,6 +967,7 @@ namespace DMR
 		private void dgvContacts_SelectionChanged(object sender, EventArgs e)
 		{
 			this.method_1();
+			this.RefreshDmrIdLookupUi();
 		}
 
 		private void dgvContacts_RowHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)

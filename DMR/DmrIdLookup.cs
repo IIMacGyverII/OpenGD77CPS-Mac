@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace DMR
@@ -7,8 +8,9 @@ namespace DMR
 	internal static class DmrIdLookup
 	{
 		private const int AllCallId = 16777215;
-		private const string MenuText = "Look up on RadioID.net";
+		public const string MenuText = "Look up on RadioID.net";
 		private const string UrlFormat = "https://www.radioid.net/database/view?id={0}";
+		private const string InvalidIdMessage = "Select a contact with a valid DMR ID (not All-call).";
 
 		public static bool TryParseDmrId(string text, out int dmrId)
 		{
@@ -36,7 +38,52 @@ namespace DMR
 			}
 		}
 
-		public static void AttachContextMenu(Control control, Func<string> getDmrIdText)
+		public static bool TryOpenFromText(string text, IWin32Window owner)
+		{
+			int dmrId;
+			if (!TryParseDmrId(text, out dmrId))
+			{
+				MessageBox.Show(owner, InvalidIdMessage, "DMR ID Lookup", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return false;
+			}
+			OpenInBrowser(dmrId);
+			return true;
+		}
+
+		public static void UpdateLookupEnabled(Control lookupControl, string dmrIdText)
+		{
+			if (lookupControl == null)
+			{
+				return;
+			}
+			int dmrId;
+			lookupControl.Enabled = TryParseDmrId(dmrIdText, out dmrId);
+		}
+
+		public static Button CreateLookupButton(Func<string> getDmrIdText, IWin32Window owner)
+		{
+			Button button = new Button();
+			button.Text = MenuText;
+			button.AutoSize = true;
+			button.UseVisualStyleBackColor = true;
+			button.Click += (s, e) => TryOpenFromText(getDmrIdText(), owner);
+			return button;
+		}
+
+		public static LinkLabel CreateLookupLink(Func<string> getDmrIdText, IWin32Window owner)
+		{
+			LinkLabel link = new LinkLabel();
+			link.Text = MenuText;
+			link.AutoSize = true;
+			link.LinkClicked += (s, e) =>
+			{
+				e.Link.Visited = true;
+				TryOpenFromText(getDmrIdText(), owner);
+			};
+			return link;
+		}
+
+		public static void AttachContextMenu(Control control, Func<string> getDmrIdText, IWin32Window owner)
 		{
 			ContextMenuStrip menu = new ContextMenuStrip();
 			menu.Opening += (sender, e) =>

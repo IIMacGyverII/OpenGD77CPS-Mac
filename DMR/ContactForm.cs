@@ -877,6 +877,7 @@ namespace DMR
 		private Label lblCallType;
 		private CustomCombo cmbCallType;
 		private SGTextBox txtCallId;
+		private LinkLabel lnkLookupDmrId;
 		private CustomCombo cmbRingStyle;
 		private Label lblRingStyle;
 		private CustomPanel pnlContact;
@@ -1160,11 +1161,17 @@ namespace DMR
 				this.cmbRingStyle.SelectedIndexChanged += this.cmbRingStyle_SelectedIndexChanged;
 				this.method_3();
 				this.RefreshByUserMode();
+				this.RefreshDmrIdLookupUi();
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message);
 			}
+		}
+
+		private void RefreshDmrIdLookupUi()
+		{
+			DmrIdLookup.UpdateLookupEnabled(this.lnkLookupDmrId, this.txtCallId.Text);
 		}
 
 		public void RefreshByUserMode()
@@ -1217,7 +1224,11 @@ namespace DMR
 				Settings.smethod_59(base.Controls);
 				Settings.smethod_68(this);
 				this.InitData();
-				DmrIdLookup.AttachContextMenu(this.txtCallId, () => this.txtCallId.Text);
+				DmrIdLookup.AttachContextMenu(this.txtCallId, () => this.txtCallId.Text, this);
+				this.lnkLookupDmrId = DmrIdLookup.CreateLookupLink(() => this.txtCallId.Text, this);
+				this.lnkLookupDmrId.Location = new System.Drawing.Point(262, 47);
+				this.pnlContact.Controls.Add(this.lnkLookupDmrId);
+				this.lnkLookupDmrId.BringToFront();
 				this.DispData();
 				this.method_3();
 			}
@@ -1259,6 +1270,7 @@ namespace DMR
 				this.cmbRingStyle.Enabled = false;
 				break;
 			}
+			this.RefreshDmrIdLookupUi();
 		}
 
 		public static bool IsValidId(string strId)

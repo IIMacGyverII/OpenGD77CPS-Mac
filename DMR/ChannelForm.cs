@@ -2516,6 +2516,8 @@ namespace DMR
 
 		private CustomCombo cmbContact;
 
+		private LinkLabel lnkLookupDmrId;
+
 		private Label lblEmgSystem;
 
 		private CustomCombo cmbEmgSystem;
@@ -2927,6 +2929,7 @@ namespace DMR
 			this.method_15();
 			this.configureNavigationButtons();
 			this.RefreshByUserMode();
+			this.RefreshDmrIdLookupUi();
             this.ValidateChildren();
 		}
 
@@ -3007,15 +3010,11 @@ namespace DMR
 				this.CreateAndroidControls();
 				Theme.ApplyStandardEditorColors(this);
 				this.RestoreAndroidSectionNoteColor();
-				DmrIdLookup.AttachContextMenu(this.cmbContact, () =>
-				{
-					int contactIndex = this.cmbContact.method_3();
-					if (contactIndex < 1 || contactIndex > ContactForm.data.Count)
-					{
-						return null;
-					}
-					return ContactForm.data[contactIndex - 1].CallId;
-				});
+				this.lnkLookupDmrId = DmrIdLookup.CreateLookupLink(() => this.GetSelectedContactCallId(), this);
+				this.lnkLookupDmrId.Location = new System.Drawing.Point(358, 181);
+				this.grpDigit.Controls.Add(this.lnkLookupDmrId);
+				this.lnkLookupDmrId.BringToFront();
+				DmrIdLookup.AttachContextMenu(this.cmbContact, () => this.GetSelectedContactCallId(), this);
 				
 				ChannelForm.data.ChModeChangeEvent += this.method_2;
 				this.BbRiogasSx();
@@ -4059,7 +4058,23 @@ namespace DMR
 		{
 			int index = Convert.ToInt32(base.Tag);
 			ChannelForm.data.SetContact(index, this.cmbContact.method_3());
+			this.RefreshDmrIdLookupUi();
 			((MainForm)base.MdiParent).RefreshRelatedForm(base.GetType(), index);
+		}
+
+		private string GetSelectedContactCallId()
+		{
+			int contactIndex = this.cmbContact.method_3();
+			if (contactIndex < 1 || contactIndex > ContactForm.data.Count)
+			{
+				return null;
+			}
+			return ContactForm.data[contactIndex - 1].CallId;
+		}
+
+		private void RefreshDmrIdLookupUi()
+		{
+			DmrIdLookup.UpdateLookupEnabled(this.lnkLookupDmrId, this.GetSelectedContactCallId());
 		}
 
 		private void nudTxColor_ValueChanged(object sender, EventArgs e)
