@@ -11,6 +11,8 @@ namespace DMR
 		public bool HasBlockingErrors;
 		public int RelayZeroCount;
 		public int DuplicateChannelNames;
+		public int CsvChannelRows;
+		public int LoadedChannelCount;
 		public string Summary = "";
 	}
 
@@ -70,8 +72,32 @@ namespace DMR
 				log.AppendLine("WARN: " + result.DuplicateChannelNames + " duplicate channel name(s) in CSV.");
 			}
 
+			result.LoadedChannelCount = CountLoadedChannels();
+			if (result.CsvChannelRows > 0)
+			{
+				log.AppendLine("Preview: CSV has " + result.CsvChannelRows + " channel row(s); loaded codeplug has "
+					+ result.LoadedChannelCount + " valid channel(s).");
+				if (result.CsvChannelRows > result.LoadedChannelCount + 50)
+				{
+					log.AppendLine("WARN: CSV is much larger than current codeplug — import with clearFirst may replace many channels.");
+				}
+			}
+
 			result.Summary = log.ToString().TrimEnd();
 			return result;
+		}
+
+		private static int CountLoadedChannels()
+		{
+			int count = 0;
+			for (int i = 0; i < ChannelForm.data.Count; i++)
+			{
+				if (ChannelForm.data.DataIsValid(i))
+				{
+					count++;
+				}
+			}
+			return count;
 		}
 
 		private static void ValidateChannelsCsv(string path, AndroidBackupValidationResult result, StringBuilder log)
@@ -138,7 +164,8 @@ namespace DMR
 							}
 						}
 					}
-					log.AppendLine("OK: " + (rowNum - 1) + " channel data row(s) scanned.");
+					result.CsvChannelRows = rowNum - 1;
+					log.AppendLine("OK: " + result.CsvChannelRows + " channel data row(s) scanned.");
 				}
 			}
 			catch (Exception ex)

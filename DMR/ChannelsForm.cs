@@ -36,6 +36,8 @@ namespace DMR
 		private Button btnImport;
 		private Button btnExport;
 		private Button btnImportClearAll;
+
+		private TextBox txtChannelFilter;
 		private Button btnDeleteSelect;
 
 		public TreeNode Node
@@ -96,8 +98,45 @@ namespace DMR
 		{
 			Settings.smethod_68(this);
 			this.method_1();
+			this.EnsureChannelFilterBox();
 			this.DispData();
 			this.cmbAddChMode.SelectedIndex = 0;
+			Theme.ApplyStandardEditorColors(this);
+		}
+
+		private void EnsureChannelFilterBox()
+		{
+			if (this.txtChannelFilter != null)
+			{
+				return;
+			}
+			Label lblFilter = new Label();
+			lblFilter.Text = "Filter:";
+			lblFilter.AutoSize = true;
+			lblFilter.Location = new System.Drawing.Point(12, 15);
+			this.txtChannelFilter = new TextBox();
+			this.txtChannelFilter.Location = new System.Drawing.Point(54, 12);
+			this.txtChannelFilter.Size = new System.Drawing.Size(160, 23);
+			this.txtChannelFilter.TextChanged += this.txtChannelFilter_TextChanged;
+			this.pnlChannel.Controls.Add(lblFilter);
+			this.pnlChannel.Controls.Add(this.txtChannelFilter);
+			lblFilter.BringToFront();
+			this.txtChannelFilter.BringToFront();
+		}
+
+		private void txtChannelFilter_TextChanged(object sender, EventArgs e)
+		{
+			string query = this.txtChannelFilter.Text.Trim();
+			foreach (DataGridViewRow row in this.dgvChannels.Rows)
+			{
+				if (string.IsNullOrEmpty(query))
+				{
+					row.Visible = true;
+					continue;
+				}
+				string name = row.Cells.Count > 1 ? Convert.ToString(row.Cells[1].Value) : "";
+				row.Visible = name != null && name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+			}
 		}
 
 		private void btnAdd_Click(object sender, EventArgs e)
@@ -1396,6 +1435,9 @@ namespace DMR
 			typeof(DataGridView).InvokeMember("DoubleBuffered",
 				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.SetProperty,
 				null, this.dgvChannels, new object[] { true });
+			this.dgvChannels.BackgroundColor = Color.White;
+			this.dgvChannels.DefaultCellStyle.BackColor = Color.White;
+			this.dgvChannels.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(0xE8, 0xF0, 0xF8);
 			DataGridViewTextBoxColumn dataGridViewTextBoxColumn = null;
 			string[] sZ_HEADER_TEXT = SZ_DISPLAY_HEADER_TEXT;
 			for(int i =0;i<array.Length;i++)

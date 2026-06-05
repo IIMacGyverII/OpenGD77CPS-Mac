@@ -3006,6 +3006,7 @@ namespace DMR
 				// Create Android-specific controls programmatically
 				this.CreateAndroidControls();
 				Theme.ApplyStandardEditorColors(this);
+				this.RestoreAndroidSectionNoteColor();
 				
 				ChannelForm.data.ChModeChangeEvent += this.method_2;
 				this.BbRiogasSx();
@@ -3018,6 +3019,23 @@ namespace DMR
 			}
 		}
 		
+		private void RestoreAndroidSectionNoteColor()
+		{
+			foreach (Control control in this.Controls)
+			{
+				if (control is GroupBox group)
+				{
+					foreach (Control child in group.Controls)
+					{
+						if (child is Label label && label.Text != null && label.Text.StartsWith("Note:", StringComparison.Ordinal))
+						{
+							label.ForeColor = Color.DarkBlue;
+						}
+					}
+				}
+			}
+		}
+
 		private void CreateAndroidControls()
 		{
 			// Create a group box for Android-specific fields

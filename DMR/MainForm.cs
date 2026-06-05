@@ -1477,6 +1477,8 @@ namespace DMR
 			Theme.ApplyForkChrome(this, this.mnsMain, this.tsrMain, this.ssrMain);
 			// Keep default text color on the shell so MDI/dock editors keep black labels on gray panels.
 			this.ForeColor = SystemColors.ControlText;
+			this.tvwMain.BackColor = SystemColors.Window;
+			this.tvwMain.ForeColor = SystemColors.WindowText;
 			this.slblForkVersion.Text = AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION
 				+ " — Path B: File → Import Android backup (not channel-grid Import)";
 			this.UpdateCodeplugHealth();
@@ -1714,6 +1716,9 @@ namespace DMR
 						form.Tag = treeNodeItem.Index;
 					}
 					disp.DispData();
+#if OpenGD77
+					Theme.ApplyStandardEditorColors(form);
+#endif
                     return form;
 				}
 				if (treeNodeItem.Type != null)
@@ -1732,6 +1737,9 @@ namespace DMR
 					form2.Show();
 					form2.Focus();
 					form2.BringToFront();
+#if OpenGD77
+					Theme.ApplyStandardEditorColors(form2);
+#endif
 					return form2;
 				}
 			}
