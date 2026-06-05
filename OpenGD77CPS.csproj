@@ -210,6 +210,7 @@
     <Compile Include="DMR\AndroidImportDiff.cs" />
     <Compile Include="DMR\AndroidImportDiffForm.cs" />
     <Compile Include="DMR\AndroidWorkflowForm.cs" />
+    <Compile Include="DMR\DmrIdLookup.cs" />
     <Compile Include="DMR\Theme.cs" />
     <Compile Include="DMR\AboutForm.cs">
       <SubType>Form</SubType>

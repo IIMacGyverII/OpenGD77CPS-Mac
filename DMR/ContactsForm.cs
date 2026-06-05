@@ -38,6 +38,7 @@ namespace DMR
 		private Button btnImport;
 		private Button btnExport;
 		private Button btnInternetDownload;
+		private ContextMenuStrip cmsCallIdGrid;
 		private static readonly string[] SZ_HEADER_TEXT;
 
 		public DataGridView getDataGridView()
@@ -388,8 +389,40 @@ namespace DMR
 		{
 			Settings.smethod_68(this);
 			this.method_2();
+			this.EnsureCallIdGridContextMenu();
 			this.DispData();
 			this.cmbAddType.SelectedIndex = 0;
+		}
+
+		private void EnsureCallIdGridContextMenu()
+		{
+			if (this.cmsCallIdGrid != null)
+			{
+				return;
+			}
+			this.cmsCallIdGrid = new ContextMenuStrip();
+			this.cmsCallIdGrid.Opening += this.cmsCallIdGrid_Opening;
+			this.dgvContacts.ContextMenuStrip = this.cmsCallIdGrid;
+		}
+
+		private void cmsCallIdGrid_Opening(object sender, CancelEventArgs e)
+		{
+			this.cmsCallIdGrid.Items.Clear();
+			Point client = this.dgvContacts.PointToClient(Control.MousePosition);
+			DataGridView.HitTestInfo hit = this.dgvContacts.HitTest(client.X, client.Y);
+			if (hit.RowIndex < 0 || hit.ColumnIndex != 2)
+			{
+				e.Cancel = true;
+				return;
+			}
+			object cellValue = this.dgvContacts.Rows[hit.RowIndex].Cells[2].Value;
+			int dmrId;
+			if (!DmrIdLookup.TryParseDmrId(cellValue == null ? null : cellValue.ToString(), out dmrId))
+			{
+				e.Cancel = true;
+				return;
+			}
+			this.cmsCallIdGrid.Items.Add("Look up on RadioID.net", null, (s, args) => DmrIdLookup.OpenInBrowser(dmrId));
 		}
 
 		private void btnAdd_Click(object sender, EventArgs e)

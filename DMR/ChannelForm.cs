@@ -3007,6 +3007,15 @@ namespace DMR
 				this.CreateAndroidControls();
 				Theme.ApplyStandardEditorColors(this);
 				this.RestoreAndroidSectionNoteColor();
+				DmrIdLookup.AttachContextMenu(this.cmbContact, () =>
+				{
+					int contactIndex = this.cmbContact.method_3();
+					if (contactIndex < 1 || contactIndex > ContactForm.data.Count)
+					{
+						return null;
+					}
+					return ContactForm.data[contactIndex - 1].CallId;
+				});
 				
 				ChannelForm.data.ChModeChangeEvent += this.method_2;
 				this.BbRiogasSx();

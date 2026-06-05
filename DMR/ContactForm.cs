@@ -1217,6 +1217,7 @@ namespace DMR
 				Settings.smethod_59(base.Controls);
 				Settings.smethod_68(this);
 				this.InitData();
+				DmrIdLookup.AttachContextMenu(this.txtCallId, () => this.txtCallId.Text);
 				this.DispData();
 				this.method_3();
 			}
