@@ -17,6 +17,7 @@ namespace DMR
 		private readonly TextBox txtValidation;
 		private readonly Button btnBrowse;
 		private readonly Button btnPullAdb;
+		private readonly Button btnPushAdb;
 		private readonly LinkLabel lnkUsbHelp;
 		private readonly Button btnImportAll;
 		private readonly Button btnExportAll;
@@ -50,7 +51,7 @@ namespace DMR
 			{
 				Location = new Point(12, 12),
 				Size = new Size(516, 48),
-				Text = "Import Path B backups: Pull from phone (ADB, USB debugging) or copy folder to PC and browse/paste. Validation + diff preview. Order: Contacts → TG_Lists → Channels → Zones."
+				Text = "Path B: Pull from phone (ADB) or copy to PC for import. Export && push (ADB) sends CSVs to the phone. Validation + diff preview."
 			};
 
 			this.txtFolder = new TextBox
@@ -78,9 +79,17 @@ namespace DMR
 			};
 			this.btnPullAdb.Click += this.btnPullAdb_Click;
 
+			this.btnPushAdb = new Button
+			{
+				Location = new Point(168, 88),
+				Size = new Size(150, 27),
+				Text = "Export && push (ADB)…"
+			};
+			this.btnPushAdb.Click += this.btnPushAdb_Click;
+
 			this.lnkUsbHelp = new LinkLabel
 			{
-				Location = new Point(168, 93),
+				Location = new Point(324, 93),
 				AutoSize = true,
 				Text = "MTP/USB browse blocked? Use ADB or copy to PC (help)"
 			};
@@ -174,6 +183,7 @@ namespace DMR
 			this.Controls.Add(this.txtFolder);
 			this.Controls.Add(this.btnBrowse);
 			this.Controls.Add(this.btnPullAdb);
+			this.Controls.Add(this.btnPushAdb);
 			this.Controls.Add(this.lnkUsbHelp);
 			this.Controls.Add(this.lstFiles);
 			this.Controls.Add(this.txtValidation);
@@ -219,6 +229,20 @@ namespace DMR
 					MessageBoxButtons.OK,
 					MessageBoxIcon.Information);
 			}
+		}
+
+		private void btnPushAdb_Click(object sender, EventArgs e)
+		{
+			if (!AndroidAdbBackup.IsAdbAvailable())
+			{
+				MessageBox.Show(this,
+					"adb.exe was not found.\n\nInstall Android platform-tools or set ADB path in the push dialog.",
+					"ADB not available",
+					MessageBoxButtons.OK,
+					MessageBoxIcon.Information);
+				return;
+			}
+			AndroidAdbBackup.TryExportAndPushToPhone(this, this.mainForm);
 		}
 
 		private void txtFolder_Leave(object sender, EventArgs e)

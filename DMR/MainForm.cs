@@ -3596,22 +3596,41 @@ namespace DMR
 			this.ExportAndroidBackupFolder(null);
 		}
 
-		public void ExportAndroidBackupFolder(string folderPath)
+		public bool ExportAndroidBackupFolder(string folderPath, bool showResultDialog = true)
 		{
 			bool skipFolderPicker = !string.IsNullOrEmpty(folderPath);
 			if (string.IsNullOrEmpty(folderPath))
 			{
+				if (AndroidAdbBackup.IsAdbAvailable())
+				{
+					DialogResult source = MessageBox.Show(this,
+						"Export and push to phone via ADB (USB debugging)?\n\n" +
+						"Yes = export codeplug and adb push to phone\n" +
+						"No = export to a folder on this PC\n" +
+						"Cancel = abort export",
+						"Export Android backup",
+						MessageBoxButtons.YesNoCancel,
+						MessageBoxIcon.Question);
+					if (source == DialogResult.Cancel)
+					{
+						return false;
+					}
+					if (source == DialogResult.Yes)
+					{
+						return AndroidAdbBackup.TryExportAndPushToPhone(this, this);
+					}
+				}
 				string lastFolder = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
 				folderPath = AndroidBackupFolderPicker.PickFolder(this, lastFolder, true);
 				if (string.IsNullOrEmpty(folderPath))
 				{
-					return;
+					return false;
 				}
 			}
 			else if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
 			{
 				AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, folderPath);
-				return;
+				return false;
 			}
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			StringBuilder results = new StringBuilder();
@@ -3632,7 +3651,7 @@ namespace DMR
 					MessageBoxIcon.Question);
 				if (confirmResult != DialogResult.Yes)
 				{
-					return;
+					return false;
 				}
 			}
 			
@@ -3716,12 +3735,14 @@ namespace DMR
 			
 			results.Append("\nEncoding: UTF-8 (no BOM) for all CSV files.");
 
-			// Show results
-			string title = hasErrors ? "Export Completed with Errors" : "Export Complete";
-			MessageBoxIcon icon = hasErrors ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
-			
-			MessageBox.Show(results.ToString(), title, MessageBoxButtons.OK, icon);
+			if (showResultDialog)
+			{
+				string title = hasErrors ? "Export Completed with Errors" : "Export Complete";
+				MessageBoxIcon icon = hasErrors ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
+				MessageBox.Show(results.ToString(), title, MessageBoxButtons.OK, icon);
+			}
 			this.UpdateForkChrome();
+			return !hasErrors;
 		}
 
 		// Helper method to count valid contacts

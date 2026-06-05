@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** In progress — v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
+**Status:** In progress — v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
 
 ---
 
@@ -331,6 +331,8 @@ If `adb.exe` is on PATH (or configured via Settings → ADB path), auto-list `DM
 **Acceptance criteria:** Works without adb — folder picker is always the fallback. ADB calls run on a background thread (`Task.Run`) so the UI never freezes.
 
 **Shipped:** v1.3.2 — `AndroidAdbBackup.cs`, `AndroidAdbPickForm.cs`; **Pull from phone (ADB)** in `AndroidBackupForm`; import menu offers ADB when `adb.exe` is available.
+
+**Shipped:** v1.3.4 — `AndroidAdbPushForm.cs`; **Export && push (ADB)**; File → Export offers push when adb is available.
 
 ---
 

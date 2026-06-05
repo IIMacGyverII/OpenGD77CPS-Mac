@@ -199,6 +199,7 @@
     <Compile Include="DMR\AndroidBackupFolderPicker.cs" />
     <Compile Include="DMR\AndroidAdbBackup.cs" />
     <Compile Include="DMR\AndroidAdbPickForm.cs" />
+    <Compile Include="DMR\AndroidAdbPushForm.cs" />
     <Compile Include="DMR\AndroidContactIntegrityChecker.cs" />
     <Compile Include="DMR\AndroidBackupValidator.cs" />
     <Compile Include="DMR\AndroidImportDiff.cs" />

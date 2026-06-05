@@ -25,11 +25,20 @@ namespace DMR
 	}
 
 	/// <summary>
-	/// Tier 2.10 — list and pull DMR_Backups from a USB-debugging phone via adb.
+	/// Tier 2.10 — list, pull, and push DMR_Backups on a USB-debugging phone via adb.
 	/// </summary>
 	public static class AndroidAdbBackup
 	{
 		public const string IniAdbPathKey = "AdbPath";
+
+		private static readonly string[] PushFileNames = new string[]
+		{
+			"Contacts.csv",
+			"TG_Lists.csv",
+			"Channels.csv",
+			"Zones.csv",
+			"DTMF.csv"
+		};
 
 		private static readonly string[] PhoneBackupRoots = new string[]
 		{
@@ -109,6 +118,26 @@ namespace DMR
 			return Task.Run(() => PullBackup(deviceSerial, backupFolderName, progress));
 		}
 
+		public static Task<string> PushBackupAsync(string deviceSerial, string localFolderPath, string remoteFolderName, bool overwriteRemote, Action<string> progress)
+		{
+			return Task.Run(() => PushBackupFolder(deviceSerial, localFolderPath, remoteFolderName, overwriteRemote, progress));
+		}
+
+		public static string CreatePushStagingFolder(string folderName)
+		{
+			string path = Path.Combine(
+				Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+				"PriInterPhoneCPS",
+				"adb_push",
+				folderName.Trim());
+			if (Directory.Exists(path))
+			{
+				Directory.Delete(path, true);
+			}
+			Directory.CreateDirectory(path);
+			return path;
+		}
+
 		public static AndroidAdbListResult ListBackups(string preferredSerial)
 		{
 			AndroidAdbListResult result = new AndroidAdbListResult();
@@ -133,26 +162,26 @@ namespace DMR
 				return result;
 			}
 
-			foreach (string root in PhoneBackupRoots)
+			string root = ResolvePhoneBackupRoot(adb, device.Serial, false);
+			if (string.IsNullOrEmpty(root))
 			{
-				string stdout;
-				string stderr;
-				int code = RunAdb(adb, BuildAdbArgs(device.Serial, "shell", "ls", root), out stdout, out stderr, 20000);
-				if (code != 0)
-				{
-					continue;
-				}
-				List<string> folders = ParseBackupFolderNames(stdout);
-				if (folders.Count > 0)
-				{
-					result.PhoneBackupPath = root;
-					result.BackupFolders = folders;
-					result.Success = true;
-					return result;
-				}
+				root = ResolvePhoneBackupRoot(adb, device.Serial, true);
+			}
+			if (string.IsNullOrEmpty(root))
+			{
+				result.ErrorMessage = "Could not access Download/DMR/DMR_Backups on the phone.";
+				return result;
 			}
 
-			result.ErrorMessage = "No backup folders found on the phone at Download/DMR/DMR_Backups.\nExport from the radio app first.";
+			result.PhoneBackupPath = root;
+			string stdout;
+			string stderr;
+			int lsCode = RunAdb(adb, BuildAdbArgs(device.Serial, "shell", "ls", root), out stdout, out stderr, 20000);
+			if (lsCode == 0)
+			{
+				result.BackupFolders = ParseBackupFolderNames(stdout);
+			}
+			result.Success = true;
 			return result;
 		}
 
@@ -223,6 +252,115 @@ namespace DMR
 				progress("Saved to " + localPath);
 			}
 			return localPath;
+		}
+
+		public static string PushBackupFolder(string deviceSerial, string localFolderPath, string remoteFolderName, bool overwriteRemote, Action<string> progress)
+		{
+			if (string.IsNullOrWhiteSpace(localFolderPath) || !Directory.Exists(localFolderPath))
+			{
+				throw new InvalidOperationException("Local export folder not found.");
+			}
+			if (!File.Exists(Path.Combine(localFolderPath, "Channels.csv")))
+			{
+				throw new InvalidOperationException("Channels.csv missing from export — cannot push.");
+			}
+			remoteFolderName = remoteFolderName.Trim();
+			if (!BackupFolderPattern.IsMatch(remoteFolderName))
+			{
+				throw new InvalidOperationException("Folder name must be YYYYMMDD_HHmmss (e.g. 20260605_153000).");
+			}
+
+			string adb = ResolveAdbExecutable();
+			if (string.IsNullOrEmpty(adb))
+			{
+				throw new InvalidOperationException("adb.exe not found.");
+			}
+
+			string root = ResolvePhoneBackupRoot(adb, deviceSerial, true);
+			if (string.IsNullOrEmpty(root))
+			{
+				throw new InvalidOperationException("Could not create Download/DMR/DMR_Backups on the phone.");
+			}
+
+			string remotePath = root + "/" + remoteFolderName;
+			string stdout;
+			string stderr;
+			if (overwriteRemote)
+			{
+				if (progress != null)
+				{
+					progress("Removing existing phone folder " + remoteFolderName + "…");
+				}
+				RunAdb(adb, BuildAdbArgs(deviceSerial, "shell", "rm", "-rf", QuoteAdbPath(remotePath)), out stdout, out stderr, 60000);
+			}
+
+			if (progress != null)
+			{
+				progress("Creating " + remotePath + " on phone…");
+			}
+			RunAdb(adb, BuildAdbArgs(deviceSerial, "shell", "mkdir", "-p", QuoteAdbPath(remotePath)), out stdout, out stderr, 30000);
+
+			int pushed = 0;
+			foreach (string fileName in PushFileNames)
+			{
+				string localFile = Path.Combine(localFolderPath, fileName);
+				if (!File.Exists(localFile))
+				{
+					continue;
+				}
+				if (progress != null)
+				{
+					progress("Pushing " + fileName + "…");
+				}
+				string remoteFile = remotePath + "/" + fileName;
+				int code = RunAdb(adb, BuildAdbArgs(deviceSerial, "push", QuoteAdbPath(localFile), QuoteAdbPath(remoteFile)),
+					out stdout, out stderr, 300000);
+				if (code != 0)
+				{
+					throw new InvalidOperationException("adb push failed for " + fileName + ":\n" + MergeOutput(stdout, stderr));
+				}
+				pushed++;
+			}
+
+			if (pushed == 0)
+			{
+				throw new InvalidOperationException("No CSV files were pushed.");
+			}
+
+			if (progress != null)
+			{
+				progress("Pushed " + pushed + " file(s) to " + remotePath);
+			}
+			return remotePath;
+		}
+
+		private static string ResolvePhoneBackupRoot(string adb, string deviceSerial, bool createIfMissing)
+		{
+			foreach (string root in PhoneBackupRoots)
+			{
+				string mkdirOut;
+				string mkdirErr;
+				string lsOut;
+				string lsErr;
+				if (createIfMissing)
+				{
+					RunAdb(adb, BuildAdbArgs(deviceSerial, "shell", "mkdir", "-p", root), out mkdirOut, out mkdirErr, 30000);
+				}
+				int code = RunAdb(adb, BuildAdbArgs(deviceSerial, "shell", "ls", root), out lsOut, out lsErr, 20000);
+				if (code == 0)
+				{
+					return root;
+				}
+			}
+			if (!createIfMissing)
+			{
+				return null;
+			}
+			string fallback = PhoneBackupRoots[0];
+			string mkOut;
+			string mkErr;
+			RunAdb(adb, BuildAdbArgs(deviceSerial, "shell", "mkdir", "-p", fallback), out mkOut, out mkErr, 30000);
+			return fallback;
 		}
 
 		private static List<AndroidAdbDevice> ListDevices(string adb)
@@ -316,12 +454,25 @@ namespace DMR
 		{
 			using (AndroidAdbPickForm form = new AndroidAdbPickForm())
 			{
-				if (form.ShowDialog(owner) == System.Windows.Forms.DialogResult.OK)
+				if (form.ShowDialog(owner) == DialogResult.OK)
 				{
 					return form.LocalFolderPath;
 				}
 			}
 			return null;
+		}
+
+		public static bool TryExportAndPushToPhone(IWin32Window owner, MainForm mainForm)
+		{
+			using (AndroidAdbPushForm form = new AndroidAdbPushForm(mainForm))
+			{
+				return form.ShowDialog(owner) == DialogResult.OK;
+			}
+		}
+
+		public static string DefaultBackupFolderName()
+		{
+			return DateTime.Now.ToString("yyyyMMdd_HHmmss");
 		}
 
 		private static int RunAdb(string adbExe, string arguments, out string stdout, out string stderr, int timeoutMs)
