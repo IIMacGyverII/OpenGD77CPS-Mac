@@ -3361,18 +3361,17 @@ namespace DMR
 		{
 			if (string.IsNullOrEmpty(folderPath))
 			{
-				FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
-				folderBrowser.Description = "Select folder containing CSV files (Channels.csv, Contacts.csv, TG_Lists.csv, Zones.csv)";
 				string lastFolder = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
-				if (!string.IsNullOrEmpty(lastFolder) && Directory.Exists(lastFolder))
-				{
-					folderBrowser.SelectedPath = lastFolder;
-				}
-				if (folderBrowser.ShowDialog() != DialogResult.OK)
+				folderPath = AndroidBackupFolderPicker.PickFolder(this, lastFolder, false);
+				if (string.IsNullOrEmpty(folderPath))
 				{
 					return;
 				}
-				folderPath = folderBrowser.SelectedPath;
+			}
+			else if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
+			{
+				AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, folderPath);
+				return;
 			}
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			StringBuilder results = new StringBuilder();
@@ -3580,18 +3579,17 @@ namespace DMR
 			bool skipFolderPicker = !string.IsNullOrEmpty(folderPath);
 			if (string.IsNullOrEmpty(folderPath))
 			{
-				FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
-				folderBrowser.Description = "Select folder to export CSV files (Channels.csv, Contacts.csv, Zones.csv)";
 				string lastFolder = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
-				if (!string.IsNullOrEmpty(lastFolder) && Directory.Exists(lastFolder))
-				{
-					folderBrowser.SelectedPath = lastFolder;
-				}
-				if (folderBrowser.ShowDialog() != DialogResult.OK)
+				folderPath = AndroidBackupFolderPicker.PickFolder(this, lastFolder, true);
+				if (string.IsNullOrEmpty(folderPath))
 				{
 					return;
 				}
-				folderPath = folderBrowser.SelectedPath;
+			}
+			else if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
+			{
+				AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, folderPath);
+				return;
 			}
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			StringBuilder results = new StringBuilder();

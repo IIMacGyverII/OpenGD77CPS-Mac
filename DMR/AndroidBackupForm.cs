@@ -16,6 +16,7 @@ namespace DMR
 		private readonly ListView lstFiles;
 		private readonly TextBox txtValidation;
 		private readonly Button btnBrowse;
+		private readonly LinkLabel lnkUsbHelp;
 		private readonly Button btnImportAll;
 		private readonly Button btnExportAll;
 		private readonly Button btnOpenFolder;
@@ -45,30 +46,38 @@ namespace DMR
 			this.lblHint = new Label
 			{
 				Location = new Point(12, 12),
-				Size = new Size(516, 36),
-				Text = "Phone export folder. Path B validation + channel diff preview before import. Order: Contacts → TG_Lists → Channels → Zones."
+				Size = new Size(516, 48),
+				Text = "Copy the phone backup folder to your PC first (USB copy to Desktop). Then browse or paste the local path here. Path B validation + diff preview. Order: Contacts → TG_Lists → Channels → Zones."
 			};
 
 			this.txtFolder = new TextBox
 			{
-				Location = new Point(12, 52),
+				Location = new Point(12, 64),
 				Size = new Size(416, 23),
-				ReadOnly = true,
 				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
 			};
+			this.txtFolder.Leave += this.txtFolder_Leave;
 
 			this.btnBrowse = new Button
 			{
-				Location = new Point(434, 50),
+				Location = new Point(434, 62),
 				Size = new Size(94, 27),
-				Text = "Browse…",
+				Text = "Browse PC…",
 				Anchor = AnchorStyles.Top | AnchorStyles.Right
 			};
 			this.btnBrowse.Click += this.btnBrowse_Click;
 
+			this.lnkUsbHelp = new LinkLabel
+			{
+				Location = new Point(12, 90),
+				AutoSize = true,
+				Text = "Phone USB folder blocked? Copy to PC first (help)"
+			};
+			this.lnkUsbHelp.LinkClicked += this.lnkUsbHelp_LinkClicked;
+
 			this.lstFiles = new ListView
 			{
-				Location = new Point(12, 84),
+				Location = new Point(12, 112),
 				Size = new Size(516, 120),
 				View = View.Details,
 				FullRowSelect = true,
@@ -80,7 +89,7 @@ namespace DMR
 
 			this.txtValidation = new TextBox
 			{
-				Location = new Point(12, 212),
+				Location = new Point(12, 240),
 				Size = new Size(516, 180),
 				Multiline = true,
 				ReadOnly = true,
@@ -130,6 +139,7 @@ namespace DMR
 			this.Controls.Add(this.lblHint);
 			this.Controls.Add(this.txtFolder);
 			this.Controls.Add(this.btnBrowse);
+			this.Controls.Add(this.lnkUsbHelp);
 			this.Controls.Add(this.lstFiles);
 			this.Controls.Add(this.txtValidation);
 			this.Controls.Add(this.btnImportAll);
@@ -138,30 +148,56 @@ namespace DMR
 			this.Controls.Add(btnClose);
 
 			string last = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
-			if (!string.IsNullOrEmpty(last) && Directory.Exists(last))
+			if (!string.IsNullOrEmpty(last))
 			{
-				this.SetFolder(last);
+				this.txtFolder.Text = last;
+				if (AndroidBackupFolderPicker.IsReadableBackupFolder(last))
+				{
+					this.SetFolder(last, false);
+				}
 			}
 		}
 
 		private void btnBrowse_Click(object sender, EventArgs e)
 		{
-			using (FolderBrowserDialog dlg = new FolderBrowserDialog())
+			string picked = AndroidBackupFolderPicker.PickFolder(this, this.txtFolder.Text, false);
+			if (picked != null)
 			{
-				dlg.Description = "Select Android backup folder from the phone";
-				if (!string.IsNullOrEmpty(this.txtFolder.Text))
-				{
-					dlg.SelectedPath = this.txtFolder.Text;
-				}
-				if (dlg.ShowDialog(this) == DialogResult.OK)
-				{
-					this.SetFolder(dlg.SelectedPath);
-				}
+				this.SetFolder(picked, true);
 			}
 		}
 
-		private void SetFolder(string folderPath)
+		private void txtFolder_Leave(object sender, EventArgs e)
 		{
+			string path = this.txtFolder.Text.Trim();
+			if (string.IsNullOrEmpty(path))
+			{
+				return;
+			}
+			if (AndroidBackupFolderPicker.IsReadableBackupFolder(path))
+			{
+				this.SetFolder(path, false);
+			}
+		}
+
+		private void lnkUsbHelp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, this.txtFolder.Text.Trim());
+		}
+
+		private bool SetFolder(string folderPath, bool showErrors)
+		{
+			folderPath = folderPath == null ? "" : folderPath.Trim();
+			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
+			{
+				if (showErrors)
+				{
+					AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, folderPath);
+				}
+				this.btnImportAll.Enabled = false;
+				return false;
+			}
+
 			this.txtFolder.Text = folderPath;
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			this.lstFiles.Items.Clear();
@@ -185,13 +221,13 @@ namespace DMR
 			}
 			this.txtValidation.Text = log.ToString();
 			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
+			return true;
 		}
 
 		private void btnImportAll_Click(object sender, EventArgs e)
 		{
-			if (string.IsNullOrEmpty(this.txtFolder.Text) || !Directory.Exists(this.txtFolder.Text))
+			if (!this.SetFolder(this.txtFolder.Text.Trim(), true))
 			{
-				MessageBox.Show(this, "Choose a backup folder first.", "Android backup", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				return;
 			}
 			if (this.lastValidation != null && this.lastValidation.HasBlockingErrors)
@@ -212,25 +248,22 @@ namespace DMR
 				}
 			}
 			this.mainForm.ImportAndroidBackupFolder(this.txtFolder.Text);
-			this.SetFolder(this.txtFolder.Text);
+			this.SetFolder(this.txtFolder.Text, false);
 		}
 
 		private void btnExportAll_Click(object sender, EventArgs e)
 		{
-			if (string.IsNullOrEmpty(this.txtFolder.Text) || !Directory.Exists(this.txtFolder.Text))
+			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(this.txtFolder.Text.Trim()))
 			{
-				using (FolderBrowserDialog dlg = new FolderBrowserDialog())
+				string picked = AndroidBackupFolderPicker.PickFolder(this, this.txtFolder.Text, true);
+				if (picked == null)
 				{
-					dlg.Description = "Select folder to export Android CSV files";
-					if (dlg.ShowDialog(this) != DialogResult.OK)
-					{
-						return;
-					}
-					this.SetFolder(dlg.SelectedPath);
+					return;
 				}
+				this.SetFolder(picked, true);
 			}
 			this.mainForm.ExportAndroidBackupFolder(this.txtFolder.Text);
-			this.SetFolder(this.txtFolder.Text);
+			this.SetFolder(this.txtFolder.Text, false);
 		}
 
 		private void btnOpenFolder_Click(object sender, EventArgs e)
