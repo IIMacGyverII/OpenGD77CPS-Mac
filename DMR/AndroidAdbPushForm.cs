@@ -45,7 +45,7 @@ namespace DMR
 				DropDownStyle = ComboBoxStyle.DropDownList
 			};
 
-			Label lblFolder = new Label { Location = new Point(12, 62), AutoSize = true, Text = "Phone folder name (YYYYMMDD_HHmmss)" };
+			Label lblFolder = new Label { Location = new Point(12, 62), AutoSize = true, Text = "Phone folder name (any label — e.g. June 5 2026 or 20260605_120842)" };
 			this.txtFolderName = new TextBox
 			{
 				Location = new Point(12, 82),
@@ -77,7 +77,7 @@ namespace DMR
 			{
 				Location = new Point(12, 282),
 				Size = new Size(436, 48),
-				Text = "Exports CSVs from the loaded codeplug, then adb push to Download/DMR/DMR_Backups/."
+				Text = "Exports CSVs from the loaded codeplug, then adb push to Download/DMR/DMR_Backups/. Name the folder anything you like."
 			};
 
 			this.btnRefresh = new Button { Location = new Point(12, 336), Size = new Size(88, 28), Text = "Refresh" };
@@ -192,7 +192,16 @@ namespace DMR
 
 		private async void btnPush_Click(object sender, EventArgs e)
 		{
-			string folderName = this.txtFolderName.Text.Trim();
+			string folderName;
+			try
+			{
+				folderName = AndroidAdbBackup.NormalizePushFolderName(this.txtFolderName.Text);
+			}
+			catch (InvalidOperationException ex)
+			{
+				MessageBox.Show(this, ex.Message, "Folder name", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
 			string serial = this.GetSelectedSerial();
 			if (string.IsNullOrEmpty(serial))
 			{

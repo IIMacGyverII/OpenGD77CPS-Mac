@@ -123,13 +123,41 @@ namespace DMR
 			return Task.Run(() => PushBackupFolder(deviceSerial, localFolderPath, remoteFolderName, overwriteRemote, progress));
 		}
 
+		public static string NormalizePushFolderName(string folderName)
+		{
+			if (string.IsNullOrWhiteSpace(folderName))
+			{
+				throw new InvalidOperationException("Enter a folder name for the phone backup.");
+			}
+			string name = folderName.Trim();
+			if (name == "." || name == "..")
+			{
+				throw new InvalidOperationException("Invalid folder name.");
+			}
+			if (name.Length > 80)
+			{
+				throw new InvalidOperationException("Folder name is too long (max 80 characters).");
+			}
+			char[] invalid = Path.GetInvalidFileNameChars();
+			foreach (char c in name)
+			{
+				if (c == '/' || Array.IndexOf(invalid, c) >= 0)
+				{
+					throw new InvalidOperationException(
+						"Folder name cannot contain: \\ / : * ? \" < > | or other invalid characters.");
+				}
+			}
+			return name;
+		}
+
 		public static string CreatePushStagingFolder(string folderName)
 		{
+			string safeName = NormalizePushFolderName(folderName);
 			string path = Path.Combine(
 				Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 				"PriInterPhoneCPS",
 				"adb_push",
-				folderName.Trim());
+				safeName);
 			if (Directory.Exists(path))
 			{
 				Directory.Delete(path, true);
@@ -264,11 +292,7 @@ namespace DMR
 			{
 				throw new InvalidOperationException("Channels.csv missing from export — cannot push.");
 			}
-			remoteFolderName = remoteFolderName.Trim();
-			if (!BackupFolderPattern.IsMatch(remoteFolderName))
-			{
-				throw new InvalidOperationException("Folder name must be YYYYMMDD_HHmmss (e.g. 20260605_153000).");
-			}
+			remoteFolderName = NormalizePushFolderName(remoteFolderName);
 
 			string adb = ResolveAdbExecutable();
 			if (string.IsNullOrEmpty(adb))
