@@ -59,7 +59,7 @@ namespace DMR
 				AutoSize = true,
 				Text = "Release notes (v" + AboutForm.FORK_VERSION + ")"
 			};
-			this.lnkNotes.LinkClicked += (s, e) => OpenUrl("https://github.com/IIMacGyverII/OpenGD77CPS-Mac/blob/main/docs/RELEASE_NOTES_v1.2.0.md");
+			this.lnkNotes.LinkClicked += (s, e) => OpenUrl("https://github.com/IIMacGyverII/OpenGD77CPS-Mac/releases/tag/v" + AboutForm.FORK_VERSION);
 
 			this.lnkPhonedmrapp = new LinkLabel
 			{

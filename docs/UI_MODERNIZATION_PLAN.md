@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** In progress — v1.4.2: Tier 2.3 docking UX (default layout, reset, persist); v1.4.0: Tier 2.8 grid bulk edit + Tier 2.9 column visibility + Tier 1.2 dark dock tabs; v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
+**Status:** In progress — v1.4.4: channel grid click-to-sync + v1.4.3 double-click fix; v1.4.2: Tier 2.3 docking UX (default layout, reset, persist); v1.4.0: Tier 2.8 grid bulk edit + Tier 2.9 column visibility + Tier 1.2 dark dock tabs; v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
 
 ---
 
@@ -317,6 +317,8 @@ Applies changes via `ChannelOne.SaveData()` per selected row. Useful when migrat
 **Primary file:** `ChannelsForm.cs` — context menu on `DataGridView.SelectedRows`.
 
 **Shipped:** v1.4.0 — right-click grid bulk menu (Power, Bandwidth, Squelch, Channel Mode, TG List); `ChannelsBulkPickForm.cs`.
+
+**Shipped:** v1.4.3 — double-click any grid cell opens channel editor; v1.4.4 — single-click syncs editor when already open.
 
 ---
 

@@ -4616,9 +4616,30 @@ namespace DMR
 			}
 		}
 
+		public bool IsChannelEditorOpen()
+		{
+			return this.GetOpenChannelEditorDataIndex() >= 0;
+		}
+
+		public int GetOpenChannelEditorDataIndex()
+		{
+			foreach (Form form in base.MdiChildren)
+			{
+				if (form.GetType() == typeof(ChannelForm) && form.Tag != null)
+				{
+					return Convert.ToInt32(form.Tag);
+				}
+			}
+			return -1;
+		}
+
 		public void OpenChannelEditorByDataIndex(int dataIndex)
 		{
 			if (dataIndex < 0 || !ChannelForm.data.DataIsValid(dataIndex))
+			{
+				return;
+			}
+			if (this.GetOpenChannelEditorDataIndex() == dataIndex)
 			{
 				return;
 			}

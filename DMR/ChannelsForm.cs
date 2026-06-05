@@ -120,10 +120,17 @@ namespace DMR
 			this.txtChannelFilter.Location = new System.Drawing.Point(54, 12);
 			this.txtChannelFilter.Size = new System.Drawing.Size(160, 23);
 			this.txtChannelFilter.TextChanged += this.txtChannelFilter_TextChanged;
+			Label lblGridHint = new Label();
+			lblGridHint.Text = "Click row to load in editor (when open); double-click or F2 to edit";
+			lblGridHint.AutoSize = true;
+			lblGridHint.Location = new System.Drawing.Point(230, 15);
+			lblGridHint.ForeColor = System.Drawing.SystemColors.GrayText;
 			this.pnlChannel.Controls.Add(lblFilter);
 			this.pnlChannel.Controls.Add(this.txtChannelFilter);
+			this.pnlChannel.Controls.Add(lblGridHint);
 			lblFilter.BringToFront();
 			this.txtChannelFilter.BringToFront();
+			lblGridHint.BringToFront();
 		}
 
 		private void txtChannelFilter_TextChanged(object sender, EventArgs e)
@@ -1519,6 +1526,20 @@ namespace DMR
 		private void dgvChannels_SelectionChanged(object sender, EventArgs e)
 		{
 			this.updateAddAndDeleteButtons();
+			if (this.dgvChannels.SelectedRows.Count != 1)
+			{
+				return;
+			}
+			MainForm mainForm = this.GetMainForm();
+			if (mainForm == null || !mainForm.IsChannelEditorOpen())
+			{
+				return;
+			}
+			DataGridViewRow row = this.dgvChannels.SelectedRows[0];
+			if (row.Tag != null)
+			{
+				mainForm.OpenChannelEditorByDataIndex((int)row.Tag);
+			}
 		}
 
 		private void dgvChannels_RowHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
