@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** In progress — v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
+**Status:** In progress — v1.4.0: Tier 2.8 grid bulk edit + Tier 2.9 column visibility + Tier 1.2 dark dock tabs; v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
 
 ---
 
@@ -73,6 +73,8 @@ A full port to WPF, Avalonia, MAUI, or Electron is possible but is a **multi-mon
 | Improvement | Description | Primary files |
 |-------------|-------------|---------------|
 | **Dark DockPanel skin** | Tune existing `DockPanelSkin` / tab gradients in `InitializeComponent` (already instantiated in `MainForm`). | `MainForm.cs` |
+
+**Shipped:** v1.4.0 — `Theme.ApplyDarkDockPanelSkin`; `dockPanel.Skin` assigned (was built but never applied).
 | **Global colors** | Form background, menu/toolbar/status: dark navy palette. | `MainForm.cs`, optional `Theme.cs` helper |
 | **Typography** | Default font **Segoe UI** 9–10pt (or Segoe UI Variable on Windows 11). | `Program.cs` or `Settings` load hook |
 | **Application icon** | Consistent fork icon (match releases / GitHub). | `DMR_32512.ico`, `AboutForm` |
@@ -292,6 +294,8 @@ Store a snapshot of all `DispData()` values when `ChannelForm` opens. **Revert**
 
 **Acceptance criteria:** Accidental field wipe on an open channel form is recoverable without closing and re-opening the form.
 
+**Shipped:** v1.2.4 — `CaptureRevertSnapshot` / `RevertToSnapshot` / `Ctrl+Z` in `ChannelForm.cs`.
+
 ---
 
 ### 2.8 Multi-select bulk edit in grid
@@ -310,11 +314,15 @@ Applies changes via `ChannelOne.SaveData()` per selected row. Useful when migrat
 
 **Primary file:** `ChannelsForm.cs` — context menu on `DataGridView.SelectedRows`.
 
+**Shipped:** v1.4.0 — right-click grid bulk menu (Power, Bandwidth, Squelch, Channel Mode, TG List); `ChannelsBulkPickForm.cs`.
+
 ---
 
 ### 2.9 Column visibility toggle
 
 Right-click on the channel grid column header → show/hide individual columns. Persist preference in user settings (`DockPanel.config` or `Settings`). Standard DataGridView capability; reduces visual clutter for users who only care about Name / Frequency / Type.
+
+**Shipped:** v1.4.0 — column header context menu; `ChannelsGridHiddenColumns` in Setup profile.
 
 ---
 

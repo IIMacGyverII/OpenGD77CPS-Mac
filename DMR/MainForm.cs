@@ -1022,7 +1022,9 @@ namespace DMR
 			dockPaneStripToolWindowGradient.InactiveTabGradient = tabGradient7;
 			dockPaneStripSkin.ToolWindowGradient = dockPaneStripToolWindowGradient;
 			dockPanelSkin.DockPaneStripSkin = dockPaneStripSkin;
-			// DockPanel Suite 3.x: Skin is applied via internal theme; fork chrome uses Theme.ApplyForkChrome on menu/toolbar/status.
+			Theme.ApplyDarkDockPanelSkin(dockPanelSkin);
+			this.dockPanel.Skin = dockPanelSkin;
+			this.dockPanel.DockBackColor = Theme.Background;
 			this.dockPanel.TabIndex = 6;
 			this.pnlTvw.Controls.Add(this.tvwMain);
 			this.pnlTvw.Dock = DockStyle.Left;

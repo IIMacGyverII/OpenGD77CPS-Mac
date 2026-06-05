@@ -1,5 +1,7 @@
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using WeifenLuo.WinFormsUI.Docking;
 
 namespace DMR
 {
@@ -112,6 +114,51 @@ namespace DMR
 					ApplyToolStripItem(child);
 				}
 			}
+		}
+
+		/// <summary>Tier 1.2 — dark MDI document tabs aligned with fork chrome.</summary>
+		public static void ApplyDarkDockPanelSkin(DockPanelSkin skin)
+		{
+			if (skin == null)
+			{
+				return;
+			}
+
+			skin.AutoHideStripSkin.TextFont = new Font("Segoe UI", 9f);
+			skin.AutoHideStripSkin.DockStripGradient.StartColor = Chrome;
+			skin.AutoHideStripSkin.DockStripGradient.EndColor = Chrome;
+			skin.AutoHideStripSkin.TabGradient.StartColor = Accent;
+			skin.AutoHideStripSkin.TabGradient.EndColor = Background;
+			skin.AutoHideStripSkin.TabGradient.TextColor = Foreground;
+
+			DockPaneStripGradient document = skin.DockPaneStripSkin.DocumentGradient;
+			document.DockStripGradient.StartColor = Chrome;
+			document.DockStripGradient.EndColor = Chrome;
+			document.ActiveTabGradient.StartColor = Accent;
+			document.ActiveTabGradient.EndColor = Background;
+			document.ActiveTabGradient.TextColor = Foreground;
+			document.InactiveTabGradient.StartColor = Chrome;
+			document.InactiveTabGradient.EndColor = Background;
+			document.InactiveTabGradient.TextColor = MutedForeground;
+			skin.DockPaneStripSkin.TextFont = new Font("Segoe UI", 9f);
+
+			DockPaneStripToolWindowGradient tool = skin.DockPaneStripSkin.ToolWindowGradient;
+			tool.DockStripGradient.StartColor = Chrome;
+			tool.DockStripGradient.EndColor = Chrome;
+			tool.ActiveCaptionGradient.StartColor = Accent;
+			tool.ActiveCaptionGradient.EndColor = Background;
+			tool.ActiveCaptionGradient.TextColor = Foreground;
+			tool.ActiveCaptionGradient.LinearGradientMode = LinearGradientMode.Vertical;
+			tool.ActiveTabGradient.StartColor = Accent;
+			tool.ActiveTabGradient.EndColor = Background;
+			tool.ActiveTabGradient.TextColor = Foreground;
+			tool.InactiveCaptionGradient.StartColor = Chrome;
+			tool.InactiveCaptionGradient.EndColor = Background;
+			tool.InactiveCaptionGradient.TextColor = MutedForeground;
+			tool.InactiveCaptionGradient.LinearGradientMode = LinearGradientMode.Vertical;
+			tool.InactiveTabGradient.StartColor = Chrome;
+			tool.InactiveTabGradient.EndColor = Background;
+			tool.InactiveTabGradient.TextColor = MutedForeground;
 		}
 	}
 }

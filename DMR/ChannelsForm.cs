@@ -39,6 +39,7 @@ namespace DMR
 
 		private TextBox txtChannelFilter;
 		private Button btnDeleteSelect;
+		private ContextMenuStrip cmsGrid;
 
 		public TreeNode Node
 		{
@@ -98,6 +99,7 @@ namespace DMR
 		{
 			Settings.smethod_68(this);
 			this.method_1();
+			this.EnsureGridContextMenus();
 			this.EnsureChannelFilterBox();
 			this.DispData();
 			this.cmbAddChMode.SelectedIndex = 0;
@@ -1450,6 +1452,7 @@ namespace DMR
 				dataGridViewTextBoxColumn.Width = array[num++];
 				this.dgvChannels.Columns.Add(dataGridViewTextBoxColumn);
 			}
+			this.RestoreColumnVisibility();
 			Settings.smethod_37(this.cmbAddChMode, ChannelForm.SZ_CH_MODE);
 			Settings.smethod_37(this.cmbChMode, ChannelForm.SZ_CH_MODE);
 			Settings.smethod_37(this.cmbPower, ChannelForm.SZ_POWER);
@@ -1584,6 +1587,263 @@ namespace DMR
 			this.DispData();
 			mainForm.RefreshRelatedForm(base.GetType());
 			mainForm.RefreshForkStatus();
+		}
+
+		private void EnsureGridContextMenus()
+		{
+			if (this.cmsGrid != null)
+			{
+				return;
+			}
+
+			this.cmsGrid = new ContextMenuStrip();
+			this.cmsGrid.Opening += this.cmsGrid_Opening;
+			this.dgvChannels.ContextMenuStrip = this.cmsGrid;
+		}
+
+		private void cmsGrid_Opening(object sender, CancelEventArgs e)
+		{
+			this.cmsGrid.Items.Clear();
+			Point client = this.dgvChannels.PointToClient(Control.MousePosition);
+			DataGridView.HitTestInfo hit = this.dgvChannels.HitTest(client.X, client.Y);
+			if (hit.Type == DataGridViewHitTestType.ColumnHeader)
+			{
+				this.PopulateColumnVisibilityMenu();
+				return;
+			}
+
+			this.cmsGrid.Items.Add("Set Power…", null, this.bulkSetPower_Click);
+			this.cmsGrid.Items.Add("Set Bandwidth…", null, this.bulkSetBandwidth_Click);
+			this.cmsGrid.Items.Add("Set Squelch…", null, this.bulkSetSquelch_Click);
+			this.cmsGrid.Items.Add("Set Channel Mode…", null, this.bulkSetChannelMode_Click);
+			this.cmsGrid.Items.Add("Assign TG List…", null, this.bulkAssignTgList_Click);
+		}
+
+		private void PopulateColumnVisibilityMenu()
+		{
+			ToolStripMenuItem heading = new ToolStripMenuItem("Show columns")
+			{
+				Enabled = false
+			};
+			this.cmsGrid.Items.Add(heading);
+			foreach (DataGridViewColumn column in this.dgvChannels.Columns)
+			{
+				ToolStripMenuItem item = new ToolStripMenuItem(column.HeaderText)
+				{
+					Checked = column.Visible,
+					Tag = column.Index
+				};
+				item.Click += this.columnVisibilityItem_Click;
+				this.cmsGrid.Items.Add(item);
+			}
+		}
+
+		private void columnVisibilityItem_Click(object sender, EventArgs e)
+		{
+			ToolStripMenuItem item = sender as ToolStripMenuItem;
+			if (item == null || item.Tag == null)
+			{
+				return;
+			}
+			int columnIndex = (int)item.Tag;
+			if (columnIndex < 0 || columnIndex >= this.dgvChannels.Columns.Count)
+			{
+				return;
+			}
+			DataGridViewColumn column = this.dgvChannels.Columns[columnIndex];
+			if (columnIndex == 1 && column.Visible)
+			{
+				MessageBox.Show(this, "Channel Name column cannot be hidden.", "Columns", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+			column.Visible = !column.Visible;
+			item.Checked = column.Visible;
+			this.SaveColumnVisibility();
+		}
+
+		private void RestoreColumnVisibility()
+		{
+			string hidden = IniFileUtils.getProfileStringWithDefault("Setup", "ChannelsGridHiddenColumns", "");
+			if (string.IsNullOrEmpty(hidden))
+			{
+				return;
+			}
+			string[] parts = hidden.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+			foreach (string part in parts)
+			{
+				int columnIndex;
+				if (int.TryParse(part.Trim(), out columnIndex)
+					&& columnIndex > 0
+					&& columnIndex < this.dgvChannels.Columns.Count)
+				{
+					this.dgvChannels.Columns[columnIndex].Visible = false;
+				}
+			}
+		}
+
+		private void SaveColumnVisibility()
+		{
+			List<string> hidden = new List<string>();
+			for (int i = 0; i < this.dgvChannels.Columns.Count; i++)
+			{
+				if (!this.dgvChannels.Columns[i].Visible)
+				{
+					hidden.Add(i.ToString());
+				}
+			}
+			IniFileUtils.WriteProfileString("Setup", "ChannelsGridHiddenColumns", string.Join(",", hidden.ToArray()));
+		}
+
+		private List<int> GetSelectedChannelIndices()
+		{
+			List<int> indices = new List<int>();
+			foreach (DataGridViewRow row in this.dgvChannels.SelectedRows)
+			{
+				if (row.Tag != null)
+				{
+					indices.Add((int)row.Tag);
+				}
+			}
+			return indices;
+		}
+
+		private string PromptBulkPick(string title, string prompt, string[] options)
+		{
+			using (ChannelsBulkPickForm dialog = new ChannelsBulkPickForm(title, prompt, options, options.Length > 0 ? options[0] : ""))
+			{
+				return dialog.ShowDialog(this) == DialogResult.OK ? dialog.SelectedValue : null;
+			}
+		}
+
+		private void ApplyBulkEditToSelection(Action<int> apply)
+		{
+			List<int> indices = this.GetSelectedChannelIndices();
+			if (indices.Count == 0)
+			{
+				MessageBox.Show(this, "Select one or more channels in the grid first.", "Bulk edit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+			foreach (int index in indices)
+			{
+				apply(index);
+			}
+			this.DispData();
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm != null)
+			{
+				mainForm.RefreshRelatedForm(base.GetType());
+				mainForm.RefreshForkStatus();
+			}
+		}
+
+		private void bulkSetPower_Click(object sender, EventArgs e)
+		{
+			string power = this.PromptBulkPick("Set Power", "Apply power level to selected channels:", ChannelForm.SZ_POWER);
+			if (power == null)
+			{
+				return;
+			}
+			this.ApplyBulkEditToSelection(index => ChannelForm.data.SetPower(index, power));
+		}
+
+		private void bulkSetBandwidth_Click(object sender, EventArgs e)
+		{
+			string[] options = new string[] { "12.5", "25" };
+			string bandwidth = this.PromptBulkPick("Set Bandwidth", "Apply bandwidth to selected channels:", options);
+			if (bandwidth == null)
+			{
+				return;
+			}
+			this.ApplyBulkEditToSelection(index =>
+			{
+				ChannelForm.ChannelOne channel = ChannelForm.data[index];
+				channel.BandwidthString = bandwidth;
+			});
+		}
+
+		private void bulkSetSquelch_Click(object sender, EventArgs e)
+		{
+			string[] options = new string[] { "Tight", "Normal" };
+			string squelch = this.PromptBulkPick("Set Squelch", "Apply squelch to selected channels:", options);
+			if (squelch == null)
+			{
+				return;
+			}
+			this.ApplyBulkEditToSelection(index =>
+			{
+				ChannelForm.ChannelOne channel = ChannelForm.data[index];
+				channel.SquelchString = squelch;
+			});
+		}
+
+		private void bulkSetChannelMode_Click(object sender, EventArgs e)
+		{
+			string[] options = new string[] { "Direct Mode", "Double Slot Mode" };
+			string modeLabel = this.PromptBulkPick("Set Channel Mode", "Apply DMR channel mode to selected digital channels:", options);
+			if (modeLabel == null)
+			{
+				return;
+			}
+			int modeValue = modeLabel.StartsWith("Direct") ? 0 : 3;
+			int skipped = 0;
+			List<int> indices = this.GetSelectedChannelIndices();
+			if (indices.Count == 0)
+			{
+				MessageBox.Show(this, "Select one or more channels in the grid first.", "Bulk edit", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+			foreach (int index in indices)
+			{
+				ChannelForm.ChannelOne channel = ChannelForm.data[index];
+				if (channel.ChMode != 1)
+				{
+					skipped++;
+					continue;
+				}
+				channel.ChannelMode = modeValue;
+			}
+			this.DispData();
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm != null)
+			{
+				mainForm.RefreshRelatedForm(base.GetType());
+				mainForm.RefreshForkStatus();
+			}
+			if (skipped > 0)
+			{
+				MessageBox.Show(this,
+					skipped + " analog channel(s) skipped — channel mode applies to digital channels only.",
+					"Bulk edit",
+					MessageBoxButtons.OK,
+					MessageBoxIcon.Information);
+			}
+		}
+
+		private void bulkAssignTgList_Click(object sender, EventArgs e)
+		{
+			List<string> names = new List<string>();
+			names.Add(Settings.SZ_NONE);
+			for (int i = 0; i < RxGroupListForm.data.Count; i++)
+			{
+				string name = RxGroupListForm.data.GetName(i);
+				if (!string.IsNullOrEmpty(name) && name != Settings.SZ_NONE)
+				{
+					names.Add(name);
+				}
+			}
+			string tgList = this.PromptBulkPick(
+				"Assign TG List",
+				"TG List name is stored for Android CSV export (Rx Group).",
+				names.ToArray());
+			if (tgList == null)
+			{
+				return;
+			}
+			this.ApplyBulkEditToSelection(index =>
+			{
+				ChannelForm.ChannelOne channel = ChannelForm.data[index];
+				channel.RxGroupListString = tgList;
+			});
 		}
 
 		private static string GetContactTypeBadge(ChannelForm.ChannelOne channelOne)

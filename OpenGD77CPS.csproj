@@ -205,6 +205,7 @@
     <Compile Include="DMR\AndroidBatchResult.cs" />
     <Compile Include="DMR\AndroidBatchResultForm.cs" />
     <Compile Include="DMR\AndroidBusyForm.cs" />
+    <Compile Include="DMR\ChannelsBulkPickForm.cs" />
     <Compile Include="DMR\AndroidImportDiff.cs" />
     <Compile Include="DMR\AndroidImportDiffForm.cs" />
     <Compile Include="DMR\AndroidWorkflowForm.cs" />
