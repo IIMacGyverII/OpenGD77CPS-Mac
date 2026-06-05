@@ -269,7 +269,7 @@ namespace DMR
 			this.dgvContacts.Size = new System.Drawing.Size(913, 292);
 			this.dgvContacts.TabIndex = 9;
 			this.dgvContacts.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvContacts_RowHeaderMouseDoubleClick);
-			this.dgvContacts.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvContacts_CallIdCellDoubleClick);
+			this.dgvContacts.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvContacts_CellDoubleClick);
 			this.dgvContacts.RowPostPaint += new System.Windows.Forms.DataGridViewRowPostPaintEventHandler(this.dgvContacts_RowPostPaint);
 			this.dgvContacts.SelectionChanged += new System.EventHandler(this.dgvContacts_SelectionChanged);
 			// 
@@ -408,7 +408,7 @@ namespace DMR
 			this.lnkLookupDmrId.Location = new System.Drawing.Point(22, 71);
 			this.lnkLookupDmrId.Enabled = false;
 			this.lblLookupHint = new Label();
-			this.lblLookupHint.Text = "— or double-click a Call ID cell in the grid";
+			this.lblLookupHint.Text = "— or double-click a row to look up its Call ID";
 			this.lblLookupHint.AutoSize = true;
 			this.lblLookupHint.ForeColor = System.Drawing.SystemColors.GrayText;
 			this.dgvContacts.Location = new System.Drawing.Point(22, 94);
@@ -444,13 +444,15 @@ namespace DMR
 			DmrIdLookup.UpdateLookupEnabled(this.lnkLookupDmrId, this.GetSelectedCallId());
 		}
 
-		private void dgvContacts_CallIdCellDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+		private const int CallIdColumnIndex = 2;
+
+		private void dgvContacts_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
 		{
-			if (e.RowIndex < 0 || e.ColumnIndex != 2)
+			if (e.RowIndex < 0 || e.ColumnIndex < 0 || e.RowIndex >= this.dgvContacts.Rows.Count)
 			{
 				return;
 			}
-			object cellValue = this.dgvContacts.Rows[e.RowIndex].Cells[2].Value;
+			object cellValue = this.dgvContacts.Rows[e.RowIndex].Cells[ContactsForm.CallIdColumnIndex].Value;
 			DmrIdLookup.TryOpenFromText(cellValue == null ? null : cellValue.ToString(), this);
 		}
 
@@ -470,12 +472,12 @@ namespace DMR
 			this.cmsCallIdGrid.Items.Clear();
 			Point client = this.dgvContacts.PointToClient(Control.MousePosition);
 			DataGridView.HitTestInfo hit = this.dgvContacts.HitTest(client.X, client.Y);
-			if (hit.RowIndex < 0 || hit.ColumnIndex != 2)
+			if (hit.RowIndex < 0 || hit.ColumnIndex != ContactsForm.CallIdColumnIndex)
 			{
 				e.Cancel = true;
 				return;
 			}
-			object cellValue = this.dgvContacts.Rows[hit.RowIndex].Cells[2].Value;
+			object cellValue = this.dgvContacts.Rows[hit.RowIndex].Cells[ContactsForm.CallIdColumnIndex].Value;
 			int dmrId;
 			if (!DmrIdLookup.TryParseDmrId(cellValue == null ? null : cellValue.ToString(), out dmrId))
 			{
