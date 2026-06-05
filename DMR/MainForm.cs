@@ -3396,8 +3396,11 @@ namespace DMR
 				return;
 			}
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
-			StringBuilder results = new StringBuilder();
-			bool hasErrors = false;
+			AndroidBatchResult batch = new AndroidBatchResult
+			{
+				Operation = "Import",
+				FolderPath = folderPath
+			};
 			
 			// Check which files exist
 			string channelsFile = Path.Combine(folderPath, "Channels.csv");
@@ -3464,130 +3467,141 @@ namespace DMR
 			}
 			
 			// Import files in correct order: Contacts → TG Lists → Channels → Zones
-			
-			// Track import counts
-			int contactsCount = 0;
-			int channelsCount = 0;
-			int zonesCount = 0;
-			int zonesSkipped = 0;
-			
-			// 1. Import Contacts (if exists)
-			if (File.Exists(contactsFile))
+			using (AndroidBusyForm busy = new AndroidBusyForm(this, "Importing Android backup…"))
 			{
-				try
+				busy.ShowBusy();
+
+				// 1. Import Contacts (if exists)
+				if (File.Exists(contactsFile))
 				{
-					// Count contacts before import
-					int contactsBefore = CountValidContacts();
-					
-					if (ContactsForm.ImportFromCsvFile(contactsFile, this))
+					batch.FilesAttempted++;
+					try
 					{
-						// Count contacts after import
-						contactsCount = CountValidContacts() - contactsBefore;
-						results.Append("✓ Contacts: " + contactsCount + " imported\n");
-					}
-					else
-					{
-						results.Append("✗ Contacts.csv failed\n");
-						hasErrors = true;
-					}
-				}
-				catch (Exception ex)
-				{
-					results.Append("✗ Contacts.csv failed: " + ex.Message + "\n");
-					hasErrors = true;
-				}
-			}
-			
-			// 2. Import TG Lists (if exists)
-			if (File.Exists(tgListsFile))
-			{
-				try
-				{
-					int tgListsCount;
-					if (TGListsCsvImporter.ImportTGListsFromCsv(tgListsFile, true, this, out tgListsCount))
-					{
-						if (tgListsCount > 0)
+						busy.SetMessage("Importing Contacts.csv…");
+						int contactsBefore = CountValidContacts();
+						if (ContactsForm.ImportFromCsvFile(contactsFile, this))
 						{
-							results.Append("✓ TG Lists: " + tgListsCount + " imported\n");
+							batch.ContactsCount = CountValidContacts() - contactsBefore;
+							batch.AddLog("✓ Contacts: " + batch.ContactsCount + " imported");
+						}
+						else
+						{
+							batch.AddLog("✗ Contacts.csv failed");
 						}
 					}
-					else
+					catch (Exception ex)
 					{
-						results.Append("✗ TG_Lists.csv failed\n");
-						hasErrors = true;
+						batch.AddLog("✗ Contacts.csv failed: " + ex.Message);
 					}
 				}
-				catch (Exception ex)
+
+				// 2. Import TG Lists (if exists)
+				if (File.Exists(tgListsFile))
 				{
-					results.Append("✗ TG_Lists.csv failed: " + ex.Message + "\n");
-					hasErrors = true;
-				}
-			}
-			
-			// 3. Import Channels (if exists)
-			if (File.Exists(channelsFile))
-			{
-				try
-				{
-					if (ChannelsForm.ImportFromCsvFile(channelsFile, true, this, out channelsCount))
+					batch.FilesAttempted++;
+					try
 					{
-						results.Append("✓ Channels: " + channelsCount + " imported\n");
-					}
-					else
-					{
-						results.Append("✗ Channels.csv failed\n");
-						hasErrors = true;
-					}
-				}
-				catch (Exception ex)
-				{
-					results.Append("✗ Channels.csv failed: " + ex.Message + "\n");
-					hasErrors = true;
-				}
-			}
-			
-			// 4. Import Zones (if exists) 
-			if (File.Exists(zonesFile))
-			{
-				try
-				{
-					if (ZonesCsvImporter.ImportZonesFromCsv(zonesFile, true, out zonesCount, out zonesSkipped))
-					{
-						// Refresh zone tree nodes
-						TreeNode parentNode = this.method_9(typeof(ZoneBasicForm), this.tvwMain.Nodes);
-						if (parentNode != null)
+						busy.SetMessage("Importing TG_Lists.csv…");
+						int tgListsCount;
+						if (TGListsCsvImporter.ImportTGListsFromCsv(tgListsFile, true, this, out tgListsCount))
 						{
-							parentNode.Nodes.Clear();
-							this.InitZones(parentNode);
+							batch.TgListsCount = tgListsCount;
+							if (tgListsCount > 0)
+							{
+								batch.AddLog("✓ TG Lists: " + tgListsCount + " imported");
+							}
+							else
+							{
+								batch.AddLog("✓ TG_Lists.csv processed (no new lists)");
+							}
 						}
-						results.Append("✓ Zones: " + zonesCount + " imported");
-						if (zonesSkipped > 0)
+						else
 						{
-							results.Append(", " + zonesSkipped + " skipped");
+							batch.AddLog("✗ TG_Lists.csv failed");
 						}
-						results.Append("\n");
 					}
-					else
+					catch (Exception ex)
 					{
-						results.Append("✗ Zones.csv failed\n");
-						hasErrors = true;
+						batch.AddLog("✗ TG_Lists.csv failed: " + ex.Message);
 					}
 				}
-				catch (Exception ex)
+
+				// 3. Import Channels (if exists)
+				if (File.Exists(channelsFile))
 				{
-					results.Append("✗ Zones.csv failed: " + ex.Message + "\n");
-					hasErrors = true;
+					batch.FilesAttempted++;
+					try
+					{
+						busy.SetMessage("Importing Channels.csv…");
+						if (ChannelsForm.ImportFromCsvFile(channelsFile, true, this, out batch.ChannelsCount))
+						{
+							batch.AddLog("✓ Channels: " + batch.ChannelsCount + " imported (clearFirst — stale lat/lon arrays cleared)");
+						}
+						else
+						{
+							batch.AddLog("✗ Channels.csv failed");
+						}
+					}
+					catch (Exception ex)
+					{
+						batch.AddLog("✗ Channels.csv failed: " + ex.Message);
+					}
+				}
+
+				// 4. Import Zones (if exists)
+				if (File.Exists(zonesFile))
+				{
+					batch.FilesAttempted++;
+					try
+					{
+						busy.SetMessage("Importing Zones.csv…");
+						if (ZonesCsvImporter.ImportZonesFromCsv(zonesFile, true, out batch.ZonesCount, out batch.ZonesSkipped))
+						{
+							TreeNode parentNode = this.method_9(typeof(ZoneBasicForm), this.tvwMain.Nodes);
+							if (parentNode != null)
+							{
+								parentNode.Nodes.Clear();
+								this.InitZones(parentNode);
+							}
+							string zoneLine = "✓ Zones: " + batch.ZonesCount + " imported";
+							if (batch.ZonesSkipped > 0)
+							{
+								zoneLine += ", " + batch.ZonesSkipped + " skipped";
+							}
+							batch.AddLog(zoneLine);
+						}
+						else
+						{
+							batch.AddLog("✗ Zones.csv failed");
+						}
+					}
+					catch (Exception ex)
+					{
+						batch.AddLog("✗ Zones.csv failed: " + ex.Message);
+					}
 				}
 			}
-			
-			// Show results
-			string title = hasErrors ? "Import Completed with Errors" : "Import Complete";
-			MessageBoxIcon icon = hasErrors ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
-			
-			MessageBox.Show(results.ToString(), title, MessageBoxButtons.OK, icon);
+
+			if (validation.RelayZeroCount > 0)
+			{
+				batch.AddWarning(validation.RelayZeroCount + " channel row(s) had relay=0 (coerced to 2 on import).");
+			}
+			if (validation.DuplicateChannelNames > 0)
+			{
+				batch.AddWarning(validation.DuplicateChannelNames + " duplicate channel name(s) in CSV.");
+			}
+			AndroidContactIntegrityResult integrity = AndroidContactIntegrityChecker.CheckFolder(folderPath);
+			if (integrity.HasWarnings)
+			{
+				batch.AddWarning(integrity.Summary);
+				foreach (string warning in integrity.Warnings)
+				{
+					batch.AddWarning(warning);
+				}
+			}
+
+			AndroidBatchResult.ShowDialog(this, batch);
 			this.UpdateForkChrome();
-			
-			// Refresh all tree nodes
 			this.InitTree();
 		}
 
@@ -3633,8 +3647,11 @@ namespace DMR
 				return false;
 			}
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
-			StringBuilder results = new StringBuilder();
-			bool hasErrors = false;
+			AndroidBatchResult batch = new AndroidBatchResult
+			{
+				Operation = "Export",
+				FolderPath = folderPath
+			};
 			
 			// Prepare file paths
 			string channelsFile = Path.Combine(folderPath, "Channels.csv");
@@ -3655,94 +3672,91 @@ namespace DMR
 				}
 			}
 			
-			// Export files
-			
-			// 1. Export Contacts
-			try
+			using (AndroidBusyForm busy = new AndroidBusyForm(this, "Exporting Android backup…"))
 			{
-				if (ContactsForm.ExportToAndroidCsvFile(contactsFile))
+				busy.ShowBusy();
+
+				batch.FilesAttempted = 4;
+
+				try
 				{
-					results.Append("✓ Contacts.csv exported\n");
+					busy.SetMessage("Exporting Contacts.csv…");
+					if (ContactsForm.ExportToAndroidCsvFile(contactsFile))
+					{
+						batch.AddLog("✓ Contacts.csv exported");
+					}
+					else
+					{
+						batch.AddLog("✗ Contacts.csv failed");
+					}
 				}
-				else
+				catch (Exception ex)
 				{
-					results.Append("✗ Contacts.csv failed\n");
-					hasErrors = true;
+					batch.AddLog("✗ Contacts.csv failed: " + ex.Message);
+				}
+
+				try
+				{
+					busy.SetMessage("Exporting TG_Lists.csv…");
+					if (TGListsCsvExporter.ExportTGListsToCsv(tgListsFile))
+					{
+						batch.AddLog("✓ TG_Lists.csv exported");
+					}
+					else
+					{
+						batch.AddLog("✗ TG_Lists.csv failed");
+					}
+				}
+				catch (Exception ex)
+				{
+					batch.AddLog("✗ TG_Lists.csv failed: " + ex.Message);
+				}
+
+				try
+				{
+					busy.SetMessage("Exporting Channels.csv…");
+					if (ChannelsForm.ExportToAndroidCsvFile(channelsFile))
+					{
+						batch.ChannelsCount = CountLoadedChannelsForExport();
+						batch.AddLog("✓ Channels.csv exported (" + batch.ChannelsCount + " channel(s))");
+					}
+					else
+					{
+						batch.AddLog("✗ Channels.csv failed");
+					}
+				}
+				catch (Exception ex)
+				{
+					batch.AddLog("✗ Channels.csv failed: " + ex.Message);
+				}
+
+				try
+				{
+					busy.SetMessage("Exporting Zones.csv…");
+					if (ZonesCsvExporter.ExportZonesToCsv(zonesFile))
+					{
+						batch.AddLog("✓ Zones.csv exported");
+					}
+					else
+					{
+						batch.AddLog("✗ Zones.csv failed");
+					}
+				}
+				catch (Exception ex)
+				{
+					batch.AddLog("✗ Zones.csv failed: " + ex.Message);
 				}
 			}
-			catch (Exception ex)
-			{
-				results.Append("✗ Contacts.csv failed: " + ex.Message + "\n");
-				hasErrors = true;
-			}
-			
-			// 2. Export TG Lists
-			try
-			{
-				if (TGListsCsvExporter.ExportTGListsToCsv(tgListsFile))
-				{
-					results.Append("✓ TG_Lists.csv exported\n");
-				}
-				else
-				{
-					results.Append("✗ TG_Lists.csv failed\n");
-					hasErrors = true;
-				}
-			}
-			catch (Exception ex)
-			{
-				results.Append("✗ TG_Lists.csv failed: " + ex.Message + "\n");
-				hasErrors = true;
-			}
-			
-			// 3. Export Channels
-			try
-			{
-				if (ChannelsForm.ExportToAndroidCsvFile(channelsFile))
-				{
-					results.Append("✓ Channels.csv exported\n");
-				}
-				else
-				{
-					results.Append("✗ Channels.csv failed\n");
-					hasErrors = true;
-				}
-			}
-			catch (Exception ex)
-			{
-				results.Append("✗ Channels.csv failed: " + ex.Message + "\n");
-				hasErrors = true;
-			}
-			
-			// 4. Export Zones
-			try
-			{
-				if (ZonesCsvExporter.ExportZonesToCsv(zonesFile))
-				{
-					results.Append("✓ Zones.csv exported\n");
-				}
-				else
-				{
-					results.Append("✗ Zones.csv failed\n");
-					hasErrors = true;
-				}
-			}
-			catch (Exception ex)
-			{
-				results.Append("✗ Zones.csv failed: " + ex.Message + "\n");
-				hasErrors = true;
-			}
-			
-			results.Append("\nEncoding: UTF-8 (no BOM) for all CSV files.");
+
+			batch.AddLog("");
+			batch.AddLog("Encoding: UTF-8 (no BOM) for all CSV files.");
 
 			if (showResultDialog)
 			{
-				string title = hasErrors ? "Export Completed with Errors" : "Export Complete";
-				MessageBoxIcon icon = hasErrors ? MessageBoxIcon.Warning : MessageBoxIcon.Information;
-				MessageBox.Show(results.ToString(), title, MessageBoxButtons.OK, icon);
+				AndroidBatchResult.ShowDialog(this, batch);
 			}
 			this.UpdateForkChrome();
-			return !hasErrors;
+			return !batch.HasErrors;
 		}
 
 		// Helper method to count valid contacts
@@ -3752,6 +3766,19 @@ namespace DMR
 			for (int i = 0; i < ContactForm.data.Count; i++)
 			{
 				if (ContactForm.data.DataIsValid(i))
+				{
+					count++;
+				}
+			}
+			return count;
+		}
+
+		private int CountLoadedChannelsForExport()
+		{
+			int count = 0;
+			for (int i = 0; i < ChannelForm.data.Count; i++)
+			{
+				if (ChannelForm.data.DataIsValid(i))
 				{
 					count++;
 				}
