@@ -246,6 +246,7 @@ namespace DMR
 		private HelpForm frmHelp;
 
 		private TreeForm frmTree;
+		private ToolStripMenuItem tsmiRestoreLayout;
 
 		private TreeNodeItem CopyItem;
 
@@ -1465,6 +1466,7 @@ namespace DMR
 			}
 
 			this.UpdateForkChrome();
+			ForkDockLayout.ApplyFirstRunIfNeeded(this);
 			AndroidWorkflowForm.ShowIfNeeded(this);
 		}
 
@@ -1520,7 +1522,61 @@ namespace DMR
 			{
 				this.tsmiFile.Text = "File";
 			}
+			if (this.tsmiRestoreLayout == null)
+			{
+				this.tsmiRestoreLayout = new ToolStripMenuItem("Restore PriInterPhone default layout…");
+				this.tsmiRestoreLayout.Click += this.tsmiRestoreLayout_Click;
+				this.tsmiView.DropDownItems.Add(new ToolStripSeparator());
+				this.tsmiView.DropDownItems.Add(this.tsmiRestoreLayout);
+			}
 #endif
+		}
+
+		private void tsmiRestoreLayout_Click(object sender, EventArgs e)
+		{
+			DialogResult confirm = MessageBox.Show(this,
+				"Restore tree-on-left dock layout and open Channels + first channel (tile horizontal)?\n\nYour current MDI windows will close.",
+				"Restore PriInterPhone default layout",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Question);
+			if (confirm == DialogResult.Yes)
+			{
+				ForkDockLayout.RestoreDefault(this);
+			}
+		}
+
+		internal void ForkLayoutCloseMdi()
+		{
+			this.closeAllForms();
+		}
+
+		internal Form ForkLayoutOpenNode(TreeNode node, bool setIndexTag)
+		{
+			return this.method_7(node, setIndexTag);
+		}
+
+		internal TreeNode ForkLayoutFindNode(Type type)
+		{
+			return this.method_9(type, this.tvwMain.Nodes);
+		}
+
+		internal TreeNode ForkLayoutFindChannelNode(int index)
+		{
+			return this.GetTreeNodeByTypeAndIndex(typeof(ChannelForm), index, this.tvwMain.Nodes);
+		}
+
+		internal void ForkLayoutReloadDock()
+		{
+			this.frmTree.Hide();
+			this.frmHelp.Hide();
+			this.dockPanel.LoadFromXml(ForkDockLayout.GetConfigPath(), this.m_deserializeDockContent);
+			this.frmTree.Show(this.dockPanel);
+			this.frmHelp.Show(this.dockPanel);
+			this.pnlTvw.Dock = DockStyle.Fill;
+			if (!this.frmTree.Controls.Contains(this.pnlTvw))
+			{
+				this.frmTree.Controls.Add(this.pnlTvw);
+			}
 		}
 
 		private void FixForkShellLayout()
@@ -1670,13 +1726,12 @@ namespace DMR
 				this.tsmiSave.PerformClick();
 				break;
 			}
-			/* Roger Clark. This function never seems to actually save this value to the ini file, so I'm commenting it out as it doesnt do as advertised
-			if (IniFileUtils.smethod_2("Setup", "SaveDockPanel", 0) != 0)
+			if (!e.Cancel)
 			{
-				string fileName = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "DockPanel.config");
-				this.dockPanel.SaveAsXml(fileName);
+#if OpenGD77
+				ForkDockLayout.Save(this.dockPanel);
+#endif
 			}
-			 */
 		}
 
 		private void method_1(Form form_0)
