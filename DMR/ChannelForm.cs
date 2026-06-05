@@ -2491,6 +2491,13 @@ namespace DMR
 		internal static double[] CsvLongitudes = new double[1024];
 		internal static bool[] CsvUseLocations = new bool[1024];
 
+		private ChannelOne revertSnapshot;
+		private string revertEncryptKey;
+		private double revertLatitude;
+		private double revertLongitude;
+		private bool revertUseLocation;
+		private int revertChannelIndex = -1;
+
 	//	private IContainer components;
 
 		private CheckBox chkEnhancedChAccess;
@@ -2910,6 +2917,7 @@ namespace DMR
 			if (this.txtLatitude != null) this.txtLatitude.Text = ChannelForm.CsvLatitudes[index].ToString(System.Globalization.CultureInfo.InvariantCulture);
 			if (this.txtLongitude != null) this.txtLongitude.Text = ChannelForm.CsvLongitudes[index].ToString(System.Globalization.CultureInfo.InvariantCulture);
 			if (this.chkUseLocation != null) this.chkUseLocation.Checked = ChannelForm.CsvUseLocations[index];
+			this.CaptureRevertSnapshot(index);
 			this.method_7();
 			this.method_9();
 			this.method_8();
@@ -3213,7 +3221,7 @@ namespace DMR
 			this.androidFieldsToolTip.SetToolTip(this.chkActive, "Current Channel Loaded: Mark this channel as active/loaded in the radio.");
 			this.androidFieldsToolTip.SetToolTip(this.cmbOutboundSlot, "DMR Time Slot for transmission.\nSlot 1 or Slot 2 - check your repeater configuration.\nMust match the repeater's expected slot for your talkgroup.");
 			this.androidFieldsToolTip.SetToolTip(this.cmbChannelMode, "DMR Channel Mode:\nDirect Mode = Simplex (radio-to-radio), both use same frequency.\nDouble Slot Mode = Repeater mode using TDMA time slots.");
-			this.androidFieldsToolTip.SetToolTip(this.cmbAndroidContactType, "Contact Type:\nPERSON = Private call to specific DMR ID.\nGROUP = TalkGroup call (most common).\nALL = Receive all calls (monitoring mode).");
+			this.androidFieldsToolTip.SetToolTip(this.cmbAndroidContactType, "Contact Type:\nPERSON = Private call to specific DMR ID.\nGROUP = TalkGroup call (most common).\nALL = Receive all calls (monitoring mode).\n\nCtrl+Z reverts this channel to state when opened.");
 			this.androidFieldsToolTip.SetToolTip(this.txtEncryptKey, "Encryption Key (CSV only, not stored in binary codeplug).\nMax 32 characters. Lost when saving to .g77 file.");
 			if (this.txtLatitude != null)
 			{
@@ -3477,8 +3485,44 @@ namespace DMR
 			}
 		}
 
+		private void CaptureRevertSnapshot(int index)
+		{
+			this.revertChannelIndex = index;
+			this.revertSnapshot = ChannelForm.data[index].Clone();
+			this.revertEncryptKey = ChannelForm.CsvEncryptKeys[index] ?? "";
+			this.revertLatitude = ChannelForm.CsvLatitudes[index];
+			this.revertLongitude = ChannelForm.CsvLongitudes[index];
+			this.revertUseLocation = ChannelForm.CsvUseLocations[index];
+		}
+
+		private void RevertToSnapshot()
+		{
+			if (this.revertChannelIndex < 0)
+			{
+				return;
+			}
+			int index = this.revertChannelIndex;
+			ChannelForm.data[index] = this.revertSnapshot.Clone();
+			ChannelForm.CsvEncryptKeys[index] = this.revertEncryptKey;
+			ChannelForm.CsvLatitudes[index] = this.revertLatitude;
+			ChannelForm.CsvLongitudes[index] = this.revertLongitude;
+			ChannelForm.CsvUseLocations[index] = this.revertUseLocation;
+			this.DispData();
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm != null)
+			{
+				mainForm.RefreshRelatedForm(typeof(ChannelForm));
+				mainForm.RefreshForkStatus();
+			}
+		}
+
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
 		{
+			if (keyData == (Keys.Control | Keys.Z))
+			{
+				this.RevertToSnapshot();
+				return true;
+			}
 			if (keyData == Keys.Return)
 			{
 				SendKeys.Send("{TAB}");

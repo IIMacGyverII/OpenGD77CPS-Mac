@@ -6,18 +6,20 @@ using System.Windows.Forms;
 namespace DMR
 {
 	/// <summary>
-	/// Android backup folder UI (UI plan Tier 2.2 MVP) — Path B import/export in one place.
+	/// Android backup folder UI (UI plan Tier 2.2) — Path B import/export + pre-import validation.
 	/// </summary>
 	public class AndroidBackupForm : Form
 	{
 		private readonly MainForm mainForm;
 		private readonly TextBox txtFolder;
 		private readonly ListView lstFiles;
+		private readonly TextBox txtValidation;
 		private readonly Button btnBrowse;
 		private readonly Button btnImportAll;
 		private readonly Button btnExportAll;
 		private readonly Button btnOpenFolder;
 		private readonly Label lblHint;
+		private AndroidBackupValidationResult lastValidation;
 
 		private static readonly string[] BackupFiles = new string[]
 		{
@@ -33,76 +35,93 @@ namespace DMR
 			this.mainForm = owner;
 			this.Text = "Android backup — Path B";
 			this.StartPosition = FormStartPosition.CenterParent;
-			this.FormBorderStyle = FormBorderStyle.FixedDialog;
-			this.MaximizeBox = false;
-			this.MinimizeBox = false;
-			this.ClientSize = new Size(520, 360);
+			this.FormBorderStyle = FormBorderStyle.Sizable;
+			this.MinimumSize = new Size(540, 480);
+			this.ClientSize = new Size(540, 460);
 			this.Font = new Font("Segoe UI", 9.75f);
 			Theme.ApplyForkChrome(this, null, null, null);
 
 			this.lblHint = new Label
 			{
 				Location = new Point(12, 12),
-				Size = new Size(496, 40),
-				Text = "Select a phone export folder (DMR_Backups\\YYYYMMDD_HHmmss). Import order: Contacts → TG_Lists → Channels → Zones."
+				Size = new Size(516, 36),
+				Text = "Phone export folder. Validates Path B headers before import. Order: Contacts → TG_Lists → Channels → Zones."
 			};
 
 			this.txtFolder = new TextBox
 			{
-				Location = new Point(12, 58),
-				Size = new Size(396, 23),
-				ReadOnly = true
+				Location = new Point(12, 52),
+				Size = new Size(416, 23),
+				ReadOnly = true,
+				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
 			};
 
 			this.btnBrowse = new Button
 			{
-				Location = new Point(414, 56),
+				Location = new Point(434, 50),
 				Size = new Size(94, 27),
-				Text = "Browse…"
+				Text = "Browse…",
+				Anchor = AnchorStyles.Top | AnchorStyles.Right
 			};
 			this.btnBrowse.Click += this.btnBrowse_Click;
 
 			this.lstFiles = new ListView
 			{
-				Location = new Point(12, 92),
-				Size = new Size(496, 180),
+				Location = new Point(12, 84),
+				Size = new Size(516, 120),
 				View = View.Details,
 				FullRowSelect = true,
-				HeaderStyle = ColumnHeaderStyle.Nonclickable
+				HeaderStyle = ColumnHeaderStyle.Nonclickable,
+				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
 			};
-			this.lstFiles.Columns.Add("File", 220);
-			this.lstFiles.Columns.Add("Status", 260);
+			this.lstFiles.Columns.Add("File", 160);
+			this.lstFiles.Columns.Add("Status", 340);
+
+			this.txtValidation = new TextBox
+			{
+				Location = new Point(12, 212),
+				Size = new Size(516, 180),
+				Multiline = true,
+				ReadOnly = true,
+				ScrollBars = ScrollBars.Vertical,
+				Font = new Font("Consolas", 9f),
+				Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+			};
 
 			this.btnImportAll = new Button
 			{
-				Location = new Point(12, 284),
-				Size = new Size(120, 28),
-				Text = "Import all (Path B)"
+				Location = new Point(12, 402),
+				Size = new Size(130, 28),
+				Text = "Import all (Path B)",
+				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
 			};
 			this.btnImportAll.Click += this.btnImportAll_Click;
 
 			this.btnExportAll = new Button
 			{
-				Location = new Point(140, 284),
-				Size = new Size(120, 28),
-				Text = "Export all"
+				Location = new Point(148, 402),
+				Size = new Size(100, 28),
+				Text = "Export all",
+				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
 			};
 			this.btnExportAll.Click += this.btnExportAll_Click;
 
 			this.btnOpenFolder = new Button
 			{
-				Location = new Point(268, 284),
-				Size = new Size(120, 28),
-				Text = "Open folder"
+				Location = new Point(254, 402),
+				Size = new Size(100, 28),
+				Text = "Open folder",
+				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
 			};
 			this.btnOpenFolder.Click += this.btnOpenFolder_Click;
 
 			Button btnClose = new Button
 			{
-				Location = new Point(408, 284),
+				Location = new Point(428, 402),
 				Size = new Size(100, 28),
 				Text = "Close",
-				DialogResult = DialogResult.OK
+				DialogResult = DialogResult.OK,
+				Anchor = AnchorStyles.Bottom | AnchorStyles.Right
 			};
 			this.AcceptButton = btnClose;
 			this.CancelButton = btnClose;
@@ -111,6 +130,7 @@ namespace DMR
 			this.Controls.Add(this.txtFolder);
 			this.Controls.Add(this.btnBrowse);
 			this.Controls.Add(this.lstFiles);
+			this.Controls.Add(this.txtValidation);
 			this.Controls.Add(this.btnImportAll);
 			this.Controls.Add(this.btnExportAll);
 			this.Controls.Add(this.btnOpenFolder);
@@ -149,10 +169,14 @@ namespace DMR
 				string path = Path.Combine(folderPath, file);
 				bool exists = File.Exists(path);
 				ListViewItem item = new ListViewItem(file);
-				item.SubItems.Add(exists ? "Found" : "Missing (optional except Channels/Contacts)");
+				item.SubItems.Add(exists ? "Found" : "Missing");
 				item.ForeColor = exists ? Color.LightGreen : Color.Salmon;
 				this.lstFiles.Items.Add(item);
 			}
+
+			this.lastValidation = AndroidBackupValidator.ValidateFolder(folderPath);
+			this.txtValidation.Text = this.lastValidation.Summary;
+			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
 		}
 
 		private void btnImportAll_Click(object sender, EventArgs e)
@@ -162,7 +186,25 @@ namespace DMR
 				MessageBox.Show(this, "Choose a backup folder first.", "Android backup", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 				return;
 			}
+			if (this.lastValidation != null && this.lastValidation.HasBlockingErrors)
+			{
+				MessageBox.Show(this, this.lastValidation.Summary, "Cannot import", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				return;
+			}
+			if (this.lastValidation != null && (this.lastValidation.RelayZeroCount > 0 || this.lastValidation.DuplicateChannelNames > 0))
+			{
+				DialogResult warn = MessageBox.Show(this,
+					this.lastValidation.Summary + "\n\nImport anyway?",
+					"Validation warnings",
+					MessageBoxButtons.YesNo,
+					MessageBoxIcon.Warning);
+				if (warn != DialogResult.Yes)
+				{
+					return;
+				}
+			}
 			this.mainForm.ImportAndroidBackupFolder(this.txtFolder.Text);
+			this.SetFolder(this.txtFolder.Text);
 		}
 
 		private void btnExportAll_Click(object sender, EventArgs e)

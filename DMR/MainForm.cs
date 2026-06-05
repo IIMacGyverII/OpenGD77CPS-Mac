@@ -3329,13 +3329,23 @@ namespace DMR
 				return;
 			}
 			
-			fileList.Append("\nImport these files?");
-			
-			DialogResult confirmResult = MessageBox.Show(fileList.ToString(), "Import CSV Files", 
-				MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-			
-			if (confirmResult != DialogResult.Yes)
+			AndroidBackupValidationResult validation = AndroidBackupValidator.ValidateFolder(folderPath);
+			if (validation.HasBlockingErrors)
+			{
+				MessageBox.Show(validation.Summary, "Import blocked", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
+			}
+			fileList.Append("\n\n").Append(validation.Summary);
+			fileList.Append("\n\nImport these files?");
+			MessageBoxIcon confirmIcon = (validation.RelayZeroCount > 0 || validation.DuplicateChannelNames > 0)
+				? MessageBoxIcon.Warning
+				: MessageBoxIcon.Question;
+			DialogResult confirmResult = MessageBox.Show(fileList.ToString(), "Import CSV Files",
+				MessageBoxButtons.YesNo, confirmIcon);
+			if (confirmResult != DialogResult.Yes)
+			{
+				return;
+			}
 			
 			// Import files in correct order: Contacts → TG Lists → Channels → Zones
 			
