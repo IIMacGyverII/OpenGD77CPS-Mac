@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** In progress — v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
+**Status:** In progress — v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
 
 ---
 
@@ -259,6 +259,8 @@ Before committing an import, show a diff table: channels that will be **added**,
 **Natural home:** `AndroidBackupForm.cs` (Tier 2.2). Can be a `DataGridView` in a `Form.ShowDialog()` with **Apply** / **Cancel**.
 
 **Acceptance criteria:** User can see exactly what will change and abort without modifying the loaded codeplug.
+
+**Shipped:** v1.3.0 — `AndroidImportDiff.cs`, `AndroidImportDiffForm.cs`; wired from `MainForm.ImportAndroidBackupFolder` and summary in `AndroidBackupForm`.
 
 ---
 

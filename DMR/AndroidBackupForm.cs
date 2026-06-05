@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 namespace DMR
@@ -45,7 +46,7 @@ namespace DMR
 			{
 				Location = new Point(12, 12),
 				Size = new Size(516, 36),
-				Text = "Phone export folder. Validates Path B headers before import. Order: Contacts → TG_Lists → Channels → Zones."
+				Text = "Phone export folder. Path B validation + channel diff preview before import. Order: Contacts → TG_Lists → Channels → Zones."
 			};
 
 			this.txtFolder = new TextBox
@@ -175,7 +176,14 @@ namespace DMR
 			}
 
 			this.lastValidation = AndroidBackupValidator.ValidateFolder(folderPath);
-			this.txtValidation.Text = this.lastValidation.Summary;
+			StringBuilder log = new StringBuilder(this.lastValidation.Summary);
+			string channelsPath = Path.Combine(folderPath, "Channels.csv");
+			if (File.Exists(channelsPath))
+			{
+				AndroidImportDiffResult diff = AndroidImportDiff.Compute(channelsPath);
+				log.Append("\n\n").Append(diff.Summary);
+			}
+			this.txtValidation.Text = log.ToString();
 			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
 		}
 

@@ -3406,16 +3406,40 @@ namespace DMR
 				MessageBox.Show(validation.Summary, "Import blocked", MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
-			fileList.Append("\n\n").Append(validation.Summary);
-			fileList.Append("\n\nImport these files?");
-			MessageBoxIcon confirmIcon = (validation.RelayZeroCount > 0 || validation.DuplicateChannelNames > 0)
-				? MessageBoxIcon.Warning
-				: MessageBoxIcon.Question;
-			DialogResult confirmResult = MessageBox.Show(fileList.ToString(), "Import CSV Files",
-				MessageBoxButtons.YesNo, confirmIcon);
-			if (confirmResult != DialogResult.Yes)
+
+			bool channelsWillImport = File.Exists(channelsFile);
+			bool diffApproved = false;
+			if (channelsWillImport)
 			{
-				return;
+				if (!AndroidImportDiff.ShowPreviewDialog(this, channelsFile))
+				{
+					return;
+				}
+				diffApproved = true;
+			}
+
+			if (!diffApproved)
+			{
+				fileList.Append("\n\n").Append(validation.Summary);
+				fileList.Append("\n\nImport these files?");
+				MessageBoxIcon confirmIcon = (validation.RelayZeroCount > 0 || validation.DuplicateChannelNames > 0)
+					? MessageBoxIcon.Warning
+					: MessageBoxIcon.Question;
+				DialogResult confirmResult = MessageBox.Show(fileList.ToString(), "Import CSV Files",
+					MessageBoxButtons.YesNo, confirmIcon);
+				if (confirmResult != DialogResult.Yes)
+				{
+					return;
+				}
+			}
+			else if (validation.RelayZeroCount > 0 || validation.DuplicateChannelNames > 0)
+			{
+				DialogResult warn = MessageBox.Show(validation.Summary + "\n\nContinue import?",
+					"Validation warnings", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+				if (warn != DialogResult.Yes)
+				{
+					return;
+				}
 			}
 			
 			// Import files in correct order: Contacts → TG Lists → Channels → Zones

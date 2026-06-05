@@ -193,6 +193,8 @@
     <Compile Include="DMR.Properties\Settings.cs" />
     <Compile Include="DMR\AndroidBackupForm.cs" />
     <Compile Include="DMR\AndroidBackupValidator.cs" />
+    <Compile Include="DMR\AndroidImportDiff.cs" />
+    <Compile Include="DMR\AndroidImportDiffForm.cs" />
     <Compile Include="DMR\AndroidWorkflowForm.cs" />
     <Compile Include="DMR\Theme.cs" />
     <Compile Include="DMR\AboutForm.cs">
