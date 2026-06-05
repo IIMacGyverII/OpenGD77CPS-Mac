@@ -198,6 +198,14 @@ namespace DMR
 
 		private ToolStripButton tsbtnExportAndroid;
 
+		private ToolStripButton tsbtnOpenBackupFolder;
+
+		private ToolStripButton tsbtnAndroidBackup;
+
+		private ToolStripMenuItem tsmiAndroidBackup;
+
+		private ToolStripSeparator toolStripSeparatorAndroidMenu;
+
 		private ToolStripStatusLabel slblForkVersion;
 
 		private ToolStripMenuItem tsmiAdvanced;
@@ -316,6 +324,8 @@ namespace DMR
 			this.toolStripSeparator5 = new ToolStripSeparator();
 			this.tsmiImportCsv = new ToolStripMenuItem();
 			this.tsmiExportCsv = new ToolStripMenuItem();
+			this.toolStripSeparatorAndroidMenu = new ToolStripSeparator();
+			this.tsmiAndroidBackup = new ToolStripMenuItem();
 			this.toolStripSeparator1 = new ToolStripSeparator();
 			this.tsmiExit = new ToolStripMenuItem();
 			this.tsmiSetting = new ToolStripMenuItem();
@@ -409,6 +419,8 @@ namespace DMR
 			this.toolStripSeparator2 = new ToolStripSeparator();
 			this.tsbtnImportAndroid = new ToolStripButton();
 			this.tsbtnExportAndroid = new ToolStripButton();
+			this.tsbtnOpenBackupFolder = new ToolStripButton();
+			this.tsbtnAndroidBackup = new ToolStripButton();
 			this.toolStripSeparatorAndroid = new ToolStripSeparator();
 			this.tsbtnRead = new ToolStripButton();
 			this.tsbtnWrite = new ToolStripButton();
@@ -449,7 +461,7 @@ namespace DMR
 			this.mnsMain.Padding = new Padding(7, 3, 0, 3);
 			this.mnsMain.Size = new Size(865, 27);
 			this.mnsMain.TabIndex = 4;
-			this.tsmiFile.DropDownItems.AddRange(new ToolStripItem[8]
+			this.tsmiFile.DropDownItems.AddRange(new ToolStripItem[10]
 			{
 				this.tsmiNew,
 				this.tsmiSave,
@@ -457,6 +469,8 @@ namespace DMR
 				this.toolStripSeparator5,
 				this.tsmiImportCsv,
 				this.tsmiExportCsv,
+				this.toolStripSeparatorAndroidMenu,
+				this.tsmiAndroidBackup,
 				this.toolStripSeparator1,
 				this.tsmiExit
 			});
@@ -495,6 +509,14 @@ namespace DMR
 			this.tsmiExportCsv.Text = "Export Android backup folder...";
 			this.tsmiExportCsv.Click += this.tsmiExportCsv_Click;
 			this.tsmiExportCsv.ShortcutKeys = Keys.Control | Keys.E;
+
+			this.toolStripSeparatorAndroidMenu.Name = "toolStripSeparatorAndroidMenu";
+			this.toolStripSeparatorAndroidMenu.Size = new Size(205, 6);
+
+			this.tsmiAndroidBackup.Name = "tsmiAndroidBackup";
+			this.tsmiAndroidBackup.Size = new Size(260, 22);
+			this.tsmiAndroidBackup.Text = "Android backup manager...";
+			this.tsmiAndroidBackup.Click += this.tsmiAndroidBackup_Click;
 
 			this.toolStripSeparator1.Name = "toolStripSeparator1";
 			this.toolStripSeparator1.Size = new Size(205, 6);
@@ -1050,7 +1072,7 @@ namespace DMR
 			this.slblForkVersion.Name = "slblForkVersion";
 			this.slblForkVersion.Spring = true;
 			this.slblForkVersion.TextAlign = ContentAlignment.MiddleRight;
-			this.tsrMain.Items.AddRange(new ToolStripItem[11]
+			this.tsrMain.Items.AddRange(new ToolStripItem[13]
 			{
 				this.tsbtnNew,
 				this.tsbtnOpen,
@@ -1058,6 +1080,8 @@ namespace DMR
 				this.toolStripSeparator2,
 				this.tsbtnImportAndroid,
 				this.tsbtnExportAndroid,
+				this.tsbtnOpenBackupFolder,
+				this.tsbtnAndroidBackup,
 				this.toolStripSeparatorAndroid,
 				this.tsbtnRead,
 				this.tsbtnWrite,
@@ -1105,6 +1129,18 @@ namespace DMR
 			this.tsbtnExportAndroid.Text = "Export Android";
 			this.tsbtnExportAndroid.ToolTipText = "Export Android-format CSV (UTF-8, no BOM)";
 			this.tsbtnExportAndroid.Click += this.tsmiExportCsv_Click;
+			this.tsbtnOpenBackupFolder.DisplayStyle = ToolStripItemDisplayStyle.Text;
+			this.tsbtnOpenBackupFolder.Name = "tsbtnOpenBackupFolder";
+			this.tsbtnOpenBackupFolder.Size = new Size(80, 22);
+			this.tsbtnOpenBackupFolder.Text = "Open folder";
+			this.tsbtnOpenBackupFolder.ToolTipText = "Open last Android backup folder in Explorer";
+			this.tsbtnOpenBackupFolder.Click += this.tsbtnOpenBackupFolder_Click;
+			this.tsbtnAndroidBackup.DisplayStyle = ToolStripItemDisplayStyle.Text;
+			this.tsbtnAndroidBackup.Name = "tsbtnAndroidBackup";
+			this.tsbtnAndroidBackup.Size = new Size(72, 22);
+			this.tsbtnAndroidBackup.Text = "Backup…";
+			this.tsbtnAndroidBackup.ToolTipText = "Android backup manager (Path B import/export)";
+			this.tsbtnAndroidBackup.Click += this.tsmiAndroidBackup_Click;
 			this.toolStripSeparatorAndroid.Name = "toolStripSeparatorAndroid";
 			this.toolStripSeparatorAndroid.Size = new Size(6, 25);
 			this.tsbtnRead.DisplayStyle = ToolStripItemDisplayStyle.Image;
@@ -1430,6 +1466,11 @@ namespace DMR
 			AndroidWorkflowForm.ShowIfNeeded(this);
 		}
 
+		public void RefreshForkStatus()
+		{
+			this.UpdateForkChrome();
+		}
+
 		private void UpdateForkChrome()
 		{
 #if OpenGD77
@@ -1470,10 +1511,53 @@ namespace DMR
 				}
 			}
 			int contacts = this.CountValidContacts();
+			int orphans = this.CountOrphanedChannelContacts();
 			string relayNote = relayZero > 0 ? ", relay=0: " + relayZero : "";
+			string orphanNote = orphans > 0 ? ", orphan ct: " + orphans : "";
 			this.slblCodeplugHealth.Text = "Ch " + channels + " (" + digital + " dig, " + analog + " ana)"
-				+ " | Contacts " + contacts + relayNote;
+				+ " | Contacts " + contacts + relayNote + orphanNote;
 #endif
+		}
+
+		private int CountOrphanedChannelContacts()
+		{
+			int count = 0;
+			for (int i = 0; i < ChannelForm.data.Count; i++)
+			{
+				if (!ChannelForm.data.DataIsValid(i))
+				{
+					continue;
+				}
+				ChannelForm.ChannelOne ch = ChannelForm.data[i];
+				if (ch.Contact == 0)
+				{
+					continue;
+				}
+				if (ch.Contact > ContactForm.data.Count || !ContactForm.data.DataIsValid(ch.Contact - 1))
+				{
+					count++;
+				}
+			}
+			return count;
+		}
+
+		public void OpenAndroidBackupFolder()
+		{
+			string path = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
+			if (string.IsNullOrEmpty(path) || !Directory.Exists(path))
+			{
+				MessageBox.Show("No backup folder yet. Import a backup or open Android backup manager to choose a folder.",
+					"Open folder", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+			try
+			{
+				System.Diagnostics.Process.Start("explorer.exe", path);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(path + "\n\n" + ex.Message, "Open folder", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
 		}
 
 		private string getMainTitleStub()
@@ -3184,16 +3268,42 @@ namespace DMR
 			}
 		}
 
+		private void tsmiAndroidBackup_Click(object sender, EventArgs e)
+		{
+			using (AndroidBackupForm form = new AndroidBackupForm(this))
+			{
+				form.ShowDialog(this);
+			}
+		}
+
+		private void tsbtnOpenBackupFolder_Click(object sender, EventArgs e)
+		{
+			this.OpenAndroidBackupFolder();
+		}
+
 		private void tsmiImportCsv_Click(object sender, EventArgs e)
 		{
-			// Select folder containing CSV files
-			FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
-			folderBrowser.Description = "Select folder containing CSV files (Channels.csv, Contacts.csv, TG_Lists.csv, Zones.csv)";
-			
-			if (folderBrowser.ShowDialog() != DialogResult.OK)
-				return;
-			
-			string folderPath = folderBrowser.SelectedPath;
+			this.ImportAndroidBackupFolder(null);
+		}
+
+		public void ImportAndroidBackupFolder(string folderPath)
+		{
+			if (string.IsNullOrEmpty(folderPath))
+			{
+				FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
+				folderBrowser.Description = "Select folder containing CSV files (Channels.csv, Contacts.csv, TG_Lists.csv, Zones.csv)";
+				string lastFolder = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
+				if (!string.IsNullOrEmpty(lastFolder) && Directory.Exists(lastFolder))
+				{
+					folderBrowser.SelectedPath = lastFolder;
+				}
+				if (folderBrowser.ShowDialog() != DialogResult.OK)
+				{
+					return;
+				}
+				folderPath = folderBrowser.SelectedPath;
+			}
+			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			StringBuilder results = new StringBuilder();
 			bool hasErrors = false;
 			
@@ -3357,14 +3467,28 @@ namespace DMR
 
 		private void tsmiExportCsv_Click(object sender, EventArgs e)
 		{
-			// Select folder to export CSV files
-			FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
-			folderBrowser.Description = "Select folder to export CSV files (Channels.csv, Contacts.csv, Zones.csv)";
-			
-			if (folderBrowser.ShowDialog() != DialogResult.OK)
-				return;
-			
-			string folderPath = folderBrowser.SelectedPath;
+			this.ExportAndroidBackupFolder(null);
+		}
+
+		public void ExportAndroidBackupFolder(string folderPath)
+		{
+			bool skipFolderPicker = !string.IsNullOrEmpty(folderPath);
+			if (string.IsNullOrEmpty(folderPath))
+			{
+				FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
+				folderBrowser.Description = "Select folder to export CSV files (Channels.csv, Contacts.csv, Zones.csv)";
+				string lastFolder = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
+				if (!string.IsNullOrEmpty(lastFolder) && Directory.Exists(lastFolder))
+				{
+					folderBrowser.SelectedPath = lastFolder;
+				}
+				if (folderBrowser.ShowDialog() != DialogResult.OK)
+				{
+					return;
+				}
+				folderPath = folderBrowser.SelectedPath;
+			}
+			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			StringBuilder results = new StringBuilder();
 			bool hasErrors = false;
 			
@@ -3374,15 +3498,18 @@ namespace DMR
 			string tgListsFile = Path.Combine(folderPath, "TG_Lists.csv");
 			string zonesFile = Path.Combine(folderPath, "Zones.csv");
 			
-			// Confirm export
-			DialogResult confirmResult = MessageBox.Show(
-				"Export Contacts, TG Lists, Channels, and Zones to:\n\n" + folderPath + "\n\nContinue?",
-				"Export CSV Files",
-				MessageBoxButtons.YesNo,
-				MessageBoxIcon.Question);
-			
-			if (confirmResult != DialogResult.Yes)
-				return;
+			if (!skipFolderPicker)
+			{
+				DialogResult confirmResult = MessageBox.Show(
+					"Export Contacts, TG Lists, Channels, and Zones to:\n\n" + folderPath + "\n\nContinue?",
+					"Export CSV Files",
+					MessageBoxButtons.YesNo,
+					MessageBoxIcon.Question);
+				if (confirmResult != DialogResult.Yes)
+				{
+					return;
+				}
+			}
 			
 			// Export files
 			

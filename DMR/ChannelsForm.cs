@@ -60,7 +60,7 @@ namespace DMR
 					{
 						ChannelForm.ChannelOne channelOne = ChannelForm.data[i];
 
-						int index = this.dgvChannels.Rows.Add((i + 1).ToString(), channelOne.Name, channelOne.ChModeS, channelOne.RxFreq, channelOne.TxFreq, channelOne.TxColor.ToString(), channelOne.RepeaterSlotS, channelOne.ContactString, channelOne.RxGroupListString, channelOne.ScanListString, channelOne.RxTone, channelOne.TxTone);//, channelOne.PowerString);
+						int index = this.dgvChannels.Rows.Add((i + 1).ToString(), channelOne.Name, channelOne.ChModeS, channelOne.RxFreq, channelOne.TxFreq, channelOne.TxColor.ToString(), channelOne.RepeaterSlotS, channelOne.ContactString, GetContactTypeBadge(channelOne), channelOne.RxGroupListString, channelOne.ScanListString, channelOne.RxTone, channelOne.TxTone);//, channelOne.PowerString);
 						this.dgvChannels.Rows[index].Tag = i;
 						
 					}
@@ -1370,7 +1370,7 @@ namespace DMR
 		private void method_1()
 		{
 			int num = 0;
-			int[] array = new int[12]
+			int[] array = new int[13]
 			{
 				80,
 				100,
@@ -1379,7 +1379,8 @@ namespace DMR
 				80,
 				80,
 				80,
-				80,
+				100,
+				36,
 				80,
 				100,
 				100,
@@ -1392,6 +1393,9 @@ namespace DMR
 			this.dgvChannels.AllowUserToResizeRows = false;
 			this.dgvChannels.AllowUserToOrderColumns = false;
 			this.dgvChannels.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+			typeof(DataGridView).InvokeMember("DoubleBuffered",
+				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.SetProperty,
+				null, this.dgvChannels, new object[] { true });
 			DataGridViewTextBoxColumn dataGridViewTextBoxColumn = null;
 			string[] sZ_HEADER_TEXT = SZ_DISPLAY_HEADER_TEXT;
 			for(int i =0;i<array.Length;i++)
@@ -1473,12 +1477,99 @@ namespace DMR
 
 		private void dgvChannels_RowHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
 		{
-			MainForm mainForm = base.MdiParent as MainForm;
-			if (mainForm != null)
+			this.OpenSelectedChannelEditor();
+		}
+
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			if (keyData == Keys.F2)
 			{
-				DataGridView dataGridView = sender as DataGridView;
-				int index = (int)dataGridView.Rows[e.RowIndex].Tag;
-				mainForm.DispChildForm(typeof(ChannelForm), index);
+				this.OpenSelectedChannelEditor();
+				return true;
+			}
+			if (keyData == Keys.Delete)
+			{
+				if (this.dgvChannels.SelectedRows.Count > 0)
+				{
+					this.btnDeleteSelected_Click(this, EventArgs.Empty);
+					return true;
+				}
+			}
+			if (keyData == (Keys.Control | Keys.D))
+			{
+				this.DuplicateSelectedChannels();
+				return true;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
+
+		private void OpenSelectedChannelEditor()
+		{
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm == null || this.dgvChannels.CurrentRow == null)
+			{
+				return;
+			}
+			int index = (int)this.dgvChannels.CurrentRow.Tag;
+			mainForm.DispChildForm(typeof(ChannelForm), index);
+		}
+
+		private void DuplicateSelectedChannels()
+		{
+			if (this.dgvChannels.SelectedRows.Count == 0)
+			{
+				return;
+			}
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm == null)
+			{
+				return;
+			}
+			foreach (DataGridViewRow row in this.dgvChannels.SelectedRows)
+			{
+				int fromIndex = (int)row.Tag;
+				int toIndex = ChannelForm.data.GetMinIndex();
+				if (toIndex < 0)
+				{
+					break;
+				}
+				ChannelForm.data.SetIndex(toIndex, 1);
+				ChannelForm.data.Paste(fromIndex, toIndex);
+				ChannelForm.data.SetChName(toIndex, ChannelForm.data.GetMinName(this.Node));
+				int treeIcon = ChannelForm.data.GetChMode(toIndex) == 1 ? 6 : 2;
+				mainForm.InsertTreeViewNode(this.Node, toIndex, typeof(ChannelForm), treeIcon, ChannelForm.data);
+			}
+			this.DispData();
+			mainForm.RefreshRelatedForm(base.GetType());
+			mainForm.RefreshForkStatus();
+		}
+
+		private static string GetContactTypeBadge(ChannelForm.ChannelOne channelOne)
+		{
+#if OpenGD77
+			if (channelOne.ChMode == 1)
+			{
+				switch (channelOne.AndroidContactType)
+				{
+				case 0:
+					return "P";
+				case 1:
+					return "G";
+				case 2:
+					return "A";
+				}
+			}
+#endif
+			switch ((CallTypeE)channelOne.ContactType)
+			{
+			case CallTypeE.GroupCall:
+				return "G";
+			case CallTypeE.PrivateCall:
+				return "P";
+			case CallTypeE.AllCall:
+				return "A";
+			default:
+				return "-";
 			}
 		}
 
@@ -1611,16 +1702,17 @@ namespace DMR
 				break;
 			}
 			this.dgvChannels.Rows[index2].Cells[1].Value = channelOne.Name;
-			this.dgvChannels.Rows[index2].Cells[2].Value = channelOne.RxFreq;
-			this.dgvChannels.Rows[index2].Cells[3].Value = channelOne.TxFreq;
-			this.dgvChannels.Rows[index2].Cells[4].Value = channelOne.ChModeS;
-			this.dgvChannels.Rows[index2].Cells[5].Value = channelOne.PowerString;
-			this.dgvChannels.Rows[index2].Cells[6].Value = channelOne.RxTone;
-			this.dgvChannels.Rows[index2].Cells[7].Value = channelOne.TxTone;
-			this.dgvChannels.Rows[index2].Cells[8].Value = channelOne.TxColor.ToString();
+			this.dgvChannels.Rows[index2].Cells[2].Value = channelOne.ChModeS;
+			this.dgvChannels.Rows[index2].Cells[3].Value = channelOne.RxFreq;
+			this.dgvChannels.Rows[index2].Cells[4].Value = channelOne.TxFreq;
+			this.dgvChannels.Rows[index2].Cells[5].Value = channelOne.TxColor.ToString();
+			this.dgvChannels.Rows[index2].Cells[6].Value = channelOne.RepeaterSlotS;
+			this.dgvChannels.Rows[index2].Cells[7].Value = channelOne.ContactString;
+			this.dgvChannels.Rows[index2].Cells[8].Value = GetContactTypeBadge(channelOne);
 			this.dgvChannels.Rows[index2].Cells[9].Value = channelOne.RxGroupListString;
-			this.dgvChannels.Rows[index2].Cells[10].Value = channelOne.ContactString;
-			this.dgvChannels.Rows[index2].Cells[11].Value = channelOne.RepeaterSlotS;
+			this.dgvChannels.Rows[index2].Cells[10].Value = channelOne.ScanListString;
+			this.dgvChannels.Rows[index2].Cells[11].Value = channelOne.RxTone;
+			this.dgvChannels.Rows[index2].Cells[12].Value = channelOne.TxTone;
 		}
 
 		protected override void Dispose(bool disposing)

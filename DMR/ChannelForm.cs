@@ -3013,7 +3013,7 @@ namespace DMR
 		{
 			// Create a group box for Android-specific fields
 			var grpAndroid = new GroupBox();
-			grpAndroid.Text = "Android-Specific Fields";
+			grpAndroid.Text = "PriInterPhone / Android (CSV only)";
 			grpAndroid.Location = new System.Drawing.Point(10, 655);
 			grpAndroid.Size = new System.Drawing.Size(740, 200);
 			grpAndroid.TabIndex = 100;
@@ -3215,6 +3215,15 @@ namespace DMR
 			this.androidFieldsToolTip.SetToolTip(this.cmbChannelMode, "DMR Channel Mode:\nDirect Mode = Simplex (radio-to-radio), both use same frequency.\nDouble Slot Mode = Repeater mode using TDMA time slots.");
 			this.androidFieldsToolTip.SetToolTip(this.cmbAndroidContactType, "Contact Type:\nPERSON = Private call to specific DMR ID.\nGROUP = TalkGroup call (most common).\nALL = Receive all calls (monitoring mode).");
 			this.androidFieldsToolTip.SetToolTip(this.txtEncryptKey, "Encryption Key (CSV only, not stored in binary codeplug).\nMax 32 characters. Lost when saving to .g77 file.");
+			if (this.txtLatitude != null)
+			{
+				this.androidFieldsToolTip.SetToolTip(this.txtLatitude, "Latitude (CSV only — not stored in .g77). Preserved via Android CSV round-trip.");
+				this.androidFieldsToolTip.SetToolTip(this.txtLongitude, "Longitude (CSV only — not stored in .g77). Preserved via Android CSV round-trip.");
+			}
+			if (this.chkUseLocation != null)
+			{
+				this.androidFieldsToolTip.SetToolTip(this.chkUseLocation, "Use Location (CSV only). Enables GPS/location features on the phone database.");
+			}
 			
 			// Set default selections
 			if (this.cmbInterrupt != null) this.cmbInterrupt.SelectedIndex = 0; // Default to OFF
