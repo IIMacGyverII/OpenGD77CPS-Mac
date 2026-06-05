@@ -38,7 +38,8 @@ namespace DMR
 		private Button btnImport;
 		private Button btnExport;
 		private Button btnInternetDownload;
-		private Button btnLookupDmrId;
+		private LinkLabel lnkLookupDmrId;
+		private Label lblLookupHint;
 		private ContextMenuStrip cmsCallIdGrid;
 		private static readonly string[] SZ_HEADER_TEXT;
 
@@ -260,7 +261,7 @@ namespace DMR
 			// dgvContacts
 			// 
 			this.dgvContacts.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-			this.dgvContacts.Location = new System.Drawing.Point(22, 73);
+			this.dgvContacts.Location = new System.Drawing.Point(22, 94);
 			this.dgvContacts.Name = "dgvContacts";
 			this.dgvContacts.ReadOnly = true;
 			this.dgvContacts.RowHeadersWidth = 50;
@@ -399,22 +400,33 @@ namespace DMR
 
 		private void EnsureDmrIdLookupUi()
 		{
-			if (this.btnLookupDmrId != null)
+			if (this.lnkLookupDmrId != null)
 			{
 				return;
 			}
-			this.btnLookupDmrId = DmrIdLookup.CreateLookupButton(() => this.GetSelectedCallId(), this);
-			this.btnLookupDmrId.Location = new System.Drawing.Point(556, 42);
-			this.btnLookupDmrId.Enabled = false;
-			Label lblLookupHint = new Label();
-			lblLookupHint.Text = "Call ID: double-click cell or use Look up button for RadioID.net";
-			lblLookupHint.AutoSize = true;
-			lblLookupHint.Location = new System.Drawing.Point(22, 56);
-			lblLookupHint.ForeColor = System.Drawing.SystemColors.GrayText;
-			this.pnlContact.Controls.Add(this.btnLookupDmrId);
-			this.pnlContact.Controls.Add(lblLookupHint);
-			this.btnLookupDmrId.BringToFront();
-			lblLookupHint.BringToFront();
+			this.lnkLookupDmrId = DmrIdLookup.CreateLookupLink(() => this.GetSelectedCallId(), this);
+			this.lnkLookupDmrId.Location = new System.Drawing.Point(22, 71);
+			this.lnkLookupDmrId.Enabled = false;
+			this.lblLookupHint = new Label();
+			this.lblLookupHint.Text = "— or double-click a Call ID cell in the grid";
+			this.lblLookupHint.AutoSize = true;
+			this.lblLookupHint.ForeColor = System.Drawing.SystemColors.GrayText;
+			this.dgvContacts.Location = new System.Drawing.Point(22, 94);
+			this.pnlContact.Controls.Add(this.lnkLookupDmrId);
+			this.pnlContact.Controls.Add(this.lblLookupHint);
+			this.PositionLookupHint();
+			this.lnkLookupDmrId.SizeChanged += (s, e) => this.PositionLookupHint();
+			this.lnkLookupDmrId.BringToFront();
+			this.lblLookupHint.BringToFront();
+		}
+
+		private void PositionLookupHint()
+		{
+			if (this.lblLookupHint == null || this.lnkLookupDmrId == null)
+			{
+				return;
+			}
+			this.lblLookupHint.Location = new System.Drawing.Point(this.lnkLookupDmrId.Right + 8, this.lnkLookupDmrId.Top + 2);
 		}
 
 		private string GetSelectedCallId()
@@ -429,7 +441,7 @@ namespace DMR
 
 		private void RefreshDmrIdLookupUi()
 		{
-			DmrIdLookup.UpdateLookupEnabled(this.btnLookupDmrId, this.GetSelectedCallId());
+			DmrIdLookup.UpdateLookupEnabled(this.lnkLookupDmrId, this.GetSelectedCallId());
 		}
 
 		private void dgvContacts_CallIdCellDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
