@@ -2,3 +2,19 @@ obj/*
 bin/*
 *.suo
 installer/*.exe
+
+# AI / editor / maintainer-only folders (not part of the CPS product)
+.github/
+.claude/
+.docs/
+
+# Visual Studio / Rider
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
