@@ -455,7 +455,8 @@ namespace DMR
 				this.tsmiWindow,
 				this.tsmiAbout
 			});
-			this.mnsMain.Location = new Point(234, 0);
+			this.mnsMain.Dock = DockStyle.Top;
+            this.mnsMain.Location = new Point(0, 0);
 			this.mnsMain.MdiWindowListItem = this.tsmiWindow;
 			this.mnsMain.Name = "mnsMain";
 			this.mnsMain.Padding = new Padding(7, 3, 0, 3);
@@ -705,12 +706,7 @@ namespace DMR
 
 
 
-			this.tsmiProgram.DropDownItems.AddRange(new ToolStripItem[2]// was 3
-			{
-				this.tsmiRead,
-				this.tsmiWrite//,
-				//this.tsmiBasic
-			});
+			// Read/Write live only under Advanced (do not parent the same items on tsmiProgram — WinForms moves them).
 			this.tsmiProgram.Name = "tsmiProgram";
 			this.tsmiProgram.Size = new Size(71, 21);
 			this.tsmiProgram.Text = "Program";
@@ -978,7 +974,6 @@ namespace DMR
 			this.dockPanel.AllowEndUserDocking = false;
 			this.dockPanel.Dock = DockStyle.Fill;
 			this.dockPanel.DocumentStyle = DocumentStyle.SystemMdi;
-			this.dockPanel.Location = new Point(234, 52);
 			this.dockPanel.Margin = new Padding(3, 4, 3, 4);
 			this.dockPanel.Name = "dockPanel";
 			this.dockPanel.Size = new Size(865, 635);
@@ -1057,7 +1052,7 @@ namespace DMR
 				this.slblCodeplugHealth,
 				this.slblForkVersion
 			});
-			this.ssrMain.Location = new Point(234, 687);
+			this.ssrMain.Dock = DockStyle.Bottom;
 			this.ssrMain.Name = "ssrMain";
 			this.ssrMain.Padding = new Padding(1, 0, 17, 0);
 			this.ssrMain.Size = new Size(865, 22);
@@ -1088,7 +1083,7 @@ namespace DMR
 				this.toolStripSeparator3,
 				this.tsbtnAbout
 			});
-			this.tsrMain.Location = new Point(234, 27);
+			this.tsrMain.Dock = DockStyle.Top;
 			this.tsrMain.Name = "tsrMain";
 			this.tsrMain.Size = new Size(865, 25);
 			this.tsrMain.TabIndex = 13;
@@ -1174,8 +1169,8 @@ namespace DMR
 
 			base.ClientSize = new Size(1099, 709);
 			base.Controls.Add(this.dockPanel);
-			base.Controls.Add(this.tsrMain);
 			base.Controls.Add(this.ssrMain);
+			base.Controls.Add(this.tsrMain);
 			base.Controls.Add(this.mnsMain);
 			base.Controls.Add(this.pnlTvw);
 			this.DoubleBuffered = true;
@@ -1400,6 +1395,10 @@ namespace DMR
 			this.frmTree.Show(this.dockPanel);
 			this.pnlTvw.Dock = DockStyle.Fill;
 			this.frmTree.Controls.Add(this.pnlTvw);
+#if OpenGD77
+			this.FixForkShellLayout();
+			this.EnsureForkMainMenu();
+#endif
 			ChannelForm.DefaultCh = ChannelForm.data[0].Clone();
 			NormalScanForm.DefaultScan = NormalScanForm.data[0].Clone();
 			ContactForm.DefaultContact = ContactForm.data[0].Clone();
@@ -1471,9 +1470,71 @@ namespace DMR
 			this.UpdateForkChrome();
 		}
 
+		/// <summary>
+		/// File actions must live under top-level File, not Setting (WinForms re-parents shared ToolStripItems).
+		/// </summary>
+		private void EnsureForkMainMenu()
+		{
+#if OpenGD77
+			ToolStripItem[] fileMenuItems = new ToolStripItem[]
+			{
+				this.tsmiNew,
+				this.tsmiSave,
+				this.tsmiOpen,
+				this.toolStripSeparator5,
+				this.tsmiImportCsv,
+				this.tsmiExportCsv,
+				this.toolStripSeparatorAndroidMenu,
+				this.tsmiAndroidBackup,
+				this.toolStripSeparator1,
+				this.tsmiExit
+			};
+			foreach (ToolStripItem item in fileMenuItems)
+			{
+				if (item == null)
+				{
+					continue;
+				}
+				ToolStrip currentParent = item.GetCurrentParent();
+				if (currentParent != null && currentParent != this.tsmiFile.DropDown)
+				{
+					currentParent.Items.Remove(item);
+				}
+			}
+			this.tsmiFile.DropDownItems.Clear();
+			this.tsmiFile.DropDownItems.AddRange(fileMenuItems);
+			if (!this.mnsMain.Items.Contains(this.tsmiFile))
+			{
+				this.mnsMain.Items.Insert(0, this.tsmiFile);
+			}
+			else if (this.mnsMain.Items[0] != this.tsmiFile)
+			{
+				this.mnsMain.Items.Remove(this.tsmiFile);
+				this.mnsMain.Items.Insert(0, this.tsmiFile);
+			}
+			this.tsmiFile.Visible = true;
+			if (string.IsNullOrEmpty(this.tsmiFile.Text) || this.tsmiFile.Text == "Setting")
+			{
+				this.tsmiFile.Text = "File";
+			}
+#endif
+		}
+
+		private void FixForkShellLayout()
+		{
+#if OpenGD77
+			this.mnsMain.Dock = DockStyle.Top;
+			this.tsrMain.Dock = DockStyle.Top;
+			this.ssrMain.Dock = DockStyle.Bottom;
+			this.dockPanel.Dock = DockStyle.Fill;
+#endif
+		}
+
 		private void UpdateForkChrome()
 		{
 #if OpenGD77
+			this.FixForkShellLayout();
+			this.EnsureForkMainMenu();
 			Theme.ApplyForkChrome(this, this.mnsMain, this.tsrMain, this.ssrMain);
 			// Keep default text color on the shell so MDI/dock editors keep black labels on gray panels.
 			this.ForeColor = SystemColors.ControlText;
@@ -3960,6 +4021,9 @@ namespace DMR
 					x.Text = dicMenuItem[x.Name];
 				}
 			});
+#if OpenGD77
+			this.EnsureForkMainMenu();
+#endif
 			List<ToolStripItem> list3 = this.tsrMain.smethod_10();
 			Dictionary<string, string> dicToolItem = new Dictionary<string, string>();
 			xpath = "/Resource/MainForm/ToolStrip/ToolItem";

@@ -393,7 +393,11 @@
 			<MenuItem Id="tsmiNew" Text="New" />
 			<MenuItem Id="tsmiSave" Text="Save" />
 			<MenuItem Id="tsmiOpen" Text="Open" />
+			<MenuItem Id="tsmiImportCsv" Text="Import Android backup folder..." />
+			<MenuItem Id="tsmiExportCsv" Text="Export Android backup folder..." />
+			<MenuItem Id="tsmiAndroidBackup" Text="Android backup manager..." />
 			<MenuItem Id="tsmiExit" Text="Exit" />
+			<MenuItem Id="tsmiAdvanced" Text="Advanced" />
 			<MenuItem Id="tsmiSetting" Text="Setting" />
 			<MenuItem Id="tsmiDeviceInfo" Text="Basic Information" />
 			<MenuItem Id="tsmiBootItem" Text="Boot Item" />
