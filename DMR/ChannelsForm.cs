@@ -1683,7 +1683,7 @@ namespace DMR
 			this.btnImport.Name = "btnImport";
 			this.btnImport.Size = new System.Drawing.Size(175, 23);
 			this.btnImport.TabIndex = 13;
-			this.btnImport.Text = "Import";
+			this.btnImport.Text = "Grid import (not Android)";
 			this.btnImport.UseVisualStyleBackColor = true;
 			this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
 			// 
@@ -1693,7 +1693,7 @@ namespace DMR
 			this.btnExport.Name = "btnExport";
 			this.btnExport.Size = new System.Drawing.Size(160, 23);
 			this.btnExport.TabIndex = 14;
-			this.btnExport.Text = "Export selected rows";
+			this.btnExport.Text = "Grid export (not Android)";
 			this.btnExport.UseVisualStyleBackColor = true;
 			this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
 			// 
@@ -1806,7 +1806,7 @@ namespace DMR
 			this.btnImportClearAll.Name = "btnImportClearAll";
 			this.btnImportClearAll.Size = new System.Drawing.Size(190, 23);
 			this.btnImportClearAll.TabIndex = 13;
-			this.btnImportClearAll.Text = "Clear and Import";
+			this.btnImportClearAll.Text = "Grid clear+import (not Android)";
 			this.btnImportClearAll.UseVisualStyleBackColor = true;
 			this.btnImportClearAll.Click += new System.EventHandler(this.btnImportClearAll_Click);
 			// 

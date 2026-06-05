@@ -200,6 +200,10 @@ namespace DMR
 
 		private ToolStripStatusLabel slblForkVersion;
 
+		private ToolStripMenuItem tsmiAdvanced;
+
+		private ToolStripStatusLabel slblCodeplugHealth;
+
 		private ToolStripMenuItem tsmiClear;
 
 		private ToolStripSeparator toolStripSeparator4;
@@ -344,6 +348,7 @@ namespace DMR
 			this.tsmiVfoA = new ToolStripMenuItem();
 			this.tsmiVfoB = new ToolStripMenuItem();
 
+			this.tsmiAdvanced = new ToolStripMenuItem();
 			this.tsmiProgram = new ToolStripMenuItem();
 			this.tsmiRead = new ToolStripMenuItem();
 			this.tsmiWrite = new ToolStripMenuItem();
@@ -410,6 +415,7 @@ namespace DMR
 			this.toolStripSeparator3 = new ToolStripSeparator();
 			this.tsbtnAbout = new ToolStripButton();
 			this.slblForkVersion = new ToolStripStatusLabel();
+			this.slblCodeplugHealth = new ToolStripStatusLabel();
 			this.mnsMain.SuspendLayout();
 			this.cmsGroup.SuspendLayout();
 			this.cmsSub.SuspendLayout();
@@ -427,13 +433,12 @@ namespace DMR
 			this.imgMain.Images.SetKeyName(2, "21.png");
 
 
-            this.mnsMain.Items.AddRange(new ToolStripItem[8]
+            this.mnsMain.Items.AddRange(new ToolStripItem[7]
 			{
 				this.tsmiFile,
 				this.tsmiSetting,
-				this.tsmiProgram,
+				this.tsmiAdvanced,
 				this.tsmiView,
-				this.tsmiExtras,
 				this.tsmiLanguage,
 				this.tsmiWindow,
 				this.tsmiAbout
@@ -481,13 +486,13 @@ namespace DMR
 
 			this.tsmiImportCsv.Name = "tsmiImportCsv";
 			this.tsmiImportCsv.Size = new Size(208, 22);
-			this.tsmiImportCsv.Text = "Import CSV Files...";
+			this.tsmiImportCsv.Text = "Import Android backup folder...";
 			this.tsmiImportCsv.Click += this.tsmiImportCsv_Click;
 			this.tsmiImportCsv.ShortcutKeys = Keys.Control | Keys.I;
 
 			this.tsmiExportCsv.Name = "tsmiExportCsv";
 			this.tsmiExportCsv.Size = new Size(208, 22);
-			this.tsmiExportCsv.Text = "Export CSV Files...";
+			this.tsmiExportCsv.Text = "Export Android backup folder...";
 			this.tsmiExportCsv.Click += this.tsmiExportCsv_Click;
 			this.tsmiExportCsv.ShortcutKeys = Keys.Control | Keys.E;
 
@@ -697,6 +702,20 @@ namespace DMR
 			this.tsmiWrite.Size = new Size(156, 22);
 			this.tsmiWrite.Text = "Write";
 			this.tsmiWrite.Click += this.tsbtnWrite_Click;
+			this.tsmiAdvanced.DropDownItems.AddRange(new ToolStripItem[]
+			{
+				this.tsmiRead,
+				this.tsmiWrite,
+				new ToolStripSeparator(),
+				this.tsmiFirmwareLoader,
+				this.tsmiCalibration,
+				this.tsmiOpenGD77,
+				this.tsmiContactsDownload,
+				this.tsmiDMRID
+			});
+			this.tsmiAdvanced.Name = "tsmiAdvanced";
+			this.tsmiAdvanced.Size = new Size(71, 21);
+			this.tsmiAdvanced.Text = "Advanced";
 			/*
 			 * Roger Clark
 			 * Removed basic mode select
@@ -986,7 +1005,7 @@ namespace DMR
 			dockPaneStripToolWindowGradient.InactiveTabGradient = tabGradient7;
 			dockPaneStripSkin.ToolWindowGradient = dockPaneStripToolWindowGradient;
 			dockPanelSkin.DockPaneStripSkin = dockPaneStripSkin;
-			//rjc this.dockPanel.Skin = dockPanelSkin;
+			this.dockPanel.Skin = dockPanelSkin;
 			this.dockPanel.TabIndex = 6;
 			this.pnlTvw.Controls.Add(this.tvwMain);
 			this.pnlTvw.Dock = DockStyle.Left;
@@ -1010,9 +1029,10 @@ namespace DMR
 			this.tvwMain.NodeMouseClick += this.tvwMain_NodeMouseClick;
 			this.tvwMain.BeforeLabelEdit += this.tvwMain_BeforeLabelEdit;
 			this.tvwMain.KeyDown += this.tvwMain_KeyDown;
-			this.ssrMain.Items.AddRange(new ToolStripItem[2]
+			this.ssrMain.Items.AddRange(new ToolStripItem[3]
 			{
 				this.slblComapny,
+				this.slblCodeplugHealth,
 				this.slblForkVersion
 			});
 			this.ssrMain.Location = new Point(234, 687);
@@ -1024,6 +1044,9 @@ namespace DMR
 			this.slblComapny.Name = "slblComapny";
 			this.slblComapny.Size = new Size(63, 17);
 			this.slblComapny.Text = "Prompt：";
+			this.slblCodeplugHealth.Name = "slblCodeplugHealth";
+			this.slblCodeplugHealth.Size = new Size(320, 17);
+			this.slblCodeplugHealth.Text = "";
 			this.slblForkVersion.Name = "slblForkVersion";
 			this.slblForkVersion.Spring = true;
 			this.slblForkVersion.TextAlign = ContentAlignment.MiddleRight;
@@ -1093,6 +1116,7 @@ namespace DMR
 			this.tsbtnRead.Text = "Read";
 			this.tsbtnRead.Click += this.tsbtnRead_Click;
 			this.tsbtnWrite.DisplayStyle = ToolStripItemDisplayStyle.Image;
+			this.tsbtnWrite.Visible = false;
 			this.tsbtnWrite.Image = (Image)componentResourceManager.GetObject("tsbtnWrite.Image");
 			this.tsbtnWrite.ImageTransparentColor = Color.Magenta;
 			this.tsbtnWrite.Name = "tsbtnWrite";
@@ -1403,13 +1427,53 @@ namespace DMR
 			}
 
 			this.UpdateForkChrome();
+			AndroidWorkflowForm.ShowIfNeeded(this);
 		}
 
 		private void UpdateForkChrome()
 		{
 #if OpenGD77
+			Theme.ApplyForkChrome(this, this.mnsMain, this.tsrMain, this.ssrMain);
+			Theme.ApplyDockPanelSkin(this.dockPanel);
 			this.slblForkVersion.Text = AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION
-				+ " — use File → Import CSV for phone backups (not channel-grid Import)";
+				+ " — Path B: File → Import Android backup (not channel-grid Import)";
+			this.UpdateCodeplugHealth();
+#endif
+		}
+
+		private void UpdateCodeplugHealth()
+		{
+#if OpenGD77
+			int channels = 0;
+			int digital = 0;
+			int analog = 0;
+			int relayZero = 0;
+			for (int i = 0; i < ChannelForm.data.Count; i++)
+			{
+				if (!ChannelForm.data.DataIsValid(i))
+				{
+					continue;
+				}
+				channels++;
+				switch (ChannelForm.data.GetChMode(i))
+				{
+				case 1:
+					digital++;
+					break;
+				case 0:
+					analog++;
+					break;
+				}
+				ChannelOne ch = ChannelForm.data[i];
+				if (ch.Relay == 0)
+				{
+					relayZero++;
+				}
+			}
+			int contacts = this.CountValidContacts();
+			string relayNote = relayZero > 0 ? ", relay=0: " + relayZero : "";
+			this.slblCodeplugHealth.Text = "Ch " + channels + " (" + digital + " dig, " + analog + " ana)"
+				+ " | Contacts " + contacts + relayNote;
 #endif
 		}
 

@@ -191,6 +191,8 @@
     <Compile Include="Common\AutoClosingMessageBox.cs" />
     <Compile Include="DMR.Properties\Resources.cs" />
     <Compile Include="DMR.Properties\Settings.cs" />
+    <Compile Include="DMR\AndroidWorkflowForm.cs" />
+    <Compile Include="DMR\Theme.cs" />
     <Compile Include="DMR\AboutForm.cs">
       <SubType>Form</SubType>
     </Compile>

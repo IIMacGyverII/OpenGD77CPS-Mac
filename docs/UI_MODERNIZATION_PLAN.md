@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** In progress — Tier 1A/1.6 started (v1.2.1): CSV UTF-8 no BOM, Android import/export toolbar, fork status bar
+**Status:** In progress — v1.2.2: Tier 1.1 welcome dialog, 1.2 dark theme, 1.3 Advanced menu, 1.6 UTF-8 CSV, 1.7 codeplug health strip, Path B grid labels (v1.2.1: toolbar + status)
 
 ---
 
