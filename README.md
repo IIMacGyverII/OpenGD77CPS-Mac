@@ -71,8 +71,10 @@ Prerequisites: Visual Studio 2019+ or Build Tools, **.NET Framework 4.8**, **x86
 
 ```powershell
 cd OpenGD77CPS-Mac
+# First-time only (WebView2, v1.5.9+):
+tools\nuget.exe install Microsoft.Web.WebView2 -Version 1.0.2903.40 -OutputDirectory packages
 msbuild OpenGD77CPS.sln /p:Configuration=Release /p:Platform=x86
-# Output: bin\ReleaseOpenGD77\OpenGD77CPS.exe
+# Output: bin\ReleaseOpenGD77\OpenGD77CPS.exe (includes runtimes\win-x86\native\WebView2Loader.dll)
 ```
 
 Bump `FORK_VERSION` in `DMR/AboutForm.cs` before every release build.

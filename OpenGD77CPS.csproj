@@ -91,6 +91,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Web.WebView2.Core">
+      <HintPath>packages\Microsoft.Web.WebView2.1.0.2903.40\lib\net462\Microsoft.Web.WebView2.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Web.WebView2.WinForms">
+      <HintPath>packages\Microsoft.Web.WebView2.1.0.2903.40\lib\net462\Microsoft.Web.WebView2.WinForms.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class16.cs">
@@ -196,6 +202,7 @@
     <Compile Include="DMR.Properties\Resources.cs" />
     <Compile Include="DMR.Properties\Settings.cs" />
     <Compile Include="DMR\AndroidBackupForm.cs" />
+    <Compile Include="DMR\AndroidBackupReportHtml.cs" />
     <Compile Include="DMR\AndroidBackupFolderPicker.cs" />
     <Compile Include="DMR\AndroidAdbBackup.cs" />
     <Compile Include="DMR\AndroidAdbPickForm.cs" />
@@ -211,6 +218,7 @@
     <Compile Include="DMR\AndroidImportDiffForm.cs" />
     <Compile Include="DMR\AndroidWorkflowForm.cs" />
     <Compile Include="DMR\ForkSplashForm.cs" />
+    <Compile Include="DMR\ForkWebViewPanel.cs" />
     <Compile Include="DMR\ForkKeyboardShortcutsForm.cs" />
     <Compile Include="DMR\DmrIdLookup.cs" />
     <Compile Include="DMR\Theme.cs" />
@@ -524,4 +532,5 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="packages\Microsoft.Web.WebView2.1.0.2903.40\build\Microsoft.Web.WebView2.targets" Condition="Exists('packages\Microsoft.Web.WebView2.1.0.2903.40\build\Microsoft.Web.WebView2.targets')" />
 </Project>

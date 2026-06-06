@@ -14,7 +14,9 @@ namespace DMR
 		private readonly MainForm mainForm;
 		private readonly TextBox txtFolder;
 		private readonly ListView lstFiles;
+		private readonly TabControl tabReport;
 		private readonly TextBox txtValidation;
+		private readonly ForkWebViewPanel webReport;
 		private readonly Button btnBrowse;
 		private readonly Button btnPullAdb;
 		private readonly Button btnPushAdb;
@@ -42,8 +44,8 @@ namespace DMR
 			this.Text = "Android backup — Path B";
 			this.StartPosition = FormStartPosition.CenterParent;
 			this.FormBorderStyle = FormBorderStyle.Sizable;
-			this.MinimumSize = new Size(540, 500);
-			this.ClientSize = new Size(540, 500);
+			this.MinimumSize = new Size(560, 520);
+			this.ClientSize = new Size(560, 520);
 			this.Font = new Font("Segoe UI", 9.75f);
 			Theme.ApplyForkDialog(this);
 
@@ -51,7 +53,7 @@ namespace DMR
 			{
 				Location = new Point(12, 12),
 				Size = new Size(516, 48),
-				Text = "Path B: Pull from phone (ADB) or copy to PC for import. Export && push (ADB) sends CSVs to the phone. Validation + diff preview."
+				Text = "Path B: Pull from phone (ADB) or copy to PC for import. Export && push (ADB) sends CSVs to the phone. Log + HTML report tabs."
 			};
 
 			this.txtFolder = new TextBox
@@ -107,20 +109,34 @@ namespace DMR
 			this.lstFiles.Columns.Add("File", 160);
 			this.lstFiles.Columns.Add("Status", 340);
 
-			this.txtValidation = new TextBox
+			this.tabReport = new TabControl
 			{
 				Location = new Point(12, 248),
-				Size = new Size(516, 110),
+				Size = new Size(536, 110),
+				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
+			};
+			TabPage tabLog = new TabPage("Log");
+			this.txtValidation = new TextBox
+			{
+				Dock = DockStyle.Fill,
 				Multiline = true,
 				ReadOnly = true,
 				ScrollBars = ScrollBars.Vertical,
 				Font = new Font("Consolas", 9f),
-				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+				BackColor = Color.FromArgb(0x06, 0x0D, 0x14),
+				ForeColor = Color.FromArgb(0xE8, 0xEE, 0xF4),
+				BorderStyle = BorderStyle.None
 			};
+			tabLog.Controls.Add(this.txtValidation);
+			TabPage tabHtml = new TabPage("Report");
+			this.webReport = new ForkWebViewPanel();
+			tabHtml.Controls.Add(this.webReport);
+			this.tabReport.TabPages.Add(tabLog);
+			this.tabReport.TabPages.Add(tabHtml);
 
 			this.chkIntegrity = new CheckBox
 			{
-				Location = new Point(12, 364),
+				Location = new Point(12, 368),
 				Size = new Size(516, 20),
 				AutoSize = true,
 				Visible = false,
@@ -130,8 +146,8 @@ namespace DMR
 
 			this.txtIntegrity = new TextBox
 			{
-				Location = new Point(12, 386),
-				Size = new Size(516, 72),
+				Location = new Point(12, 390),
+				Size = new Size(536, 72),
 				Multiline = true,
 				ReadOnly = true,
 				Visible = false,
@@ -143,7 +159,7 @@ namespace DMR
 
 			this.btnImportAll = new Button
 			{
-				Location = new Point(12, 466),
+				Location = new Point(12, 472),
 				Size = new Size(130, 28),
 				Text = "Import all (Path B)",
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
@@ -152,7 +168,7 @@ namespace DMR
 
 			this.btnExportAll = new Button
 			{
-				Location = new Point(148, 466),
+				Location = new Point(148, 472),
 				Size = new Size(100, 28),
 				Text = "Export all",
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
@@ -161,7 +177,7 @@ namespace DMR
 
 			this.btnOpenFolder = new Button
 			{
-				Location = new Point(254, 466),
+				Location = new Point(254, 472),
 				Size = new Size(100, 28),
 				Text = "Open folder",
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
@@ -170,7 +186,7 @@ namespace DMR
 
 			Button btnClose = new Button
 			{
-				Location = new Point(428, 466),
+				Location = new Point(448, 472),
 				Size = new Size(100, 28),
 				Text = "Close",
 				DialogResult = DialogResult.OK,
@@ -186,7 +202,7 @@ namespace DMR
 			this.Controls.Add(this.btnPushAdb);
 			this.Controls.Add(this.lnkUsbHelp);
 			this.Controls.Add(this.lstFiles);
-			this.Controls.Add(this.txtValidation);
+			this.Controls.Add(this.tabReport);
 			this.Controls.Add(this.chkIntegrity);
 			this.Controls.Add(this.txtIntegrity);
 			this.Controls.Add(this.btnImportAll);
@@ -298,14 +314,16 @@ namespace DMR
 			this.lastValidation = AndroidBackupValidator.ValidateFolder(folderPath);
 			StringBuilder log = new StringBuilder(this.lastValidation.Summary);
 			string channelsPath = Path.Combine(folderPath, "Channels.csv");
+			AndroidImportDiffResult diff = null;
 			if (File.Exists(channelsPath))
 			{
-				AndroidImportDiffResult diff = AndroidImportDiff.Compute(channelsPath);
+				diff = AndroidImportDiff.Compute(channelsPath);
 				log.Append("\n\n").Append(diff.Summary);
 			}
 			AndroidContactIntegrityResult integrity = AndroidContactIntegrityChecker.CheckFolder(folderPath);
 			log.Append("\n\n").Append(integrity.Summary);
 			this.txtValidation.Text = log.ToString();
+			this.webReport.NavigateHtml(AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity));
 			this.chkIntegrity.Visible = integrity.HasWarnings;
 			this.chkIntegrity.Text = integrity.Summary;
 			this.chkIntegrity.Checked = integrity.HasWarnings;
