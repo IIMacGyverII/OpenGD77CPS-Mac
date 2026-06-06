@@ -860,6 +860,7 @@ namespace DMR
 
 		private TextBox txtZoneListFilter;
 		private Label lblZoneListFilter;
+		private Label lblZoneHint;
 		private List<SelectedItemUtils> forkUnselectedCache = new List<SelectedItemUtils>();
 
 		public static readonly int SPACE_ZONE;
@@ -1149,7 +1150,7 @@ namespace DMR
 //			base.AutoScaleMode = AutoScaleMode.Font;
 			base.ClientSize = new Size(794, 560);
 			base.Controls.Add(this.pnlZone);
-			this.Font = new Font("Arial", 10f, FontStyle.Regular);
+			this.Font = Theme.UiFont;
 			base.Name = "ZoneForm";
 			this.Text = "Zone";
 			base.Load += new EventHandler(this.ZoneForm_Load);
@@ -1314,29 +1315,115 @@ namespace DMR
 			Settings.smethod_68(this);
 			Settings.smethod_71(this.tsrZone.smethod_10(), base.Name);
 			this.method_1();
-			this.EnsureZoneListFilter();
+			this.EnsureForkZoneUi();
+			this.pnlZone.Resize += this.pnlZone_Resize;
 			this.DispData();
 			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkZoneLayout();
 		}
 
-		private void EnsureZoneListFilter()
+		private void EnsureForkZoneUi()
 		{
-			if (this.txtZoneListFilter != null)
+			if (this.txtZoneListFilter == null)
+			{
+				this.lblZoneListFilter = new Label();
+				this.lblZoneListFilter.Text = "Filter:";
+				this.lblZoneListFilter.AutoSize = true;
+				this.txtZoneListFilter = new TextBox();
+				this.txtZoneListFilter.Size = new Size(160, 23);
+				this.txtZoneListFilter.TextChanged += this.txtZoneListFilter_TextChanged;
+				this.grpUnselected.Controls.Add(this.lblZoneListFilter);
+				this.grpUnselected.Controls.Add(this.txtZoneListFilter);
+			}
+			if (this.lblZoneHint == null)
+			{
+				this.lblZoneHint = new Label();
+				this.lblZoneHint.Text = "Filter searches Available only · Add/Delete move channels · Up/Down reorders Member";
+				this.lblZoneHint.AutoSize = false;
+				this.lblZoneHint.Height = 18;
+				this.lblZoneHint.ForeColor = System.Drawing.SystemColors.GrayText;
+				this.pnlZone.Controls.Add(this.lblZoneHint);
+			}
+			this.lstUnselected.BorderStyle = BorderStyle.FixedSingle;
+			this.lstUnselected.Font = Theme.UiFont;
+			this.lstUnselected.IntegralHeight = false;
+			this.lstSelected.BorderStyle = BorderStyle.FixedSingle;
+			this.lstSelected.Font = Theme.UiFont;
+			this.lstSelected.IntegralHeight = false;
+			this.grpUnselected.Font = Theme.UiFont;
+			this.grpSelected.Font = Theme.UiFont;
+			this.pnlZone.AutoSize = false;
+		}
+
+		private void pnlZone_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkZoneLayout();
+		}
+
+		private void ApplyForkZoneLayout()
+		{
+			if (this.txtZoneListFilter == null)
 			{
 				return;
 			}
-			this.lblZoneListFilter = new Label();
-			this.lblZoneListFilter.Text = "Filter available:";
-			this.lblZoneListFilter.AutoSize = true;
-			this.txtZoneListFilter = new TextBox();
-			this.txtZoneListFilter.Size = new Size(140, 23);
-			this.txtZoneListFilter.TextChanged += this.txtZoneListFilter_TextChanged;
-			this.pnlZone.Controls.Add(this.lblZoneListFilter);
-			this.pnlZone.Controls.Add(this.txtZoneListFilter);
-			this.lblZoneListFilter.Location = new Point(86, 84);
-			this.txtZoneListFilter.Location = new Point(198, 81);
+			const int pad = 12;
+			const int centerBtnW = 78;
+			const int reorderBtnW = 76;
+			int clientW = this.pnlZone.ClientSize.Width;
+			int clientH = this.pnlZone.ClientSize.Height;
+			int nameRowY = 34;
+			int groupsTop = 76;
+			int groupsH = Math.Max(220, clientH - groupsTop - pad);
+
+			this.lblName.Location = new Point(pad, nameRowY + 2);
+			this.lblName.AutoSize = true;
+			this.txtName.Location = new Point(72, nameRowY);
+			this.txtName.Size = new Size(Math.Max(160, Math.Min(360, clientW - 96)), 23);
+
+			if (this.lblZoneHint != null)
+			{
+				this.lblZoneHint.Location = new Point(pad, nameRowY + 28);
+				this.lblZoneHint.Width = Math.Max(200, clientW - pad * 2);
+			}
+
+			int availW = Math.Max(200, (clientW - pad * 3 - centerBtnW - reorderBtnW) / 2);
+			int centerX = pad + availW + 4;
+			int memberX = centerX + centerBtnW + 4;
+			int memberW = Math.Max(200, clientW - memberX - reorderBtnW - pad);
+
+			this.grpUnselected.SetBounds(pad, groupsTop, availW, groupsH);
+			this.grpSelected.SetBounds(memberX, groupsTop, memberW, groupsH);
+
+			int filterY = 20;
+			this.lblZoneListFilter.Location = new Point(10, filterY + 2);
+			this.txtZoneListFilter.Location = new Point(56, filterY);
+			this.txtZoneListFilter.Width = Math.Max(100, this.grpUnselected.ClientSize.Width - 66);
+
+			int listTop = filterY + 30;
+			int listH = Math.Max(120, this.grpUnselected.ClientSize.Height - listTop - 10);
+			this.lstUnselected.SetBounds(10, listTop, Math.Max(80, this.grpUnselected.ClientSize.Width - 20), listH);
+			this.lstUnselected.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+			int memberListTop = 22;
+			int memberListH = Math.Max(120, this.grpSelected.ClientSize.Height - memberListTop - 10);
+			this.lstSelected.SetBounds(10, memberListTop, Math.Max(80, this.grpSelected.ClientSize.Width - 20), memberListH);
+			this.lstSelected.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+			int btnX = centerX + (centerBtnW - 75) / 2;
+			int btnMidY = groupsTop + groupsH / 2;
+			this.btnAdd.SetBounds(btnX, btnMidY - 36, 75, 23);
+			this.btnDel.SetBounds(btnX, btnMidY + 8, 75, 23);
+
+			int reorderX = memberX + memberW + 6;
+			this.btnUp.SetBounds(reorderX, btnMidY - 36, reorderBtnW - 8, 23);
+			this.btnDown.SetBounds(reorderX, btnMidY + 8, reorderBtnW - 8, 23);
+
 			this.lblZoneListFilter.BringToFront();
 			this.txtZoneListFilter.BringToFront();
+			if (this.lblZoneHint != null)
+			{
+				this.lblZoneHint.BringToFront();
+			}
 		}
 
 		private void txtZoneListFilter_TextChanged(object sender, EventArgs e)
