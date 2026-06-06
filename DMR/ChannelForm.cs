@@ -3248,7 +3248,7 @@ namespace DMR
 			{
 				this.grpAndroidFork.BringToFront();
 			}
-			bool showAdvanced = IniFileUtils.getProfileStringWithDefault("Setup", "ChannelShowAdvancedBinary", "no") == "yes";
+			bool showAdvanced = IniFileUtils.getProfileStringWithDefault("Setup", "ChannelShowAdvancedBinary", "yes") == "yes";
 			this.chkShowAdvancedBinary.Checked = showAdvanced;
 			this.ApplyForkAdvancedBinaryVisibility(showAdvanced, true);
 		}
