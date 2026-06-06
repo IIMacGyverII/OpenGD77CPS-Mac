@@ -1483,6 +1483,7 @@ namespace DMR
 
 			this.UpdateForkChrome();
 			ForkDockLayout.ApplyFirstRunIfNeeded(this);
+			ForkDockLayout.EnsureWorkspaceOpen(this);
 			AndroidWorkflowForm.ShowIfNeeded(this);
 		}
 

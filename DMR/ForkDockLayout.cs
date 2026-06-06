@@ -55,6 +55,28 @@ namespace DMR
 			IniFileUtils.WriteProfileString(IniSection, IniKeyInitialized, "yes");
 		}
 
+		/// <summary>Open Channels + first channel when workspace is empty (gray MDI with no editors).</summary>
+		public static void EnsureWorkspaceOpen(MainForm main)
+		{
+			if (main == null || HasChannelsEditorOpen(main))
+			{
+				return;
+			}
+			ApplyMdiDefault(main);
+		}
+
+		private static bool HasChannelsEditorOpen(MainForm main)
+		{
+			foreach (Form child in main.MdiChildren)
+			{
+				if (child.GetType() == typeof(ChannelsForm))
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
 		public static void RestoreDefault(MainForm main)
 		{
 			if (main == null)

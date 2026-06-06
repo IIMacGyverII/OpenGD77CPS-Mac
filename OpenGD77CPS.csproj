@@ -217,6 +217,7 @@
     <Compile Include="DMR\AndroidBusyForm.cs" />
     <Compile Include="DMR\ChannelsBulkPickForm.cs" />
     <Compile Include="DMR\ForkDockLayout.cs" />
+    <Compile Include="DMR\ForkGridBadges.cs" />
     <Compile Include="DMR\AndroidImportDiff.cs" />
     <Compile Include="DMR\AndroidImportDiffForm.cs" />
     <Compile Include="DMR\AndroidWorkflowForm.cs" />

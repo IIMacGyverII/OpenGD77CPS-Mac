@@ -408,7 +408,7 @@ namespace DMR
 			this.lnkLookupDmrId.Location = new System.Drawing.Point(22, 71);
 			this.lnkLookupDmrId.Enabled = false;
 			this.lblLookupHint = new Label();
-			this.lblLookupHint.Text = "— or double-click a row to look up its Call ID";
+			this.lblLookupHint.Text = "G=green Group · P=orange Private · double-click row to look up Call ID on RadioID.net";
 			this.lblLookupHint.AutoSize = true;
 			this.lblLookupHint.ForeColor = System.Drawing.SystemColors.GrayText;
 			this.dgvContacts.Location = new System.Drawing.Point(22, 94);
@@ -445,6 +445,22 @@ namespace DMR
 		}
 
 		private const int CallIdColumnIndex = 2;
+
+		private void dgvContacts_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+		{
+			if (e.RowIndex < 0 || e.ColumnIndex != 3)
+			{
+				return;
+			}
+			if (this.dgvContacts.Rows[e.RowIndex].IsNewRow)
+			{
+				return;
+			}
+			string badge = ForkGridBadges.GetContactCallTypeBadge(Convert.ToString(e.Value) ?? "");
+			e.Value = badge;
+			e.FormattingApplied = true;
+			ForkGridBadges.ApplyContactTypeStyle(e, badge);
+		}
 
 		private void dgvContacts_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
 		{
@@ -876,7 +892,7 @@ namespace DMR
 				80,
 				200,
 				100,
-				100,
+				36,
 				100,
 				100,
 				150
@@ -891,6 +907,8 @@ namespace DMR
 			this.dgvContacts.AllowUserToResizeRows = false;
 			this.dgvContacts.AllowUserToOrderColumns = false;
 			this.dgvContacts.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+			ForkGridBadges.EnableGridPolish(this.dgvContacts);
+			this.dgvContacts.CellFormatting += this.dgvContacts_CellFormatting;
 			DataGridViewTextBoxColumn dataGridViewTextBoxColumn = null;
 			string[] sZ_HEADER_TEXT = ContactsForm.SZ_HEADER_TEXT;
 			foreach (string headerText in sZ_HEADER_TEXT)

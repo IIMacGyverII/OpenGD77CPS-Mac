@@ -1599,12 +1599,7 @@ namespace DMR
 			this.dgvChannels.AllowUserToResizeRows = false;
 			this.dgvChannels.AllowUserToOrderColumns = false;
 			this.dgvChannels.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-			typeof(DataGridView).InvokeMember("DoubleBuffered",
-				System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.SetProperty,
-				null, this.dgvChannels, new object[] { true });
-			this.dgvChannels.BackgroundColor = Color.White;
-			this.dgvChannels.DefaultCellStyle.BackColor = Color.White;
-			this.dgvChannels.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(0xE8, 0xF0, 0xF8);
+			ForkGridBadges.EnableGridPolish(this.dgvChannels);
 			DataGridViewTextBoxColumn dataGridViewTextBoxColumn = null;
 			string[] sZ_HEADER_TEXT = SZ_DISPLAY_HEADER_TEXT;
 			for(int i =0;i<array.Length;i++)
@@ -2091,63 +2086,13 @@ namespace DMR
 			}
 			if (e.ColumnIndex == 2)
 			{
-				string mode = Convert.ToString(e.Value) ?? "";
-				string badge = GetChannelModeBadge(mode);
-				e.Value = badge;
-				e.FormattingApplied = true;
-				if (badge == "D")
-				{
-					e.CellStyle.BackColor = Color.FromArgb(0xD6, 0xE8, 0xF7);
-					e.CellStyle.ForeColor = Color.FromArgb(0x1A, 0x4A, 0x7A);
-				}
-				else if (badge == "A")
-				{
-					e.CellStyle.BackColor = Color.FromArgb(0xF5, 0xE6, 0xD0);
-					e.CellStyle.ForeColor = Color.FromArgb(0x7A, 0x4A, 0x1A);
-				}
-				e.CellStyle.Font = Theme.UiFontBold;
+				ForkGridBadges.ApplyChannelModeStyle(e, Convert.ToString(e.Value) ?? "");
 				return;
 			}
 			if (e.ColumnIndex == 8)
 			{
-				string badge = Convert.ToString(e.Value) ?? "-";
-				switch (badge)
-				{
-				case "G":
-					e.CellStyle.BackColor = Color.FromArgb(0xC8, 0xE6, 0xC9);
-					e.CellStyle.ForeColor = Color.FromArgb(0x1B, 0x5E, 0x20);
-					break;
-				case "P":
-					e.CellStyle.BackColor = Color.FromArgb(0xFF, 0xE0, 0xB2);
-					e.CellStyle.ForeColor = Color.FromArgb(0xE6, 0x51, 0x00);
-					break;
-				case "A":
-					e.CellStyle.BackColor = Color.FromArgb(0xE0, 0xE0, 0xE0);
-					e.CellStyle.ForeColor = Color.FromArgb(0x42, 0x42, 0x42);
-					break;
-				default:
-					e.CellStyle.ForeColor = SystemColors.GrayText;
-					break;
-				}
-				e.CellStyle.Font = Theme.UiFontBold;
+				ForkGridBadges.ApplyContactTypeStyle(e, Convert.ToString(e.Value) ?? "-");
 			}
-		}
-
-		private static string GetChannelModeBadge(string chModeS)
-		{
-			if (string.IsNullOrEmpty(chModeS))
-			{
-				return "-";
-			}
-			if (chModeS.IndexOf("Digital", StringComparison.OrdinalIgnoreCase) >= 0)
-			{
-				return "D";
-			}
-			if (chModeS.IndexOf("Analog", StringComparison.OrdinalIgnoreCase) >= 0)
-			{
-				return "A";
-			}
-			return chModeS.Substring(0, 1).ToUpperInvariant();
 		}
 
 		private static string GetContactTypeBadge(ChannelForm.ChannelOne channelOne)
