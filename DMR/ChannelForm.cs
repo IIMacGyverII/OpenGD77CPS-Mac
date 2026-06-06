@@ -2846,6 +2846,13 @@ namespace DMR
 			if (this.txtLongitude != null) { double lon; if (double.TryParse(this.txtLongitude.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lon)) ChannelForm.CsvLongitudes[index] = lon; }
 			if (this.chkUseLocation != null) ChannelForm.CsvUseLocations[index] = this.chkUseLocation.Checked;
 			ChannelForm.data[index] = value;
+#if OpenGD77
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm != null)
+			{
+				mainForm.RefreshCodeplugHealth();
+			}
+#endif
 		}
 
 		public void DispData()
@@ -3089,6 +3096,7 @@ namespace DMR
 			this.chkRelay.Text = "Relay Disconnection";
 			this.chkRelay.Location = new System.Drawing.Point(xCol2, yPos);
 			this.chkRelay.AutoSize = true;
+			this.chkRelay.CheckedChanged += this.ForkHealthField_Changed;
 			grpAndroid.Controls.Add(this.chkRelay);
 			
 			this.lblInterrupt = new Label();
@@ -3315,6 +3323,11 @@ namespace DMR
 			}
 			// Below Contact row; x=126 avoids clipping "RadioID.net" at the right edge of grpDigit.
 			this.lnkLookupDmrId.Location = new Point(126, 212);
+		}
+
+		private void ForkHealthField_Changed(object sender, EventArgs e)
+		{
+			this.SaveData();
 		}
 
 		private void RepositionForkAndroidSection()

@@ -1511,6 +1511,13 @@ namespace DMR
 			this.UpdateForkChrome();
 		}
 
+		public void RefreshCodeplugHealth()
+		{
+#if OpenGD77
+			this.UpdateCodeplugHealth();
+#endif
+		}
+
 		/// <summary>
 		/// File actions must live under top-level File, not Setting (WinForms re-parents shared ToolStripItems).
 		/// </summary>
@@ -2005,6 +2012,10 @@ namespace DMR
 			{
 				this.tsbtnCodeplugHealth.Text = hasWarning ? "Health ⚠" : "Health";
 				this.tsbtnCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Color.FromArgb(0x81, 0xC7, 0x84);
+			}
+			if (this.forkHealthReportForm != null && !this.forkHealthReportForm.IsDisposed && this.forkHealthReportForm.Visible)
+			{
+				this.forkHealthReportForm.NavigateHtml(CodeplugHealthReportHtml.Build(snap));
 			}
 #endif
 		}
@@ -2607,6 +2618,9 @@ namespace DMR
 			{
 				this.RefreshForm(typeof(ChannelForm));
 			}
+#if OpenGD77
+			this.RefreshCodeplugHealth();
+#endif
 		}
 
 		public void InitTree()

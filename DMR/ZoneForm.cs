@@ -1199,6 +1199,13 @@ namespace DMR
 					ZoneForm.basicData.Verify();
 					((MainForm)base.MdiParent).RefreshForm(typeof(ZoneBasicForm));
 				}
+#if OpenGD77
+				MainForm mainForm = base.MdiParent as MainForm;
+				if (mainForm != null)
+				{
+					mainForm.RefreshCodeplugHealth();
+				}
+#endif
 			}
 			catch (Exception ex)
 			{

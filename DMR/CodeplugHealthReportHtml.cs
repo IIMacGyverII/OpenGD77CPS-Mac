@@ -14,7 +14,7 @@ namespace DMR
 
 			StringBuilder html = new StringBuilder();
 			html.Append(ForkReportHtml.DocumentStart("Codeplug health"));
-			html.Append("<p class=\"path\">Click a highlighted name to open that channel, contact, or zone in the editor.</p>");
+			html.Append("<p class=\"path\">Click a highlighted name to open that channel, contact, or zone in the editor. Counts refresh automatically as you fix issues.</p>");
 			ForkReportHtml.AppendMetricCards(html,
 				new[] { snap.Channels.ToString(), "Channels", "" },
 				new[] { snap.Digital.ToString(), "Digital", "ok" },
