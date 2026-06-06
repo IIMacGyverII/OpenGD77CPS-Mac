@@ -46,6 +46,7 @@ namespace DMR
 		private int forkSortColumn = -1;
 		private bool forkSortAscending = true;
 		private int forkActiveContactDataIndex = -1;
+		private int forkLastSelectionDataIndex = -1;
 		private bool forkContactClickHandled;
 		private bool forkActivatingRow;
 		private static readonly string[] SZ_HEADER_TEXT;
@@ -355,6 +356,7 @@ namespace DMR
 				Console.WriteLine(ex.Message);
 			}
 			this.dgvContacts.CurrentCell = null;
+			this.forkLastSelectionDataIndex = -1;
 			this.ApplyContactFilter();
 		}
 
@@ -1276,10 +1278,12 @@ namespace DMR
 				return;
 			}
 			int dataIndex = (int)row.Tag;
-			this.BeginInvoke(new Action(() => this.ForkActivateGridRowDeferred(dataIndex)));
+			bool openEditor = dataIndex != this.forkLastSelectionDataIndex;
+			this.forkLastSelectionDataIndex = dataIndex;
+			this.BeginInvoke(new Action(() => this.ForkActivateGridRowDeferred(dataIndex, openEditor)));
 		}
 
-		private void ForkActivateGridRowDeferred(int dataIndex)
+		private void ForkActivateGridRowDeferred(int dataIndex, bool openEditor)
 		{
 			if (this.IsDisposed || this.dgvContacts == null || this.dgvContacts.IsDisposed)
 			{
@@ -1294,11 +1298,13 @@ namespace DMR
 				}
 				return;
 			}
-			bool openEditor = true;
-			MainForm mainForm = this.GetMainForm();
-			if (mainForm != null && mainForm.GetOpenContactEditorDataIndex() == dataIndex)
+			if (openEditor)
 			{
-				openEditor = false;
+				MainForm mainForm = this.GetMainForm();
+				if (mainForm != null && mainForm.GetOpenContactEditorDataIndex() == dataIndex)
+				{
+					openEditor = false;
+				}
 			}
 			this.ForkActivateGridRow(liveRow, 0, openEditor);
 		}
@@ -1371,6 +1377,7 @@ namespace DMR
 			try
 			{
 				this.forkActiveContactDataIndex = (int)row.Tag;
+				this.forkLastSelectionDataIndex = this.forkActiveContactDataIndex;
 				if (this.dgvContacts.SelectedRows.Count != 1 || this.dgvContacts.SelectedRows[0] != row)
 				{
 					this.dgvContacts.ClearSelection();

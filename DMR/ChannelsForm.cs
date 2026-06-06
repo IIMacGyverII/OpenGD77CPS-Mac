@@ -47,6 +47,7 @@ namespace DMR
 		private bool forkChannelClickHandled;
 		private bool forkActivatingRow;
 		private int forkActiveChannelDataIndex = -1;
+		private int forkLastSelectionDataIndex = -1;
 
 
 		public TreeNode Node
@@ -82,7 +83,7 @@ namespace DMR
 				Console.WriteLine(ex.Message);
 			}
 			dgvChannels.CurrentCell = null;
-			
+			this.forkLastSelectionDataIndex = -1;
 		}
 
 		public void RefreshName()
@@ -1751,10 +1752,12 @@ namespace DMR
 				return;
 			}
 			int dataIndex = (int)row.Tag;
-			this.BeginInvoke(new Action(() => this.ForkActivateGridRowDeferred(dataIndex)));
+			bool openEditor = dataIndex != this.forkLastSelectionDataIndex;
+			this.forkLastSelectionDataIndex = dataIndex;
+			this.BeginInvoke(new Action(() => this.ForkActivateGridRowDeferred(dataIndex, openEditor)));
 		}
 
-		private void ForkActivateGridRowDeferred(int dataIndex)
+		private void ForkActivateGridRowDeferred(int dataIndex, bool openEditor)
 		{
 			if (this.IsDisposed || this.dgvChannels == null || this.dgvChannels.IsDisposed)
 			{
@@ -1769,11 +1772,13 @@ namespace DMR
 				}
 				return;
 			}
-			bool openEditor = true;
-			MainForm mainForm = this.GetMainForm();
-			if (mainForm != null && mainForm.GetOpenChannelEditorDataIndex() == dataIndex)
+			if (openEditor)
 			{
-				openEditor = false;
+				MainForm mainForm = this.GetMainForm();
+				if (mainForm != null && mainForm.GetOpenChannelEditorDataIndex() == dataIndex)
+				{
+					openEditor = false;
+				}
 			}
 			this.ForkActivateGridRow(liveRow, 0, openEditor);
 		}
@@ -1846,6 +1851,7 @@ namespace DMR
 			try
 			{
 				this.forkActiveChannelDataIndex = (int)row.Tag;
+				this.forkLastSelectionDataIndex = this.forkActiveChannelDataIndex;
 				if (this.dgvChannels.SelectedRows.Count != 1 || this.dgvChannels.SelectedRows[0] != row)
 				{
 					this.dgvChannels.ClearSelection();
