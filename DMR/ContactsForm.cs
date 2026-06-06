@@ -40,7 +40,11 @@ namespace DMR
 		private Button btnInternetDownload;
 		private LinkLabel lnkLookupDmrId;
 		private Label lblLookupHint;
+		private TextBox txtContactFilter;
+		private Label lblContactFilter;
 		private ContextMenuStrip cmsCallIdGrid;
+		private int forkSortColumn = -1;
+		private bool forkSortAscending = true;
 		private static readonly string[] SZ_HEADER_TEXT;
 
 		public DataGridView getDataGridView()
@@ -347,6 +351,8 @@ namespace DMR
 			{
 				Console.WriteLine(ex.Message);
 			}
+			this.dgvContacts.CurrentCell = null;
+			this.ApplyContactFilter();
 		}
 
 		public void RefreshName()
@@ -394,8 +400,205 @@ namespace DMR
 			this.method_2();
 			this.EnsureCallIdGridContextMenu();
 			this.EnsureDmrIdLookupUi();
+			this.EnsureContactFilterBox();
+			this.pnlContact.Resize += this.pnlContact_Resize;
 			this.DispData();
 			this.cmbAddType.SelectedIndex = 0;
+			Theme.ApplyStandardEditorColors(this);
+		}
+
+		private void EnsureContactFilterBox()
+		{
+			if (this.txtContactFilter == null)
+			{
+				this.lblContactFilter = new Label();
+				this.lblContactFilter.Text = "Filter:";
+				this.lblContactFilter.AutoSize = true;
+				this.txtContactFilter = new TextBox();
+				this.txtContactFilter.Size = new System.Drawing.Size(180, 23);
+				this.txtContactFilter.TextChanged += this.txtContactFilter_TextChanged;
+				this.pnlContact.Controls.Add(this.lblContactFilter);
+				this.pnlContact.Controls.Add(this.txtContactFilter);
+			}
+			this.ApplyForkContactsToolbarLayout();
+		}
+
+		private void ApplyForkContactsToolbarLayout()
+		{
+			const int row1Y = 8;
+			const int row2Y = 36;
+			const int row3Y = 58;
+			const int gridY = 86;
+			this.cmbAddType.Location = new System.Drawing.Point(12, row1Y);
+			this.btnAdd.Location = new System.Drawing.Point(128, row1Y);
+			if (this.lblContactFilter != null)
+			{
+				this.lblContactFilter.Location = new System.Drawing.Point(218, row1Y + 3);
+			}
+			if (this.txtContactFilter != null)
+			{
+				this.txtContactFilter.Location = new System.Drawing.Point(268, row1Y);
+			}
+			this.btnDelete.Location = new System.Drawing.Point(458, row1Y);
+			this.btnClear.Location = new System.Drawing.Point(538, row1Y);
+			this.btnDeleteSelect.Location = new System.Drawing.Point(618, row1Y);
+			if (this.lblLookupHint != null)
+			{
+				this.lblLookupHint.Location = new System.Drawing.Point(12, row2Y);
+				this.lblLookupHint.AutoSize = false;
+				this.lblLookupHint.Width = Math.Max(200, this.pnlContact.ClientSize.Width - 24);
+			}
+			if (this.lnkLookupDmrId != null)
+			{
+				this.lnkLookupDmrId.Location = new System.Drawing.Point(12, row3Y + 2);
+			}
+			this.btnExport.Location = new System.Drawing.Point(200, row3Y);
+			this.btnImport.Location = new System.Drawing.Point(280, row3Y);
+			this.btnInternetDownload.Location = new System.Drawing.Point(370, row3Y);
+			this.dgvContacts.Location = new System.Drawing.Point(12, gridY);
+			this.dgvContacts.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+			int gridH = Math.Max(200, this.pnlContact.ClientSize.Height - gridY - 12);
+			this.dgvContacts.Size = new System.Drawing.Size(Math.Max(400, this.pnlContact.ClientSize.Width - 24), gridH);
+			if (this.lblContactFilter != null)
+			{
+				this.lblContactFilter.BringToFront();
+			}
+			if (this.txtContactFilter != null)
+			{
+				this.txtContactFilter.BringToFront();
+			}
+			if (this.lblLookupHint != null)
+			{
+				this.lblLookupHint.BringToFront();
+			}
+			if (this.lnkLookupDmrId != null)
+			{
+				this.lnkLookupDmrId.BringToFront();
+			}
+		}
+
+		private void pnlContact_Resize(object sender, EventArgs e)
+		{
+			if (this.txtContactFilter == null)
+			{
+				return;
+			}
+			const int gridY = 86;
+			int gridH = Math.Max(200, this.pnlContact.ClientSize.Height - gridY - 12);
+			this.dgvContacts.Size = new System.Drawing.Size(Math.Max(400, this.pnlContact.ClientSize.Width - 24), gridH);
+			if (this.lblLookupHint != null)
+			{
+				this.lblLookupHint.Width = Math.Max(200, this.pnlContact.ClientSize.Width - 24);
+			}
+		}
+
+		private void txtContactFilter_TextChanged(object sender, EventArgs e)
+		{
+			this.ApplyContactFilter();
+		}
+
+		private void ApplyContactFilter()
+		{
+			string query = this.txtContactFilter == null ? "" : this.txtContactFilter.Text.Trim();
+			foreach (DataGridViewRow row in this.dgvContacts.Rows)
+			{
+				if (row.IsNewRow)
+				{
+					continue;
+				}
+				if (string.IsNullOrEmpty(query))
+				{
+					row.Visible = true;
+					continue;
+				}
+				bool match = false;
+				for (int c = 0; c < row.Cells.Count; c++)
+				{
+					string cell = Convert.ToString(row.Cells[c].Value);
+					if (cell != null && cell.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
+					{
+						match = true;
+						break;
+					}
+				}
+				row.Visible = match;
+			}
+		}
+
+		private void dgvContacts_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+		{
+			if (e.ColumnIndex < 0)
+			{
+				return;
+			}
+			if (this.forkSortColumn == e.ColumnIndex)
+			{
+				this.forkSortAscending = !this.forkSortAscending;
+			}
+			else
+			{
+				this.forkSortColumn = e.ColumnIndex;
+				this.forkSortAscending = true;
+			}
+			this.SortContactsGrid(e.ColumnIndex, this.forkSortAscending);
+		}
+
+		private void SortContactsGrid(int columnIndex, bool ascending)
+		{
+			List<DataGridViewRow> rows = new List<DataGridViewRow>();
+			foreach (DataGridViewRow row in this.dgvContacts.Rows)
+			{
+				if (!row.IsNewRow)
+				{
+					rows.Add(row);
+				}
+			}
+			rows.Sort((a, b) => this.CompareContactRows(a, b, columnIndex, ascending));
+			List<object> tags = new List<object>();
+			List<object[]> cellValues = new List<object[]>();
+			foreach (DataGridViewRow row in rows)
+			{
+				tags.Add(row.Tag);
+				object[] values = new object[row.Cells.Count];
+				for (int i = 0; i < row.Cells.Count; i++)
+				{
+					values[i] = row.Cells[i].Value;
+				}
+				cellValues.Add(values);
+			}
+			this.dgvContacts.Rows.Clear();
+			for (int i = 0; i < cellValues.Count; i++)
+			{
+				int index = this.dgvContacts.Rows.Add(cellValues[i]);
+				this.dgvContacts.Rows[index].Tag = tags[i];
+			}
+			this.ApplyContactFilter();
+			this.dgvContacts.CurrentCell = null;
+		}
+
+		private int CompareContactRows(DataGridViewRow a, DataGridViewRow b, int columnIndex, bool ascending)
+		{
+			string left = Convert.ToString(a.Cells[columnIndex].Value) ?? "";
+			string right = Convert.ToString(b.Cells[columnIndex].Value) ?? "";
+			int result;
+			if (columnIndex == 0 || columnIndex == 2)
+			{
+				int leftNum;
+				int rightNum;
+				if (int.TryParse(left, out leftNum) && int.TryParse(right, out rightNum))
+				{
+					result = leftNum.CompareTo(rightNum);
+				}
+				else
+				{
+					result = string.Compare(left, right, StringComparison.OrdinalIgnoreCase);
+				}
+			}
+			else
+			{
+				result = string.Compare(left, right, StringComparison.OrdinalIgnoreCase);
+			}
+			return ascending ? result : -result;
 		}
 
 		private void EnsureDmrIdLookupUi()
@@ -405,28 +608,14 @@ namespace DMR
 				return;
 			}
 			this.lnkLookupDmrId = DmrIdLookup.CreateLookupLink(() => this.GetSelectedCallId(), this);
-			this.lnkLookupDmrId.Location = new System.Drawing.Point(22, 71);
 			this.lnkLookupDmrId.Enabled = false;
 			this.lblLookupHint = new Label();
-			this.lblLookupHint.Text = "G=green Group · P=orange Private · double-click row to look up Call ID on RadioID.net";
-			this.lblLookupHint.AutoSize = true;
+			this.lblLookupHint.Text = "G=green · P=orange · A(gray)=all-call · filter all columns · header sorts · double-click row for RadioID.net";
+			this.lblLookupHint.AutoSize = false;
+			this.lblLookupHint.Size = new System.Drawing.Size(1100, 18);
 			this.lblLookupHint.ForeColor = System.Drawing.SystemColors.GrayText;
-			this.dgvContacts.Location = new System.Drawing.Point(22, 94);
 			this.pnlContact.Controls.Add(this.lnkLookupDmrId);
 			this.pnlContact.Controls.Add(this.lblLookupHint);
-			this.PositionLookupHint();
-			this.lnkLookupDmrId.SizeChanged += (s, e) => this.PositionLookupHint();
-			this.lnkLookupDmrId.BringToFront();
-			this.lblLookupHint.BringToFront();
-		}
-
-		private void PositionLookupHint()
-		{
-			if (this.lblLookupHint == null || this.lnkLookupDmrId == null)
-			{
-				return;
-			}
-			this.lblLookupHint.Location = new System.Drawing.Point(this.lnkLookupDmrId.Right + 8, this.lnkLookupDmrId.Top + 2);
 		}
 
 		private string GetSelectedCallId()
@@ -523,6 +712,7 @@ namespace DMR
 			ContactForm.data[minIndex] = value;
 			this.dgvContacts.Rows.Insert(minIndex, (minIndex + 1).ToString(), minName, minCallID, text, ringStyleS, callRxToneS);
 			this.dgvContacts.Rows[minIndex].Tag = minIndex;
+			this.ApplyContactFilter();
 			this.method_1();
 			int[] array = new int[3]
 			{
@@ -898,9 +1088,6 @@ namespace DMR
 				150
 			};
 			this.dgvContacts.ReadOnly = true;
-			this.dgvContacts.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left)));			
-			
 			this.dgvContacts.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
 			this.dgvContacts.AllowUserToAddRows = false;
 			this.dgvContacts.AllowUserToDeleteRows = false;
@@ -909,6 +1096,7 @@ namespace DMR
 			this.dgvContacts.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 			ForkGridBadges.EnableGridPolish(this.dgvContacts);
 			this.dgvContacts.CellFormatting += this.dgvContacts_CellFormatting;
+			this.dgvContacts.ColumnHeaderMouseClick += this.dgvContacts_ColumnHeaderMouseClick;
 			DataGridViewTextBoxColumn dataGridViewTextBoxColumn = null;
 			string[] sZ_HEADER_TEXT = ContactsForm.SZ_HEADER_TEXT;
 			foreach (string headerText in sZ_HEADER_TEXT)
