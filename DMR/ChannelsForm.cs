@@ -38,6 +38,8 @@ namespace DMR
 		private Button btnImportClearAll;
 
 		private TextBox txtChannelFilter;
+		private Label lblChannelFilter;
+		private Label lblChannelsGridHint;
 		private Button btnDeleteSelect;
 		private ContextMenuStrip cmsGrid;
 		private int forkSortColumn = -1;
@@ -103,6 +105,7 @@ namespace DMR
 			this.method_1();
 			this.EnsureGridContextMenus();
 			this.EnsureChannelFilterBox();
+			this.pnlChannel.Resize += this.pnlChannel_Resize;
 			this.DispData();
 			this.cmbAddChMode.SelectedIndex = 0;
 			Theme.ApplyStandardEditorColors(this);
@@ -114,25 +117,84 @@ namespace DMR
 			{
 				return;
 			}
-			Label lblFilter = new Label();
-			lblFilter.Text = "Filter:";
-			lblFilter.AutoSize = true;
-			lblFilter.Location = new System.Drawing.Point(12, 15);
+			this.lblChannelFilter = new Label();
+			this.lblChannelFilter.Text = "Filter:";
+			this.lblChannelFilter.AutoSize = true;
 			this.txtChannelFilter = new TextBox();
-			this.txtChannelFilter.Location = new System.Drawing.Point(54, 12);
-			this.txtChannelFilter.Size = new System.Drawing.Size(200, 23);
+			this.txtChannelFilter.Size = new System.Drawing.Size(180, 23);
 			this.txtChannelFilter.TextChanged += this.txtChannelFilter_TextChanged;
-			Label lblGridHint = new Label();
-			lblGridHint.Text = "Click row to load in editor (when open); double-click or F2 to edit";
-			lblGridHint.AutoSize = true;
-			lblGridHint.Location = new System.Drawing.Point(270, 15);
-			lblGridHint.ForeColor = System.Drawing.SystemColors.GrayText;
-			this.pnlChannel.Controls.Add(lblFilter);
+			this.lblChannelsGridHint = new Label();
+			this.lblChannelsGridHint.Text = "Double-click or F2 opens editor · click row loads editor · click column header to sort";
+			this.lblChannelsGridHint.AutoSize = false;
+			this.lblChannelsGridHint.Size = new System.Drawing.Size(1100, 18);
+			this.lblChannelsGridHint.ForeColor = System.Drawing.SystemColors.GrayText;
+			this.pnlChannel.Controls.Add(this.lblChannelFilter);
 			this.pnlChannel.Controls.Add(this.txtChannelFilter);
-			this.pnlChannel.Controls.Add(lblGridHint);
-			lblFilter.BringToFront();
-			this.txtChannelFilter.BringToFront();
-			lblGridHint.BringToFront();
+			this.pnlChannel.Controls.Add(this.lblChannelsGridHint);
+			this.ApplyForkChannelsToolbarLayout();
+		}
+
+		private void ApplyForkChannelsToolbarLayout()
+		{
+			const int row1Y = 8;
+			const int row2Y = 36;
+			const int row3Y = 58;
+			const int gridY = 86;
+			this.cmbAddChMode.Location = new System.Drawing.Point(12, row1Y);
+			this.btnAdd.Location = new System.Drawing.Point(128, row1Y);
+			if (this.lblChannelFilter != null)
+			{
+				this.lblChannelFilter.Location = new System.Drawing.Point(218, row1Y + 3);
+			}
+			if (this.txtChannelFilter != null)
+			{
+				this.txtChannelFilter.Location = new System.Drawing.Point(268, row1Y);
+			}
+			this.btnDeleteSelect.Location = new System.Drawing.Point(458, row1Y);
+			if (this.lblChannelsGridHint != null)
+			{
+				this.lblChannelsGridHint.Location = new System.Drawing.Point(12, row2Y);
+			}
+			this.btnExport.Location = new System.Drawing.Point(12, row3Y);
+			this.btnImport.Location = new System.Drawing.Point(178, row3Y);
+			if (this.btnImportClearAll.Parent != this.pnlChannel)
+			{
+				this.Controls.Remove(this.btnImportClearAll);
+				this.pnlChannel.Controls.Add(this.btnImportClearAll);
+			}
+			this.btnImportClearAll.Location = new System.Drawing.Point(368, row3Y);
+			this.btnImportClearAll.BringToFront();
+			this.dgvChannels.Location = new System.Drawing.Point(12, gridY);
+			this.dgvChannels.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+			int gridH = Math.Max(200, this.pnlChannel.ClientSize.Height - gridY - 12);
+			this.dgvChannels.Size = new System.Drawing.Size(Math.Max(400, this.pnlChannel.ClientSize.Width - 24), gridH);
+			if (this.lblChannelFilter != null)
+			{
+				this.lblChannelFilter.BringToFront();
+			}
+			if (this.txtChannelFilter != null)
+			{
+				this.txtChannelFilter.BringToFront();
+			}
+			if (this.lblChannelsGridHint != null)
+			{
+				this.lblChannelsGridHint.BringToFront();
+			}
+		}
+
+		private void pnlChannel_Resize(object sender, EventArgs e)
+		{
+			if (this.txtChannelFilter == null)
+			{
+				return;
+			}
+			const int gridY = 86;
+			int gridH = Math.Max(200, this.pnlChannel.ClientSize.Height - gridY - 12);
+			this.dgvChannels.Size = new System.Drawing.Size(Math.Max(400, this.pnlChannel.ClientSize.Width - 24), gridH);
+			if (this.lblChannelsGridHint != null)
+			{
+				this.lblChannelsGridHint.Width = Math.Max(200, this.pnlChannel.ClientSize.Width - 24);
+			}
 		}
 
 		private void txtChannelFilter_TextChanged(object sender, EventArgs e)
