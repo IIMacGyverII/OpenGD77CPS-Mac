@@ -36,6 +36,11 @@ namespace DMR
 
 		private CustomPanel pnlRxGrpList;
 
+		private TextBox txtRxListFilter;
+		private Label lblRxListFilter;
+		private Label lblRxListHint;
+		private List<SelectedItemUtils> forkUnselectedCache = new List<SelectedItemUtils>();
+
 		public static RxListData data;
 
 		public TreeNode Node
@@ -199,7 +204,7 @@ namespace DMR
 			// 
 			this.ClientSize = new System.Drawing.Size(693, 514);
 			this.Controls.Add(this.pnlRxGrpList);
-			this.Font = new System.Drawing.Font("Arial", 10F);
+			this.Font = Theme.UiFont;
 			this.Name = "RxGroupListForm";
 			this.Text = "Rx Group List";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.RxGroupListForm_FormClosing);
@@ -287,18 +292,15 @@ namespace DMR
 				{
 					this.lstSelected.SelectedIndex = 0;
 				}
-				this.lstUnselected.Items.Clear();
+				this.forkUnselectedCache.Clear();
 				for (num = 0; num < 1024; num++)
 				{
 					if (!RxGroupListForm.data[num2].ContactList.Contains((ushort)(num + 1)) && ContactForm.data.DataIsValid(num) && ContactForm.data[num].CallType == 0)
 					{
-						this.lstUnselected.Items.Add(new SelectedItemUtils(-1, num + 1, ContactForm.data[num].Name));
+						this.forkUnselectedCache.Add(new SelectedItemUtils(-1, num + 1, ContactForm.data[num].Name));
 					}
 				}
-				if (this.lstUnselected.Items.Count > 0)
-				{
-					this.lstUnselected.SelectedIndex = 0;
-				}
+				this.ApplyRxListFilter();
 				this.method_4();
 			}
 			catch (Exception ex)
@@ -331,7 +333,138 @@ namespace DMR
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
 			this.method_1();
+			this.EnsureForkRxListUi();
+			this.pnlRxGrpList.Resize += this.pnlRxGrpList_Resize;
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkRxListLayout();
+		}
+
+		private void EnsureForkRxListUi()
+		{
+			if (this.txtRxListFilter == null)
+			{
+				this.lblRxListFilter = new Label();
+				this.lblRxListFilter.Text = "Filter:";
+				this.lblRxListFilter.AutoSize = true;
+				this.txtRxListFilter = new TextBox();
+				this.txtRxListFilter.Size = new Size(160, 23);
+				this.txtRxListFilter.TextChanged += this.txtRxListFilter_TextChanged;
+				this.grpUnselected.Controls.Add(this.lblRxListFilter);
+				this.grpUnselected.Controls.Add(this.txtRxListFilter);
+			}
+			if (this.lblRxListHint == null)
+			{
+				this.lblRxListHint = new Label();
+				this.lblRxListHint.Text = "Group contacts only · Filter searches Available · Add/Delete move contacts · Up/Down reorders Member";
+				this.lblRxListHint.AutoSize = false;
+				this.lblRxListHint.Height = 18;
+				this.lblRxListHint.ForeColor = System.Drawing.SystemColors.GrayText;
+				this.pnlRxGrpList.Controls.Add(this.lblRxListHint);
+			}
+			this.lstUnselected.BorderStyle = BorderStyle.FixedSingle;
+			this.lstUnselected.Font = Theme.UiFont;
+			this.lstUnselected.IntegralHeight = false;
+			this.lstSelected.BorderStyle = BorderStyle.FixedSingle;
+			this.lstSelected.Font = Theme.UiFont;
+			this.lstSelected.IntegralHeight = false;
+			this.grpUnselected.Font = Theme.UiFont;
+			this.grpSelected.Font = Theme.UiFont;
+			this.pnlRxGrpList.AutoSize = false;
+		}
+
+		private void pnlRxGrpList_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkRxListLayout();
+		}
+
+		private void ApplyForkRxListLayout()
+		{
+			if (this.txtRxListFilter == null)
+			{
+				return;
+			}
+			const int pad = 12;
+			const int centerBtnW = 78;
+			const int reorderBtnW = 76;
+			int clientW = this.pnlRxGrpList.ClientSize.Width;
+			int clientH = this.pnlRxGrpList.ClientSize.Height;
+			int nameRowY = 10;
+			int groupsTop = 52;
+			int groupsH = Math.Max(220, clientH - groupsTop - pad);
+
+			this.lblName.Location = new Point(pad, nameRowY + 2);
+			this.lblName.AutoSize = true;
+			this.txtName.Location = new Point(72, nameRowY);
+			this.txtName.Size = new Size(Math.Max(160, Math.Min(360, clientW - 96)), 23);
+
+			if (this.lblRxListHint != null)
+			{
+				this.lblRxListHint.Location = new Point(pad, nameRowY + 28);
+				this.lblRxListHint.Width = Math.Max(200, clientW - pad * 2);
+			}
+
+			int availW = Math.Max(200, (clientW - pad * 3 - centerBtnW - reorderBtnW) / 2);
+			int centerX = pad + availW + 4;
+			int memberX = centerX + centerBtnW + 4;
+			int memberW = Math.Max(200, clientW - memberX - reorderBtnW - pad);
+
+			this.grpUnselected.SetBounds(pad, groupsTop, availW, groupsH);
+			this.grpSelected.SetBounds(memberX, groupsTop, memberW, groupsH);
+
+			int filterY = 20;
+			this.lblRxListFilter.Location = new Point(10, filterY + 2);
+			this.txtRxListFilter.Location = new Point(56, filterY);
+			this.txtRxListFilter.Width = Math.Max(100, this.grpUnselected.ClientSize.Width - 66);
+
+			int listTop = filterY + 30;
+			int listH = Math.Max(120, this.grpUnselected.ClientSize.Height - listTop - 10);
+			this.lstUnselected.SetBounds(10, listTop, Math.Max(80, this.grpUnselected.ClientSize.Width - 20), listH);
+			this.lstUnselected.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+			int memberListTop = 22;
+			int memberListH = Math.Max(120, this.grpSelected.ClientSize.Height - memberListTop - 10);
+			this.lstSelected.SetBounds(10, memberListTop, Math.Max(80, this.grpSelected.ClientSize.Width - 20), memberListH);
+			this.lstSelected.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+			int btnX = centerX + (centerBtnW - 75) / 2;
+			int btnMidY = groupsTop + groupsH / 2;
+			this.btnAdd.SetBounds(btnX, btnMidY - 36, 75, 23);
+			this.btnDel.SetBounds(btnX, btnMidY + 8, 75, 23);
+
+			int reorderX = memberX + memberW + 6;
+			this.btnUp.SetBounds(reorderX, btnMidY - 36, reorderBtnW - 8, 23);
+			this.btnDown.SetBounds(reorderX, btnMidY + 8, reorderBtnW - 8, 23);
+
+			this.lblRxListFilter.BringToFront();
+			this.txtRxListFilter.BringToFront();
+			if (this.lblRxListHint != null)
+			{
+				this.lblRxListHint.BringToFront();
+			}
+		}
+
+		private void txtRxListFilter_TextChanged(object sender, EventArgs e)
+		{
+			this.ApplyRxListFilter();
+		}
+
+		private void ApplyRxListFilter()
+		{
+			string query = this.txtRxListFilter == null ? "" : this.txtRxListFilter.Text.Trim();
+			this.lstUnselected.Items.Clear();
+			foreach (SelectedItemUtils item in this.forkUnselectedCache)
+			{
+				if (string.IsNullOrEmpty(query)
+					|| (item.Name != null && item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
+				{
+					this.lstUnselected.Items.Add(item);
+				}
+			}
+			if (this.lstUnselected.Items.Count > 0)
+			{
+				this.lstUnselected.SelectedIndex = 0;
+			}
 		}
 
 		private void RxGroupListForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -354,6 +487,7 @@ namespace DMR
 				num3 = this.lstSelected.Items.Add(@class);
 				this.lstSelected.SetSelected(num3, true);
 				this.lstUnselected.Items.RemoveAt(this.lstUnselected.SelectedIndices[0]);
+				this.forkUnselectedCache.Remove(@class);
 			}
 			if (this.lstUnselected.SelectedItems.Count == 0)
 			{
@@ -374,18 +508,16 @@ namespace DMR
 
 		private void btnDel_Click(object sender, EventArgs e)
 		{
-			int num = 0;
 			int count = this.lstSelected.SelectedIndices.Count;
 			int num2 = this.lstSelected.SelectedIndices[count - 1];
 			this.lstUnselected.SelectedItems.Clear();
 			while (this.lstSelected.SelectedItems.Count > 0)
 			{
 				SelectedItemUtils @class = (SelectedItemUtils)this.lstSelected.SelectedItems[0];
-				num = this.method_2(@class);
 				@class.method_1(-1);
-				this.lstUnselected.Items.Insert(num, @class);
-				this.lstUnselected.SetSelected(num, true);
+				this.forkUnselectedCache.Add(@class);
 				this.lstSelected.Items.RemoveAt(this.lstSelected.SelectedIndices[0]);
+				this.ApplyRxListFilter();
 			}
 			int num3 = num2 - count + 1;
 			if (num3 >= this.lstSelected.Items.Count)

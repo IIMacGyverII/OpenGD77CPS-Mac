@@ -26,28 +26,30 @@ namespace DMR
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
 			this.StartPosition = FormStartPosition.CenterParent;
-			this.ClientSize = new Size(520, 360);
+			this.ClientSize = new Size(520, 388);
 			this.Font = new Font("Segoe UI", 9.75f);
 			Theme.ApplyForkDialog(this);
 
 			Label intro = new Label
 			{
 				Location = new Point(16, 16),
-				Size = new Size(488, 200),
+				Size = new Size(488, 228),
 				Text =
 					"This build is for PriInterPhone / DMRModHooks on Android — not stock Radioddity GD-77.\n\n" +
 					"Phone workflow:\n" +
 					"1. Export the 5-file backup folder from the radio app (Contacts, TG_Lists, Channels, Zones, DTMF).\n" +
 					"2. On PC: use Pull from phone (ADB) if USB debugging is on, or copy the folder to Desktop/Documents (MTP browse in CPS does not work).\n" +
-					"3. On PC use File → Import CSV Files… or toolbar Import Android (Ctrl+I). That is Path B (37-column Android headers).\n" +
+					"3. On PC: F8 opens Android backup manager (validation report + Import all Path B).\n" +
+					"   Or File → Import CSV Files… / Ctrl+I for quick folder import.\n" +
 					"4. Edit channels in the tree; Android-only fields live in the PriInterPhone section on each channel.\n" +
-					"5. Export with File → Export CSV… or toolbar Export Android (Ctrl+E). Files are UTF-8 without BOM.\n\n" +
+					"5. Export with File → Export CSV… or Ctrl+E. Files are UTF-8 without BOM.\n" +
+					"6. F7 opens codeplug health report (relay=0, orphan contacts, zone issues).\n\n" +
 					"Do not use the channel list grid Import/Clear buttons for phone backups — those use the 35-column grid format (Path A)."
 			};
 
 			this.lnkReleases = new LinkLabel
 			{
-				Location = new Point(16, 228),
+				Location = new Point(16, 256),
 				AutoSize = true,
 				Text = "Fork releases on GitHub"
 			};
@@ -55,7 +57,7 @@ namespace DMR
 
 			this.lnkNotes = new LinkLabel
 			{
-				Location = new Point(16, 252),
+				Location = new Point(16, 280),
 				AutoSize = true,
 				Text = "Release notes (v" + AboutForm.FORK_VERSION + ")"
 			};
@@ -63,7 +65,7 @@ namespace DMR
 
 			this.lnkPhonedmrapp = new LinkLabel
 			{
-				Location = new Point(16, 276),
+				Location = new Point(16, 304),
 				AutoSize = true,
 				Text = "DMRModHooks / phonedmrapp docs"
 			};
@@ -71,14 +73,14 @@ namespace DMR
 
 			this.chkDismiss = new CheckBox
 			{
-				Location = new Point(16, 304),
+				Location = new Point(16, 332),
 				AutoSize = true,
 				Text = "Do not show this again"
 			};
 
 			this.btnOk = new Button
 			{
-				Location = new Point(412, 322),
+				Location = new Point(412, 350),
 				Size = new Size(88, 28),
 				Text = "OK",
 				DialogResult = DialogResult.OK
