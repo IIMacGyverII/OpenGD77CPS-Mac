@@ -48,6 +48,7 @@ namespace DMR
 		private int forkActiveContactDataIndex = -1;
 		private int forkLastSelectionDataIndex = -1;
 		private bool forkContactClickHandled;
+		private bool forkKeyboardNavPending;
 		private bool forkActivatingRow;
 		private static readonly string[] SZ_HEADER_TEXT;
 
@@ -355,9 +356,21 @@ namespace DMR
 			{
 				Console.WriteLine(ex.Message);
 			}
+			int preserveActive = this.forkActiveContactDataIndex;
+			int preserveSelection = this.forkLastSelectionDataIndex;
+			this.ApplyContactFilter();
+			if (preserveActive >= 0)
+			{
+				DataGridViewRow activeRow = this.ForkFindRowByDataIndex(preserveActive);
+				if (activeRow != null)
+				{
+					this.forkLastSelectionDataIndex = preserveSelection >= 0 ? preserveSelection : preserveActive;
+					this.ForkActivateGridRow(activeRow, 0, false);
+					return;
+				}
+			}
 			this.dgvContacts.CurrentCell = null;
 			this.forkLastSelectionDataIndex = -1;
-			this.ApplyContactFilter();
 		}
 
 		public void RefreshName()
@@ -1150,6 +1163,7 @@ namespace DMR
 			this.dgvContacts.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 			ForkGridBadges.EnableGridPolish(this.dgvContacts);
 			this.dgvContacts.CellMouseDown += this.dgvContacts_CellMouseDown;
+			this.dgvContacts.KeyDown += this.dgvContacts_KeyDown;
 			this.dgvContacts.CellFormatting += this.dgvContacts_CellFormatting;
 			this.dgvContacts.ColumnHeaderMouseClick += this.dgvContacts_ColumnHeaderMouseClick;
 			this.dgvContacts.RowHeaderMouseClick += this.dgvContacts_RowHeaderMouseClick;
@@ -1278,9 +1292,27 @@ namespace DMR
 				return;
 			}
 			int dataIndex = (int)row.Tag;
-			bool openEditor = dataIndex != this.forkLastSelectionDataIndex;
-			this.forkLastSelectionDataIndex = dataIndex;
+			bool openEditor = this.forkKeyboardNavPending;
+			this.forkKeyboardNavPending = false;
+			if (openEditor)
+			{
+				this.forkLastSelectionDataIndex = dataIndex;
+			}
+			else if (this.forkLastSelectionDataIndex < 0)
+			{
+				this.forkLastSelectionDataIndex = dataIndex;
+			}
 			this.BeginInvoke(new Action(() => this.ForkActivateGridRowDeferred(dataIndex, openEditor)));
+		}
+
+		private void dgvContacts_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down
+				|| e.KeyCode == Keys.PageUp || e.KeyCode == Keys.PageDown
+				|| e.KeyCode == Keys.Home || e.KeyCode == Keys.End)
+			{
+				this.forkKeyboardNavPending = true;
+			}
 		}
 
 		private void ForkActivateGridRowDeferred(int dataIndex, bool openEditor)

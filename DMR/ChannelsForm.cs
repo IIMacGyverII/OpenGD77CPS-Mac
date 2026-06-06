@@ -48,6 +48,7 @@ namespace DMR
 		private bool forkActivatingRow;
 		private int forkActiveChannelDataIndex = -1;
 		private int forkLastSelectionDataIndex = -1;
+		private bool forkKeyboardNavPending;
 
 
 		public TreeNode Node
@@ -81,6 +82,19 @@ namespace DMR
 			catch (Exception ex)
 			{
 				Console.WriteLine(ex.Message);
+			}
+			int preserveActive = this.forkActiveChannelDataIndex;
+			int preserveSelection = this.forkLastSelectionDataIndex;
+			this.ApplyChannelFilter();
+			if (preserveActive >= 0)
+			{
+				DataGridViewRow activeRow = this.ForkFindRowByDataIndex(preserveActive);
+				if (activeRow != null)
+				{
+					this.forkLastSelectionDataIndex = preserveSelection >= 0 ? preserveSelection : preserveActive;
+					this.ForkActivateGridRow(activeRow, 0, false);
+					return;
+				}
 			}
 			dgvChannels.CurrentCell = null;
 			this.forkLastSelectionDataIndex = -1;
@@ -1650,6 +1664,7 @@ namespace DMR
 			}
 			this.RestoreColumnVisibility();
 			this.dgvChannels.CellMouseDown += this.dgvChannels_CellMouseDown;
+			this.dgvChannels.KeyDown += this.dgvChannels_KeyDown;
 			this.dgvChannels.CellDoubleClick += this.dgvChannels_CellDoubleClick;
 			this.dgvChannels.CellFormatting += this.dgvChannels_CellFormatting;
 			this.dgvChannels.ColumnHeaderMouseClick += this.dgvChannels_ColumnHeaderMouseClick;
@@ -1752,9 +1767,27 @@ namespace DMR
 				return;
 			}
 			int dataIndex = (int)row.Tag;
-			bool openEditor = dataIndex != this.forkLastSelectionDataIndex;
-			this.forkLastSelectionDataIndex = dataIndex;
+			bool openEditor = this.forkKeyboardNavPending;
+			this.forkKeyboardNavPending = false;
+			if (openEditor)
+			{
+				this.forkLastSelectionDataIndex = dataIndex;
+			}
+			else if (this.forkLastSelectionDataIndex < 0)
+			{
+				this.forkLastSelectionDataIndex = dataIndex;
+			}
 			this.BeginInvoke(new Action(() => this.ForkActivateGridRowDeferred(dataIndex, openEditor)));
+		}
+
+		private void dgvChannels_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down
+				|| e.KeyCode == Keys.PageUp || e.KeyCode == Keys.PageDown
+				|| e.KeyCode == Keys.Home || e.KeyCode == Keys.End)
+			{
+				this.forkKeyboardNavPending = true;
+			}
 		}
 
 		private void ForkActivateGridRowDeferred(int dataIndex, bool openEditor)

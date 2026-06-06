@@ -2311,11 +2311,20 @@ namespace DMR
 			}
 			else if (type == typeof(ContactForm))
 			{
+				int contactIndex = this.GetOpenContactEditorDataIndex();
 				this.RefreshForm(typeof(ButtonForm));
 				this.RefreshForm(typeof(ChannelForm));
 				this.RefreshForm(typeof(RxGroupListForm));
 				this.RefreshForm(typeof(DigitalKeyContactForm));
-				this.RefreshForm(typeof(ContactsForm));
+				ISingleRow contactsGrid = this.GetForm(typeof(ContactsForm));
+				if (contactsGrid != null && contactIndex >= 0)
+				{
+					contactsGrid.RefreshSingleRow(contactIndex);
+				}
+				else
+				{
+					this.RefreshForm(typeof(ContactsForm));
+				}
 			}
 			else if (type == typeof(ContactsForm))
 			{
@@ -2340,7 +2349,16 @@ namespace DMR
 				this.RefreshForm(typeof(ZoneBasicForm));
 				this.RefreshForm(typeof(AttachmentForm));
 				this.RefreshForm(typeof(EmergencyForm));
-				this.RefreshForm(typeof(ChannelsForm));
+				int channelIndex = this.GetOpenChannelEditorDataIndex();
+				ISingleRow channelsGrid = this.GetForm(typeof(ChannelsForm));
+				if (channelsGrid != null && channelIndex >= 0)
+				{
+					channelsGrid.RefreshSingleRow(channelIndex);
+				}
+				else
+				{
+					this.RefreshForm(typeof(ChannelsForm));
+				}
 			}
 			else if (type == typeof(ChannelsForm))
 			{
@@ -4971,7 +4989,7 @@ namespace DMR
 		{
 			foreach (Form form in base.MdiChildren)
 			{
-				if (form.GetType() == typeof(ChannelForm) && form.Tag != null)
+				if (form.GetType() == typeof(ChannelForm) && form.Visible && form.Tag != null)
 				{
 					return Convert.ToInt32(form.Tag);
 				}
@@ -5037,7 +5055,7 @@ namespace DMR
 		{
 			foreach (Form form in base.MdiChildren)
 			{
-				if (form.GetType() == typeof(ContactForm) && form.Tag != null)
+				if (form.GetType() == typeof(ContactForm) && form.Visible && form.Tag != null)
 				{
 					return Convert.ToInt32(form.Tag);
 				}
