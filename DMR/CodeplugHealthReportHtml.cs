@@ -51,6 +51,18 @@ namespace DMR
 					"warn", "Multiple contacts share the same Call ID — phone lookup and TX routing may be ambiguous.");
 			}
 
+			if (snap.DuplicateContactNameGroups > 0)
+			{
+				AppendWarningList(html, "Duplicate contact names", snap.DuplicateContactNameGroups, snap.DuplicateContactNameLines,
+					"warn", "Multiple contacts share the same name — grids and imports may be hard to distinguish.");
+			}
+
+			if (snap.DigitalNoContact > 0)
+			{
+				AppendWarningList(html, "Digital channels without TX contact", snap.DigitalNoContact, snap.DigitalNoContactNames,
+					"warn", "Digital channels should reference a contact for TX routing.");
+			}
+
 			if (snap.EmptyZones > 0)
 			{
 				html.Append("<h2>Empty zones <span class=\"badge badge-warn\">").Append(snap.EmptyZones).Append("</span></h2>");
@@ -108,7 +120,7 @@ namespace DMR
 
 			if (!snap.HasWarning)
 			{
-				html.Append("<p class=\"ok\">No relay=0, orphan-contact, duplicate-name, duplicate DMR ID, or zone issues detected in the loaded codeplug.</p>");
+				html.Append("<p class=\"ok\">No relay=0, orphan-contact, duplicate channel/contact names, duplicate DMR ID, digital-no-contact, or zone issues detected in the loaded codeplug.</p>");
 			}
 
 			html.Append(ForkReportHtml.DocumentEnd());

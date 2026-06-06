@@ -30,13 +30,18 @@ namespace DMR
 		public List<string> ChannelsNotInZoneNames = new List<string>();
 		public int DuplicateDmrIdGroups;
 		public List<string> DuplicateDmrIdLines = new List<string>();
+		public int DuplicateContactNameGroups;
+		public List<string> DuplicateContactNameLines = new List<string>();
+		public int DigitalNoContact;
+		public List<string> DigitalNoContactNames = new List<string>();
 
 		public bool HasWarning
 		{
 			get
 			{
 				return this.RelayZero > 0 || this.OrphanCount > 0 || this.DuplicateNameGroups > 0
-					|| this.EmptyZones > 0 || this.ChannelsNotInZone > 0 || this.DuplicateDmrIdGroups > 0;
+					|| this.EmptyZones > 0 || this.ChannelsNotInZone > 0 || this.DuplicateDmrIdGroups > 0
+					|| this.DuplicateContactNameGroups > 0 || this.DigitalNoContact > 0;
 			}
 		}
 
@@ -78,6 +83,14 @@ namespace DMR
 						snap.RelayZeroNames.Add(channelName);
 					}
 				}
+				if (ChannelForm.data.GetChMode(i) == 1 && ch.Contact == 0)
+				{
+					snap.DigitalNoContact++;
+					if (snap.DigitalNoContactNames.Count < nameListLimit)
+					{
+						snap.DigitalNoContactNames.Add(channelName);
+					}
+				}
 				if (ch.Contact > 0 && (ch.Contact > ContactForm.data.Count || !ContactForm.data.DataIsValid(ch.Contact - 1)))
 				{
 					snap.OrphanCount++;
@@ -106,6 +119,7 @@ namespace DMR
 			snap.Zones = ZoneForm.data.ValidCount;
 			snap.TgLists = CountValidRxGroupLists();
 			CollectDuplicateDmrIds(snap, nameListLimit);
+			CollectDuplicateContactNames(snap, nameListLimit);
 
 			for (int z = 0; z < ZoneForm.NUM_ZONES; z++)
 			{
@@ -156,6 +170,42 @@ namespace DMR
 			}
 
 			return snap;
+		}
+
+		private static void CollectDuplicateContactNames(CodeplugHealthSnapshot snap, int nameListLimit)
+		{
+			Dictionary<string, List<int>> nameToIndices = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
+			for (int i = 0; i < ContactForm.data.Count; i++)
+			{
+				if (!ContactForm.data.DataIsValid(i))
+				{
+					continue;
+				}
+				string name = (ContactForm.data.GetName(i) ?? "").Trim();
+				if (string.IsNullOrEmpty(name))
+				{
+					continue;
+				}
+				if (!nameToIndices.ContainsKey(name))
+				{
+					nameToIndices[name] = new List<int>();
+				}
+				nameToIndices[name].Add(i + 1);
+			}
+
+			foreach (KeyValuePair<string, List<int>> entry in nameToIndices)
+			{
+				if (entry.Value.Count <= 1)
+				{
+					continue;
+				}
+				snap.DuplicateContactNameGroups++;
+				if (snap.DuplicateContactNameLines.Count < nameListLimit)
+				{
+					string nums = string.Join(", ", entry.Value.ConvertAll(n => "#" + n));
+					snap.DuplicateContactNameLines.Add(entry.Key + " (×" + entry.Value.Count + "): " + nums);
+				}
+			}
 		}
 
 		private static void CollectDuplicateDmrIds(CodeplugHealthSnapshot snap, int nameListLimit)

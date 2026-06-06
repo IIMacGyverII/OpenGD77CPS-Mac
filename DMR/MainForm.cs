@@ -230,7 +230,24 @@ namespace DMR
 
 		private bool codeplugHealthLinkWired;
 
+		private Panel pnlTreeFilter;
+
+		private Label lblTreeFilter;
+
+		private TextBox txtTreeFilter;
+
+		private bool forkTreeFilterUiBuilt;
+
+		private readonly List<ForkTreeFilterEntry> forkTreeFilterStash = new List<ForkTreeFilterEntry>();
+
 		private const string ForkStatusHintDefault = "F8 backup | Ctrl+I import | F7 health | F1 help";
+
+		private sealed class ForkTreeFilterEntry
+		{
+			public TreeNodeCollection ParentCollection;
+			public int Index;
+			public TreeNode Node;
+		}
 
 		private Timer forkStatusHintTimer;
 
@@ -1740,11 +1757,154 @@ namespace DMR
 #endif
 		}
 
+		private void EnsureForkTreeFilterUi()
+		{
+#if OpenGD77
+			if (this.forkTreeFilterUiBuilt)
+			{
+				this.ApplyForkTreeFilterLayout();
+				return;
+			}
+			this.pnlTreeFilter = new Panel();
+			this.pnlTreeFilter.Dock = DockStyle.Top;
+			this.pnlTreeFilter.Height = 28;
+			this.lblTreeFilter = new Label();
+			this.lblTreeFilter.Text = "Filter:";
+			this.lblTreeFilter.AutoSize = true;
+			this.lblTreeFilter.Location = new Point(4, 6);
+			this.txtTreeFilter = new TextBox();
+			this.txtTreeFilter.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+			this.txtTreeFilter.Location = new Point(48, 3);
+			this.txtTreeFilter.Size = new Size(170, 23);
+			this.txtTreeFilter.TextChanged += this.txtTreeFilter_TextChanged;
+			this.pnlTreeFilter.Controls.Add(this.lblTreeFilter);
+			this.pnlTreeFilter.Controls.Add(this.txtTreeFilter);
+			this.pnlTvw.Controls.Add(this.pnlTreeFilter);
+			this.pnlTvw.Resize += this.pnlTvw_Resize;
+			this.forkTreeFilterUiBuilt = true;
+			this.ApplyForkTreeFilterLayout();
+#endif
+		}
+
+		private void pnlTvw_Resize(object sender, EventArgs e)
+		{
+#if OpenGD77
+			this.ApplyForkTreeFilterLayout();
+#endif
+		}
+
+		private void ApplyForkTreeFilterLayout()
+		{
+#if OpenGD77
+			if (this.txtTreeFilter == null)
+			{
+				return;
+			}
+			this.txtTreeFilter.Width = Math.Max(80, this.pnlTvw.ClientSize.Width - 52);
+#endif
+		}
+
+		private void txtTreeFilter_TextChanged(object sender, EventArgs e)
+		{
+#if OpenGD77
+			this.ApplyForkTreeFilter();
+#endif
+		}
+
+		private void ApplyForkTreeFilter()
+		{
+#if OpenGD77
+			this.RestoreForkTreeFilterStash();
+			string query = this.txtTreeFilter == null ? "" : this.txtTreeFilter.Text.Trim();
+			if (string.IsNullOrEmpty(query))
+			{
+				return;
+			}
+			this.tvwMain.BeginUpdate();
+			try
+			{
+				this.PruneForkTreeFilterNodes(this.tvwMain.Nodes, query);
+			}
+			finally
+			{
+				this.tvwMain.EndUpdate();
+			}
+#endif
+		}
+
+		private void RestoreForkTreeFilterStash()
+		{
+#if OpenGD77
+			if (this.forkTreeFilterStash.Count == 0)
+			{
+				return;
+			}
+			this.tvwMain.BeginUpdate();
+			try
+			{
+				this.forkTreeFilterStash.Sort((a, b) =>
+				{
+					if (!ReferenceEquals(a.ParentCollection, b.ParentCollection))
+					{
+						return 0;
+					}
+					return a.Index.CompareTo(b.Index);
+				});
+				foreach (ForkTreeFilterEntry entry in this.forkTreeFilterStash)
+				{
+					if (entry.ParentCollection == null || entry.Node == null)
+					{
+						continue;
+					}
+					int insertAt = Math.Min(entry.Index, entry.ParentCollection.Count);
+					entry.ParentCollection.Insert(insertAt, entry.Node);
+				}
+				this.forkTreeFilterStash.Clear();
+			}
+			finally
+			{
+				this.tvwMain.EndUpdate();
+			}
+#endif
+		}
+
+		private bool PruneForkTreeFilterNodes(TreeNodeCollection nodes, string query)
+		{
+#if OpenGD77
+			bool anyMatch = false;
+			for (int i = nodes.Count - 1; i >= 0; i--)
+			{
+				TreeNode node = nodes[i];
+				bool childMatch = this.PruneForkTreeFilterNodes(node.Nodes, query);
+				bool selfMatch = node.Text.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+				if (selfMatch || childMatch)
+				{
+					anyMatch = true;
+					node.Expand();
+				}
+				else
+				{
+					this.forkTreeFilterStash.Add(new ForkTreeFilterEntry
+					{
+						ParentCollection = nodes,
+						Index = i,
+						Node = node
+					});
+					nodes.RemoveAt(i);
+				}
+			}
+			return anyMatch;
+#else
+			return false;
+#endif
+		}
+
 		private void UpdateForkChrome()
 		{
 #if OpenGD77
 			this.FixForkShellLayout();
 			this.EnsureForkMainMenu();
+			this.EnsureForkTreeFilterUi();
 			Theme.ApplyForkChrome(this, this.mnsMain, this.tsrMain, this.ssrMain);
 			// Keep default text color on the shell so MDI/dock editors keep black labels on gray panels.
 			this.ForeColor = SystemColors.ControlText;
@@ -1830,12 +1990,14 @@ namespace DMR
 			string orphanNote = snap.OrphanCount > 0 ? " | orphan ct: " + snap.OrphanCount : "";
 			string dupNote = snap.DuplicateNameGroups > 0 ? " | dup ch: " + snap.DuplicateNameGroups : "";
 			string dupIdNote = snap.DuplicateDmrIdGroups > 0 ? " | dup ID: " + snap.DuplicateDmrIdGroups : "";
+			string dupCtNameNote = snap.DuplicateContactNameGroups > 0 ? " | dup ct nm: " + snap.DuplicateContactNameGroups : "";
+			string digNoCtNote = snap.DigitalNoContact > 0 ? " | dig no ct: " + snap.DigitalNoContact : "";
 			string zoneNote = snap.EmptyZones > 0 ? " | empty zn: " + snap.EmptyZones : "";
 			string warningTag = hasWarning ? " ⚠" : "";
 			this.slblCodeplugHealth.Text = "▶ Health report" + warningTag + " — "
 				+ snap.Channels + " ch (" + snap.Digital + "D/" + snap.Analog + "A)"
 				+ " | " + snap.Contacts + " ct | " + snap.Zones + " zn | " + snap.TgLists + " TG"
-				+ relayNote + orphanNote + dupNote + dupIdNote + zoneNote;
+				+ relayNote + orphanNote + dupNote + dupIdNote + dupCtNameNote + digNoCtNote + zoneNote;
 			this.slblCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Theme.Foreground;
 			if (this.tsbtnCodeplugHealth != null)
 			{
@@ -2405,6 +2567,9 @@ namespace DMR
 			this.lstFixedNode.ForEach(MainForm.smethod_0);
 			this.InitDynamicNode();
 			Settings.smethod_49(this.tvwMain, 0);
+#if OpenGD77
+			this.ApplyForkTreeFilter();
+#endif
 		}
 
 		public void InitRxGroupLists(TreeNode parentNode)
