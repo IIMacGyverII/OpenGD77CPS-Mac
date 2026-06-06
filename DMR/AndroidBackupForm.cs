@@ -22,12 +22,15 @@ namespace DMR
 		private readonly Button btnPushAdb;
 		private readonly LinkLabel lnkUsbHelp;
 		private readonly Button btnImportAll;
+		private readonly Button btnReviewDiff;
 		private readonly Button btnExportAll;
 		private readonly Button btnOpenFolder;
 		private readonly Button btnRawLog;
 		private readonly Label lblHint;
 		private readonly Label lblReportCaption;
 		private AndroidBackupValidationResult lastValidation;
+		private string lastDiffFolder = "";
+		private bool diffPreApproved;
 
 		private static readonly string[] BackupFiles = new string[]
 		{
@@ -53,7 +56,7 @@ namespace DMR
 			{
 				Dock = DockStyle.Top,
 				Height = 40,
-				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Import all (Path B).  Report below validates CSVs."
+				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Review diff → Import all (Path B).  Report below validates CSVs."
 			};
 
 			Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 200 };
@@ -145,31 +148,40 @@ namespace DMR
 			this.btnImportAll = new Button
 			{
 				Location = new Point(12, 8),
-				Size = new Size(130, 28),
+				Size = new Size(118, 28),
 				Text = "Import all (Path B)"
 			};
 			this.btnImportAll.Click += this.btnImportAll_Click;
 
+			this.btnReviewDiff = new Button
+			{
+				Location = new Point(136, 8),
+				Size = new Size(118, 28),
+				Text = "Review diff…",
+				Enabled = false
+			};
+			this.btnReviewDiff.Click += this.btnReviewDiff_Click;
+
 			this.btnExportAll = new Button
 			{
-				Location = new Point(148, 8),
-				Size = new Size(100, 28),
+				Location = new Point(260, 8),
+				Size = new Size(90, 28),
 				Text = "Export all"
 			};
 			this.btnExportAll.Click += this.btnExportAll_Click;
 
 			this.btnOpenFolder = new Button
 			{
-				Location = new Point(254, 8),
-				Size = new Size(100, 28),
+				Location = new Point(356, 8),
+				Size = new Size(90, 28),
 				Text = "Open folder"
 			};
 			this.btnOpenFolder.Click += this.btnOpenFolder_Click;
 
 			this.btnRawLog = new Button
 			{
-				Location = new Point(360, 8),
-				Size = new Size(90, 28),
+				Location = new Point(452, 8),
+				Size = new Size(80, 28),
 				Text = "Raw log…"
 			};
 			this.btnRawLog.Click += this.btnRawLog_Click;
@@ -187,6 +199,7 @@ namespace DMR
 
 			Panel bottomPanel = new Panel { Dock = DockStyle.Bottom, Height = 44 };
 			bottomPanel.Controls.Add(this.btnImportAll);
+			bottomPanel.Controls.Add(this.btnReviewDiff);
 			bottomPanel.Controls.Add(this.btnExportAll);
 			bottomPanel.Controls.Add(this.btnOpenFolder);
 			bottomPanel.Controls.Add(this.btnRawLog);
@@ -312,6 +325,11 @@ namespace DMR
 
 			this.txtFolder.Text = folderPath;
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
+			if (!string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
+			{
+				this.lastDiffFolder = folderPath;
+				this.diffPreApproved = false;
+			}
 			this.lstFiles.Items.Clear();
 			foreach (string file in BackupFiles)
 			{
@@ -344,8 +362,42 @@ namespace DMR
 			this.lblReportCaption.Text = integrity.HasWarnings || this.lastValidation.HasBlockingErrors
 				? "Validation report — review warnings below"
 				: "Validation report — ready to import";
+			bool hasChannels = File.Exists(channelsPath);
+			this.btnReviewDiff.Enabled = hasChannels;
+			this.btnReviewDiff.Text = this.diffPreApproved && hasChannels ? "Diff reviewed ✓" : "Review diff…";
 			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
 			return true;
+		}
+
+		private bool TryApproveChannelDiff(string folderPath)
+		{
+			string channelsPath = Path.Combine(folderPath, "Channels.csv");
+			if (!File.Exists(channelsPath))
+			{
+				return true;
+			}
+			if (this.diffPreApproved && string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
+			{
+				return true;
+			}
+			if (!AndroidImportDiff.ShowPreviewDialog(this, channelsPath))
+			{
+				return false;
+			}
+			this.lastDiffFolder = folderPath;
+			this.diffPreApproved = true;
+			this.btnReviewDiff.Text = "Diff reviewed ✓";
+			return true;
+		}
+
+		private void btnReviewDiff_Click(object sender, EventArgs e)
+		{
+			string folderPath = this.txtFolder.Text.Trim();
+			if (!this.SetFolder(folderPath, true))
+			{
+				return;
+			}
+			this.TryApproveChannelDiff(folderPath);
 		}
 
 		private void btnImportAll_Click(object sender, EventArgs e)
@@ -371,8 +423,13 @@ namespace DMR
 					return;
 				}
 			}
-			this.mainForm.ImportAndroidBackupFolder(this.txtFolder.Text);
-			this.SetFolder(this.txtFolder.Text, false);
+			string folderPath = this.txtFolder.Text.Trim();
+			if (!this.TryApproveChannelDiff(folderPath))
+			{
+				return;
+			}
+			this.mainForm.ImportAndroidBackupFolder(folderPath, this.diffPreApproved);
+			this.SetFolder(folderPath, false);
 		}
 
 		private void btnExportAll_Click(object sender, EventArgs e)

@@ -45,6 +45,12 @@ namespace DMR
 					"warn", "Duplicate names can confuse Android import and zone editing.");
 			}
 
+			if (snap.DuplicateDmrIdGroups > 0)
+			{
+				AppendWarningList(html, "Duplicate contact DMR IDs", snap.DuplicateDmrIdGroups, snap.DuplicateDmrIdLines,
+					"warn", "Multiple contacts share the same Call ID — phone lookup and TX routing may be ambiguous.");
+			}
+
 			if (snap.EmptyZones > 0)
 			{
 				html.Append("<h2>Empty zones <span class=\"badge badge-warn\">").Append(snap.EmptyZones).Append("</span></h2>");
@@ -102,7 +108,7 @@ namespace DMR
 
 			if (!snap.HasWarning)
 			{
-				html.Append("<p class=\"ok\">No relay=0, orphan-contact, duplicate-name, or zone issues detected in the loaded codeplug.</p>");
+				html.Append("<p class=\"ok\">No relay=0, orphan-contact, duplicate-name, duplicate DMR ID, or zone issues detected in the loaded codeplug.</p>");
 			}
 
 			html.Append(ForkReportHtml.DocumentEnd());

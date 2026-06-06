@@ -1828,13 +1828,14 @@ namespace DMR
 			bool hasWarning = snap.HasWarning;
 			string relayNote = snap.RelayZero > 0 ? " | relay=0: " + snap.RelayZero : "";
 			string orphanNote = snap.OrphanCount > 0 ? " | orphan ct: " + snap.OrphanCount : "";
-			string dupNote = snap.DuplicateNameGroups > 0 ? " | dup: " + snap.DuplicateNameGroups : "";
+			string dupNote = snap.DuplicateNameGroups > 0 ? " | dup ch: " + snap.DuplicateNameGroups : "";
+			string dupIdNote = snap.DuplicateDmrIdGroups > 0 ? " | dup ID: " + snap.DuplicateDmrIdGroups : "";
 			string zoneNote = snap.EmptyZones > 0 ? " | empty zn: " + snap.EmptyZones : "";
 			string warningTag = hasWarning ? " ⚠" : "";
 			this.slblCodeplugHealth.Text = "▶ Health report" + warningTag + " — "
 				+ snap.Channels + " ch (" + snap.Digital + "D/" + snap.Analog + "A)"
 				+ " | " + snap.Contacts + " ct | " + snap.Zones + " zn | " + snap.TgLists + " TG"
-				+ relayNote + orphanNote + dupNote + zoneNote;
+				+ relayNote + orphanNote + dupNote + dupIdNote + zoneNote;
 			this.slblCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Theme.Foreground;
 			if (this.tsbtnCodeplugHealth != null)
 			{
@@ -3746,6 +3747,11 @@ namespace DMR
 
 		public void ImportAndroidBackupFolder(string folderPath)
 		{
+			this.ImportAndroidBackupFolder(folderPath, false);
+		}
+
+		public void ImportAndroidBackupFolder(string folderPath, bool diffPreApproved)
+		{
 			if (string.IsNullOrEmpty(folderPath))
 			{
 				if (AndroidAdbBackup.IsAdbAvailable())
@@ -3819,13 +3825,17 @@ namespace DMR
 			}
 
 			bool channelsWillImport = File.Exists(channelsFile);
-			bool diffApproved = false;
-			if (channelsWillImport)
+			bool diffApproved = diffPreApproved;
+			if (channelsWillImport && !diffPreApproved)
 			{
 				if (!AndroidImportDiff.ShowPreviewDialog(this, channelsFile))
 				{
 					return;
 				}
+				diffApproved = true;
+			}
+			else if (channelsWillImport && diffPreApproved)
+			{
 				diffApproved = true;
 			}
 

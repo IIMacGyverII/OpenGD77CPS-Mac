@@ -28,13 +28,15 @@ namespace DMR
 		public List<CodeplugHealthZoneRow> ZoneRows = new List<CodeplugHealthZoneRow>();
 		public int ChannelsNotInZone;
 		public List<string> ChannelsNotInZoneNames = new List<string>();
+		public int DuplicateDmrIdGroups;
+		public List<string> DuplicateDmrIdLines = new List<string>();
 
 		public bool HasWarning
 		{
 			get
 			{
 				return this.RelayZero > 0 || this.OrphanCount > 0 || this.DuplicateNameGroups > 0
-					|| this.EmptyZones > 0 || this.ChannelsNotInZone > 0;
+					|| this.EmptyZones > 0 || this.ChannelsNotInZone > 0 || this.DuplicateDmrIdGroups > 0;
 			}
 		}
 
@@ -103,6 +105,7 @@ namespace DMR
 			snap.Contacts = CountValidContacts();
 			snap.Zones = ZoneForm.data.ValidCount;
 			snap.TgLists = CountValidRxGroupLists();
+			CollectDuplicateDmrIds(snap, nameListLimit);
 
 			for (int z = 0; z < ZoneForm.NUM_ZONES; z++)
 			{
@@ -153,6 +156,45 @@ namespace DMR
 			}
 
 			return snap;
+		}
+
+		private static void CollectDuplicateDmrIds(CodeplugHealthSnapshot snap, int nameListLimit)
+		{
+			Dictionary<string, List<string>> idToNames = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+			for (int i = 0; i < ContactForm.data.Count; i++)
+			{
+				if (!ContactForm.data.DataIsValid(i))
+				{
+					continue;
+				}
+				string callId = (ContactForm.data.GetCallID(i) ?? "").Trim();
+				if (string.IsNullOrEmpty(callId) || callId == "16777215")
+				{
+					continue;
+				}
+				if (!idToNames.ContainsKey(callId))
+				{
+					idToNames[callId] = new List<string>();
+				}
+				string contactName = ContactForm.data.GetName(i);
+				if (!idToNames[callId].Contains(contactName))
+				{
+					idToNames[callId].Add(contactName);
+				}
+			}
+
+			foreach (KeyValuePair<string, List<string>> entry in idToNames)
+			{
+				if (entry.Value.Count <= 1)
+				{
+					continue;
+				}
+				snap.DuplicateDmrIdGroups++;
+				if (snap.DuplicateDmrIdLines.Count < nameListLimit)
+				{
+					snap.DuplicateDmrIdLines.Add("ID " + entry.Key + ": " + string.Join(", ", entry.Value.ToArray()));
+				}
+			}
 		}
 
 		private static int CountValidContacts()
