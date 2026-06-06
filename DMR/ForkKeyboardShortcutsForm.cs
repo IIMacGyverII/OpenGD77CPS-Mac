@@ -38,8 +38,9 @@ namespace DMR
 						"Channel editor\n" +
 						"  Ctrl+Z     Revert to state when channel was opened\n\n" +
 						"Contacts grid\n" +
-						"  Double-click row   Look up Call ID on RadioID.net\n" +
-						"  Row number dbl-click   Open contact editor"
+						"  F2         Open contact editor\n" +
+						"  Click row  Open contact in editor\n" +
+						"  Double-click Call ID   Look up on RadioID.net"
 				};
 				Button ok = new Button
 				{

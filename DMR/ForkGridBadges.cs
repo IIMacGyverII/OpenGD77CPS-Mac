@@ -7,6 +7,9 @@ namespace DMR
 	/// <summary>Shared DataGridView badge styling (channels + contacts grids).</summary>
 	public static class ForkGridBadges
 	{
+		public static readonly Color ActiveRowBack = Color.FromArgb(0xC5, 0xD8, 0xF0);
+		public static readonly Color ActiveRowFore = Color.FromArgb(0x0A, 0x2A, 0x52);
+		public static readonly Color ActiveRowBorder = Color.FromArgb(0x1E, 0x5A, 0x9E);
 		public static string GetChannelModeBadge(string chModeS)
 		{
 			if (string.IsNullOrEmpty(chModeS))

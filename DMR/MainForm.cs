@@ -4950,6 +4950,11 @@ namespace DMR
 				this.OpenChannelEditorByDataIndex(index);
 				return;
 			}
+			if (type == typeof(ContactForm))
+			{
+				this.OpenContactEditorByDataIndex(index);
+				return;
+			}
 			TreeNode treeNodeByTypeAndIndex = this.GetTreeNodeByTypeAndIndex(type, index, this.tvwMain.Nodes);
 			if (treeNodeByTypeAndIndex != null)
 			{
@@ -5025,6 +5030,63 @@ namespace DMR
 			if (channelNode != null)
 			{
 				this.method_7(channelNode, true);
+			}
+		}
+
+		public int GetOpenContactEditorDataIndex()
+		{
+			foreach (Form form in base.MdiChildren)
+			{
+				if (form.GetType() == typeof(ContactForm) && form.Tag != null)
+				{
+					return Convert.ToInt32(form.Tag);
+				}
+			}
+			return -1;
+		}
+
+		public void OpenContactEditorByDataIndex(int dataIndex)
+		{
+			if (dataIndex < 0 || !ContactForm.data.DataIsValid(dataIndex))
+			{
+				return;
+			}
+			TreeNode contactNode = this.GetTreeNodeByTypeAndIndex(typeof(ContactForm), dataIndex, this.tvwMain.Nodes);
+			if (contactNode != null)
+			{
+				this.method_7(contactNode, true);
+				return;
+			}
+			this.OpenContactEditorDirect(dataIndex);
+		}
+
+		private void OpenContactEditorDirect(int dataIndex)
+		{
+			TreeNode contactNode = this.GetTreeNodeByType(typeof(ContactForm), dataIndex);
+			foreach (Form form in base.MdiChildren)
+			{
+				if (form.GetType() != typeof(ContactForm))
+				{
+					continue;
+				}
+				form.Tag = dataIndex;
+				IDisp disp = form as IDisp;
+				if (disp != null && contactNode != null)
+				{
+					disp.Node = contactNode;
+					disp.DispData();
+				}
+				else if (disp != null)
+				{
+					disp.DispData();
+				}
+				form.Activate();
+				form.BringToFront();
+				return;
+			}
+			if (contactNode != null)
+			{
+				this.method_7(contactNode, true);
 			}
 		}
 

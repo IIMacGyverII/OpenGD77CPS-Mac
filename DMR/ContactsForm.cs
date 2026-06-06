@@ -45,6 +45,9 @@ namespace DMR
 		private ContextMenuStrip cmsCallIdGrid;
 		private int forkSortColumn = -1;
 		private bool forkSortAscending = true;
+		private int forkActiveContactDataIndex = -1;
+		private bool forkContactClickHandled;
+		private bool forkActivatingRow;
 		private static readonly string[] SZ_HEADER_TEXT;
 
 		public DataGridView getDataGridView()
@@ -405,6 +408,7 @@ namespace DMR
 			this.DispData();
 			this.cmbAddType.SelectedIndex = 0;
 			Theme.ApplyStandardEditorColors(this);
+			this.SyncActiveContactHighlightFromEditor();
 		}
 
 		private void EnsureContactFilterBox()
@@ -541,6 +545,21 @@ namespace DMR
 				this.forkSortAscending = true;
 			}
 			this.SortContactsGrid(e.ColumnIndex, this.forkSortAscending);
+			this.RefreshSortHeaderGlyphs();
+		}
+
+		private void RefreshSortHeaderGlyphs()
+		{
+			string[] headers = ContactsForm.SZ_HEADER_TEXT;
+			for (int i = 0; i < this.dgvContacts.Columns.Count && i < headers.Length; i++)
+			{
+				string text = headers[i];
+				if (i == this.forkSortColumn)
+				{
+					text += this.forkSortAscending ? " \u25B2" : " \u25BC";
+				}
+				this.dgvContacts.Columns[i].HeaderText = text;
+			}
 		}
 
 		private void SortContactsGrid(int columnIndex, bool ascending)
@@ -573,7 +592,21 @@ namespace DMR
 				this.dgvContacts.Rows[index].Tag = tags[i];
 			}
 			this.ApplyContactFilter();
-			this.dgvContacts.CurrentCell = null;
+			if (this.forkActiveContactDataIndex >= 0)
+			{
+				foreach (DataGridViewRow row in this.dgvContacts.Rows)
+				{
+					if (!row.IsNewRow && row.Tag != null && (int)row.Tag == this.forkActiveContactDataIndex)
+					{
+						this.ForkActivateGridRow(row, 0, false);
+						break;
+					}
+				}
+			}
+			else
+			{
+				this.dgvContacts.CurrentCell = null;
+			}
 		}
 
 		private int CompareContactRows(DataGridViewRow a, DataGridViewRow b, int columnIndex, bool ascending)
@@ -610,7 +643,7 @@ namespace DMR
 			this.lnkLookupDmrId = DmrIdLookup.CreateLookupLink(() => this.GetSelectedCallId(), this);
 			this.lnkLookupDmrId.Enabled = false;
 			this.lblLookupHint = new Label();
-			this.lblLookupHint.Text = "G=green · P=orange · A(gray)=all-call · filter all columns · header sorts · double-click row for RadioID.net";
+			this.lblLookupHint.Text = "G=green · P=orange · A(gray)=all-call · click row/F2 opens editor (blue row = active) · double-click Call ID for RadioID.net · header sorts";
 			this.lblLookupHint.AutoSize = false;
 			this.lblLookupHint.Size = new System.Drawing.Size(1100, 18);
 			this.lblLookupHint.ForeColor = System.Drawing.SystemColors.GrayText;
@@ -637,18 +670,31 @@ namespace DMR
 
 		private void dgvContacts_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
 		{
-			if (e.RowIndex < 0 || e.ColumnIndex != 3)
+			if (e.RowIndex < 0 || e.ColumnIndex < 0)
 			{
 				return;
 			}
-			if (this.dgvContacts.Rows[e.RowIndex].IsNewRow)
+			DataGridViewRow row = this.dgvContacts.Rows[e.RowIndex];
+			if (row.IsNewRow)
 			{
 				return;
 			}
-			string badge = ForkGridBadges.GetContactCallTypeBadge(Convert.ToString(e.Value) ?? "");
-			e.Value = badge;
-			e.FormattingApplied = true;
-			ForkGridBadges.ApplyContactTypeStyle(e, badge);
+			if (e.ColumnIndex == 3)
+			{
+				string badge = ForkGridBadges.GetContactCallTypeBadge(Convert.ToString(e.Value) ?? "");
+				e.Value = badge;
+				e.FormattingApplied = true;
+				ForkGridBadges.ApplyContactTypeStyle(e, badge);
+			}
+			bool isActive = row.Tag != null && (int)row.Tag == this.forkActiveContactDataIndex;
+			if (isActive)
+			{
+				e.CellStyle.BackColor = ForkGridBadges.ActiveRowBack;
+				e.CellStyle.ForeColor = ForkGridBadges.ActiveRowFore;
+				e.CellStyle.SelectionBackColor = ForkGridBadges.ActiveRowBack;
+				e.CellStyle.SelectionForeColor = ForkGridBadges.ActiveRowFore;
+				e.CellStyle.Font = Theme.UiFontBold;
+			}
 		}
 
 		private void dgvContacts_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
@@ -657,8 +703,13 @@ namespace DMR
 			{
 				return;
 			}
-			object cellValue = this.dgvContacts.Rows[e.RowIndex].Cells[ContactsForm.CallIdColumnIndex].Value;
-			DmrIdLookup.TryOpenFromText(cellValue == null ? null : cellValue.ToString(), this);
+			if (e.ColumnIndex == ContactsForm.CallIdColumnIndex)
+			{
+				object cellValue = this.dgvContacts.Rows[e.RowIndex].Cells[ContactsForm.CallIdColumnIndex].Value;
+				DmrIdLookup.TryOpenFromText(cellValue == null ? null : cellValue.ToString(), this);
+				return;
+			}
+			this.OpenContactEditorForRow(this.dgvContacts.Rows[e.RowIndex]);
 		}
 
 		private void EnsureCallIdGridContextMenu()
@@ -1095,8 +1146,10 @@ namespace DMR
 			this.dgvContacts.AllowUserToOrderColumns = false;
 			this.dgvContacts.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 			ForkGridBadges.EnableGridPolish(this.dgvContacts);
+			this.dgvContacts.CellMouseDown += this.dgvContacts_CellMouseDown;
 			this.dgvContacts.CellFormatting += this.dgvContacts_CellFormatting;
 			this.dgvContacts.ColumnHeaderMouseClick += this.dgvContacts_ColumnHeaderMouseClick;
+			this.dgvContacts.RowHeaderMouseClick += this.dgvContacts_RowHeaderMouseClick;
 			DataGridViewTextBoxColumn dataGridViewTextBoxColumn = null;
 			string[] sZ_HEADER_TEXT = ContactsForm.SZ_HEADER_TEXT;
 			foreach (string headerText in sZ_HEADER_TEXT)
@@ -1171,10 +1224,29 @@ namespace DMR
 				DataGridView dataGridView = sender as DataGridView;
 				if (e.RowIndex >= dataGridView.FirstDisplayedScrollingRowIndex)
 				{
-					using (SolidBrush brush = new SolidBrush(dataGridView.RowHeadersDefaultCellStyle.ForeColor))
+					DataGridViewRow paintRow = dataGridView.Rows[e.RowIndex];
+					bool isActive = paintRow.Tag != null && (int)paintRow.Tag == this.forkActiveContactDataIndex;
+					Rectangle headerBounds = new Rectangle(
+						e.RowBounds.Left,
+						e.RowBounds.Top,
+						dataGridView.RowHeadersWidth,
+						e.RowBounds.Height);
+					if (isActive)
+					{
+						using (SolidBrush back = new SolidBrush(ForkGridBadges.ActiveRowBack))
+						{
+							e.Graphics.FillRectangle(back, headerBounds);
+						}
+						using (Pen border = new Pen(ForkGridBadges.ActiveRowBorder, 2f))
+						{
+							e.Graphics.DrawLine(border, headerBounds.Right - 1, headerBounds.Top, headerBounds.Right - 1, headerBounds.Bottom);
+						}
+					}
+					Color fore = isActive ? ForkGridBadges.ActiveRowFore : dataGridView.RowHeadersDefaultCellStyle.ForeColor;
+					using (SolidBrush brush = new SolidBrush(fore))
 					{
 						string s = (e.RowIndex + 1).ToString();
-						e.Graphics.DrawString(s, e.InheritedRowStyle.Font, brush, (float)(e.RowBounds.Location.X + 15), (float)(e.RowBounds.Location.Y + 5));
+						e.Graphics.DrawString(s, e.InheritedRowStyle.Font, brush, (float)(headerBounds.Left + 15), (float)(headerBounds.Top + 5));
 					}
 				}
 			}
@@ -1188,17 +1260,198 @@ namespace DMR
 		{
 			this.method_1();
 			this.RefreshDmrIdLookupUi();
+			if (this.forkContactClickHandled)
+			{
+				this.forkContactClickHandled = false;
+				return;
+			}
+			if (this.forkActivatingRow)
+			{
+				return;
+			}
+			DataGridViewRow row = this.dgvContacts.CurrentRow;
+			if (row == null || row.IsNewRow || !row.Selected || row.Tag == null)
+			{
+				return;
+			}
+			this.BeginInvoke(new Action(() => this.ForkActivateGridRow(row, 0, true)));
+		}
+
+		private void dgvContacts_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+		{
+			if (e.Button != MouseButtons.Left)
+			{
+				return;
+			}
+			if (e.RowIndex < 0 || e.ColumnIndex < 0)
+			{
+				return;
+			}
+			if (e.RowIndex >= this.dgvContacts.Rows.Count)
+			{
+				return;
+			}
+			this.forkContactClickHandled = true;
+			this.ForkActivateGridRow(this.dgvContacts.Rows[e.RowIndex], e.ColumnIndex, true);
+		}
+
+		private void dgvContacts_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+		{
+			if (e.RowIndex < 0 || e.RowIndex >= this.dgvContacts.Rows.Count)
+			{
+				return;
+			}
+			this.forkContactClickHandled = true;
+			this.ForkActivateGridRow(this.dgvContacts.Rows[e.RowIndex], 0, true);
+		}
+
+		private void ForkActivateGridRow(DataGridViewRow row, int columnIndex, bool openEditor)
+		{
+			if (row == null || row.IsNewRow || row.Tag == null)
+			{
+				return;
+			}
+			if (this.forkActivatingRow)
+			{
+				return;
+			}
+			this.forkActivatingRow = true;
+			try
+			{
+				this.forkActiveContactDataIndex = (int)row.Tag;
+				if (this.dgvContacts.SelectedRows.Count != 1 || this.dgvContacts.SelectedRows[0] != row)
+				{
+					this.dgvContacts.ClearSelection();
+					row.Selected = true;
+				}
+				int cellCol = columnIndex >= 0 && columnIndex < row.Cells.Count ? columnIndex : 0;
+				if (this.dgvContacts.CurrentCell == null || this.dgvContacts.CurrentCell.OwningRow != row)
+				{
+					this.dgvContacts.CurrentCell = row.Cells[cellCol];
+				}
+				this.ForkScrollRowIntoView(row.Index);
+				this.dgvContacts.Invalidate();
+				if (openEditor)
+				{
+					this.OpenContactEditorForRow(row);
+				}
+			}
+			finally
+			{
+				this.forkActivatingRow = false;
+			}
+		}
+
+		private void ForkScrollRowIntoView(int rowIndex)
+		{
+			if (rowIndex < 0 || rowIndex >= this.dgvContacts.Rows.Count)
+			{
+				return;
+			}
+			int first = this.dgvContacts.FirstDisplayedScrollingRowIndex;
+			int visible = this.dgvContacts.DisplayedRowCount(false);
+			if (rowIndex < first || rowIndex >= first + visible)
+			{
+				this.dgvContacts.FirstDisplayedScrollingRowIndex = rowIndex;
+			}
+		}
+
+		private void SyncActiveContactHighlightFromEditor()
+		{
+			MainForm mainForm = this.GetMainForm();
+			if (mainForm == null)
+			{
+				return;
+			}
+			int openIndex = mainForm.GetOpenContactEditorDataIndex();
+			if (openIndex < 0)
+			{
+				return;
+			}
+			this.forkActiveContactDataIndex = openIndex;
+			foreach (DataGridViewRow row in this.dgvContacts.Rows)
+			{
+				if (row.IsNewRow || row.Tag == null)
+				{
+					continue;
+				}
+				if ((int)row.Tag == openIndex)
+				{
+					this.ForkActivateGridRow(row, 0, false);
+					return;
+				}
+			}
+			this.dgvContacts.Invalidate();
 		}
 
 		private void dgvContacts_RowHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
 		{
+			if (e.RowIndex >= 0 && e.RowIndex < this.dgvContacts.Rows.Count)
+			{
+				this.OpenContactEditorForRow(this.dgvContacts.Rows[e.RowIndex]);
+			}
+		}
+
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			if (keyData == Keys.F2)
+			{
+				this.OpenSelectedContactEditor();
+				return true;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
+
+		private void OpenSelectedContactEditor()
+		{
+			if (this.dgvContacts.CurrentRow == null)
+			{
+				return;
+			}
+			this.OpenContactEditorForRow(this.dgvContacts.CurrentRow);
+		}
+
+		private void OpenContactEditorForRow(DataGridViewRow row)
+		{
+			if (row == null || row.Tag == null)
+			{
+				return;
+			}
+			int dataIndex = (int)row.Tag;
+			this.forkActiveContactDataIndex = dataIndex;
+			this.dgvContacts.Invalidate();
+			MainForm mainForm = this.GetMainForm();
+			if (mainForm == null)
+			{
+				return;
+			}
+			mainForm.OpenContactEditorByDataIndex(dataIndex);
+		}
+
+		private MainForm GetMainForm()
+		{
 			MainForm mainForm = base.MdiParent as MainForm;
 			if (mainForm != null)
 			{
-				DataGridView dataGridView = sender as DataGridView;
-				int index = (int)dataGridView.Rows[e.RowIndex].Tag;
-				mainForm.DispChildForm(typeof(ContactForm), index);
+				return mainForm;
 			}
+			for (Form parent = this.ParentForm; parent != null; parent = parent.ParentForm)
+			{
+				mainForm = parent as MainForm;
+				if (mainForm != null)
+				{
+					return mainForm;
+				}
+			}
+			foreach (Form openForm in Application.OpenForms)
+			{
+				mainForm = openForm as MainForm;
+				if (mainForm != null)
+				{
+					return mainForm;
+				}
+			}
+			return null;
 		}
 
 		private void cmbType_Leave(object sender, EventArgs e)

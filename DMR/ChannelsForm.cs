@@ -47,9 +47,7 @@ namespace DMR
 		private bool forkChannelClickHandled;
 		private bool forkActivatingRow;
 		private int forkActiveChannelDataIndex = -1;
-		private static readonly Color ForkActiveRowBack = Color.FromArgb(0xC5, 0xD8, 0xF0);
-		private static readonly Color ForkActiveRowFore = Color.FromArgb(0x0A, 0x2A, 0x52);
-		private static readonly Color ForkActiveRowBorder = Color.FromArgb(0x1E, 0x5A, 0x9E);
+
 
 		public TreeNode Node
 		{
@@ -1712,16 +1710,16 @@ namespace DMR
 						e.RowBounds.Height);
 					if (isActive)
 					{
-						using (SolidBrush back = new SolidBrush(ForkActiveRowBack))
+						using (SolidBrush back = new SolidBrush(ForkGridBadges.ActiveRowBack))
 						{
 							e.Graphics.FillRectangle(back, headerBounds);
 						}
-						using (Pen border = new Pen(ForkActiveRowBorder, 2f))
+						using (Pen border = new Pen(ForkGridBadges.ActiveRowBorder, 2f))
 						{
 							e.Graphics.DrawLine(border, headerBounds.Right - 1, headerBounds.Top, headerBounds.Right - 1, headerBounds.Bottom);
 						}
 					}
-					Color fore = isActive ? ForkActiveRowFore : dataGridView.RowHeadersDefaultCellStyle.ForeColor;
+					Color fore = isActive ? ForkGridBadges.ActiveRowFore : dataGridView.RowHeadersDefaultCellStyle.ForeColor;
 					using (SolidBrush brush = new SolidBrush(fore))
 					{
 						string s = (e.RowIndex + 1).ToString();
@@ -2263,10 +2261,10 @@ namespace DMR
 			}
 			if (isActive)
 			{
-				e.CellStyle.BackColor = ForkActiveRowBack;
-				e.CellStyle.ForeColor = ForkActiveRowFore;
-				e.CellStyle.SelectionBackColor = ForkActiveRowBack;
-				e.CellStyle.SelectionForeColor = ForkActiveRowFore;
+				e.CellStyle.BackColor = ForkGridBadges.ActiveRowBack;
+				e.CellStyle.ForeColor = ForkGridBadges.ActiveRowFore;
+				e.CellStyle.SelectionBackColor = ForkGridBadges.ActiveRowBack;
+				e.CellStyle.SelectionForeColor = ForkGridBadges.ActiveRowFore;
 				e.CellStyle.Font = Theme.UiFontBold;
 			}
 		}
