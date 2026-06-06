@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
+using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
 namespace DMR
@@ -18,6 +19,8 @@ namespace DMR
 		private Label statusLabel;
 
 		public bool IsWebViewAvailable { get; private set; }
+
+		public event Action<string> CustomNavigation;
 
 		public ForkWebViewPanel()
 		{
@@ -107,6 +110,7 @@ namespace DMR
 				this.Controls.Add(this.webView);
 				this.webView.BringToFront();
 				await this.webView.EnsureCoreWebView2Async(null);
+				this.webView.CoreWebView2.NavigationStarting += this.CoreWebView2_NavigationStarting;
 				this.IsWebViewAvailable = true;
 				this.statusLabel.Visible = false;
 				this.fallbackPanel.Visible = false;
@@ -127,6 +131,21 @@ namespace DMR
 				this.statusLabel.Visible = false;
 				this.fallbackPanel.Visible = true;
 				this.fallbackPanel.BringToFront();
+			}
+		}
+
+		private void CoreWebView2_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
+		{
+			string uri = e.Uri;
+			if (string.IsNullOrEmpty(uri) || !uri.StartsWith("fork://", StringComparison.OrdinalIgnoreCase))
+			{
+				return;
+			}
+			e.Cancel = true;
+			Action<string> handler = this.CustomNavigation;
+			if (handler != null)
+			{
+				handler(uri);
 			}
 		}
 	}

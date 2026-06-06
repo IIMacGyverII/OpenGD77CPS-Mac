@@ -14,6 +14,7 @@ namespace DMR
 
 			StringBuilder html = new StringBuilder();
 			html.Append(ForkReportHtml.DocumentStart("Codeplug health"));
+			html.Append("<p class=\"path\">Click a highlighted name to open that channel, contact, or zone in the editor.</p>");
 			ForkReportHtml.AppendMetricCards(html,
 				new[] { snap.Channels.ToString(), "Channels", "" },
 				new[] { snap.Digital.ToString(), "Digital", "ok" },
@@ -29,37 +30,39 @@ namespace DMR
 
 			if (snap.RelayZero > 0)
 			{
-				AppendWarningList(html, "Relay = 0", snap.RelayZero, snap.RelayZeroNames,
+				AppendDrillList(html, "Relay = 0", snap.RelayZero, snap.RelayZeroDrill, "channel",
 					"warn", "These channels may show &quot;operation failed&quot; on the phone.");
 			}
 
 			if (snap.OrphanCount > 0)
 			{
-				AppendWarningList(html, "Missing TX contact", snap.OrphanCount, snap.OrphanNames,
+				AppendDrillList(html, "Missing TX contact", snap.OrphanCount, snap.OrphanDrill, "channel",
 					"err", "Digital channels reference a contact that is not in the codeplug.");
 			}
 
 			if (snap.DuplicateNameGroups > 0)
 			{
-				AppendWarningList(html, "Duplicate channel names", snap.DuplicateNameGroups, snap.DuplicateNameLines,
+				AppendDuplicateGroupList(html, "Duplicate channel names", snap.DuplicateNameGroups,
+					snap.DuplicateChannelGroups, "channel",
 					"warn", "Duplicate names can confuse Android import and zone editing.");
 			}
 
 			if (snap.DuplicateDmrIdGroups > 0)
 			{
-				AppendWarningList(html, "Duplicate contact DMR IDs", snap.DuplicateDmrIdGroups, snap.DuplicateDmrIdLines,
+				AppendDrillList(html, "Duplicate contact DMR IDs", snap.DuplicateDmrIdGroups, snap.DuplicateDmrIdDrill, "contact",
 					"warn", "Multiple contacts share the same Call ID — phone lookup and TX routing may be ambiguous.");
 			}
 
 			if (snap.DuplicateContactNameGroups > 0)
 			{
-				AppendWarningList(html, "Duplicate contact names", snap.DuplicateContactNameGroups, snap.DuplicateContactNameLines,
+				AppendDuplicateGroupList(html, "Duplicate contact names", snap.DuplicateContactNameGroups,
+					snap.DuplicateContactGroups, "contact",
 					"warn", "Multiple contacts share the same name — grids and imports may be hard to distinguish.");
 			}
 
 			if (snap.DigitalNoContact > 0)
 			{
-				AppendWarningList(html, "Digital channels without TX contact", snap.DigitalNoContact, snap.DigitalNoContactNames,
+				AppendDrillList(html, "Digital channels without TX contact", snap.DigitalNoContact, snap.DigitalNoContactDrill, "channel",
 					"warn", "Digital channels should reference a contact for TX routing.");
 			}
 
@@ -74,7 +77,7 @@ namespace DMR
 					{
 						continue;
 					}
-					html.Append("<li>").Append(ForkReportHtml.Escape(row.Name)).Append("</li>");
+					html.Append("<li>").Append(ForkReportHtml.DrillLink("zone", row.ZoneIndex, row.Name)).Append("</li>");
 					shown++;
 					if (shown >= 12)
 					{
@@ -90,7 +93,7 @@ namespace DMR
 
 			if (snap.ChannelsNotInZone > 0)
 			{
-				AppendWarningList(html, "Channels not in any zone", snap.ChannelsNotInZone, snap.ChannelsNotInZoneNames,
+				AppendDrillList(html, "Channels not in any zone", snap.ChannelsNotInZone, snap.ChannelsNotInZoneDrill, "channel",
 					"warn", "These channels exist but are not assigned to a zone.");
 			}
 
@@ -103,7 +106,7 @@ namespace DMR
 				{
 					string rowClass = row.ChannelCount == 0 ? "miss" : "";
 					html.Append("<tr><td class=\"").Append(rowClass).Append("\">")
-						.Append(ForkReportHtml.Escape(row.Name)).Append("</td><td>")
+						.Append(ForkReportHtml.DrillLink("zone", row.ZoneIndex, row.Name)).Append("</td><td>")
 						.Append(row.ChannelCount).Append("</td></tr>");
 					tableRows++;
 					if (tableRows >= 40)
@@ -149,7 +152,8 @@ namespace DMR
 			return Build(snap);
 		}
 
-		private static void AppendWarningList(StringBuilder html, string title, int total, List<string> names, string css, string hint)
+		private static void AppendDrillList(StringBuilder html, string title, int total,
+			List<CodeplugHealthDrillItem> items, string kind, string css, string hint)
 		{
 			string badge = css == "err" ? "badge-err" : "badge-warn";
 			html.Append("<h2>").Append(ForkReportHtml.Escape(title)).Append(" <span class=\"badge ").Append(badge).Append("\">")
@@ -159,16 +163,53 @@ namespace DMR
 				html.Append("<p class=\"").Append(css).Append("\">").Append(hint).Append("</p>");
 			}
 			html.Append("<ul>");
-			if (names != null)
+			if (items != null)
 			{
-				foreach (string name in names)
+				foreach (CodeplugHealthDrillItem item in items)
 				{
-					html.Append("<li class=\"").Append(css).Append("\">").Append(ForkReportHtml.Escape(name)).Append("</li>");
+					html.Append("<li class=\"").Append(css).Append("\">")
+						.Append(ForkReportHtml.DrillLink(kind, item.Index, item.Name)).Append("</li>");
 				}
 			}
-			if (names == null || total > names.Count)
+			if (items == null || total > items.Count)
 			{
-				html.Append("<li>… and ").Append(total - (names == null ? 0 : names.Count)).Append(" more</li>");
+				html.Append("<li>… and ").Append(total - (items == null ? 0 : items.Count)).Append(" more</li>");
+			}
+			html.Append("</ul>");
+		}
+
+		private static void AppendDuplicateGroupList(StringBuilder html, string title, int total,
+			List<CodeplugHealthDuplicateGroup> groups, string kind, string css, string hint)
+		{
+			string badge = css == "err" ? "badge-err" : "badge-warn";
+			html.Append("<h2>").Append(ForkReportHtml.Escape(title)).Append(" <span class=\"badge ").Append(badge).Append("\">")
+				.Append(total).Append("</span></h2>");
+			if (!string.IsNullOrEmpty(hint))
+			{
+				html.Append("<p class=\"").Append(css).Append("\">").Append(hint).Append("</p>");
+			}
+			html.Append("<ul>");
+			if (groups != null)
+			{
+				foreach (CodeplugHealthDuplicateGroup group in groups)
+				{
+					html.Append("<li class=\"").Append(css).Append("\">")
+						.Append(ForkReportHtml.Escape(group.Name)).Append(" (×").Append(group.Indices.Count).Append("): ");
+					for (int i = 0; i < group.Indices.Count; i++)
+					{
+						if (i > 0)
+						{
+							html.Append(", ");
+						}
+						string label = "#" + (group.Indices[i] + 1);
+						html.Append(ForkReportHtml.DrillLink(kind, group.Indices[i], label));
+					}
+					html.Append("</li>");
+				}
+			}
+			if (groups == null || total > groups.Count)
+			{
+				html.Append("<li>… and ").Append(total - (groups == null ? 0 : groups.Count)).Append(" more</li>");
 			}
 			html.Append("</ul>");
 		}

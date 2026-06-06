@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -8,6 +9,8 @@ namespace DMR
 	{
 		private readonly ForkWebViewPanel webPanel;
 		private readonly string html;
+
+		public event Action<string> CustomNavigation;
 
 		public ForkHtmlReportForm(string title, string html, int width, int height)
 		{
@@ -21,6 +24,7 @@ namespace DMR
 			Theme.ApplyForkDialog(this);
 
 			this.webPanel = new ForkWebViewPanel { Dock = DockStyle.Fill };
+			this.webPanel.CustomNavigation += this.ForwardCustomNavigation;
 			Button btnClose = new Button
 			{
 				Text = "Close",
@@ -37,6 +41,20 @@ namespace DMR
 			this.CancelButton = btnClose;
 
 			this.Shown += this.ForkHtmlReportForm_Shown;
+		}
+
+		public void NavigateHtml(string html)
+		{
+			this.webPanel.NavigateHtml(html ?? "");
+		}
+
+		private void ForwardCustomNavigation(string uri)
+		{
+			Action<string> handler = this.CustomNavigation;
+			if (handler != null)
+			{
+				handler(uri);
+			}
 		}
 
 		private void ForkHtmlReportForm_Shown(object sender, System.EventArgs e)

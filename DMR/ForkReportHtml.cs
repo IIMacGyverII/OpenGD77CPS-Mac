@@ -28,6 +28,7 @@ namespace DMR
 			html.Append(".badge-err{background:#b71c1c;color:#ffcdd2;}");
 			html.Append("pre{white-space:pre-wrap;background:#060d14;border:1px solid #1e3a5f;padding:10px;border-radius:4px;font-size:12px;}");
 			html.Append("ul{margin:6px 0;padding-left:20px;}");
+			html.Append("a.drill{color:#7ec8ff;text-decoration:underline;}a.drill:hover{color:#fff;}");
 			html.Append(".foot{color:#607080;font-size:11px;margin-top:24px;}");
 			html.Append("</style></head><body>");
 			html.Append("<h1>").Append(Escape(title)).Append("</h1>");
@@ -38,6 +39,16 @@ namespace DMR
 		{
 			return "<p class=\"foot\">" + Escape(AboutForm.FORK_NAME) + " v" + AboutForm.FORK_VERSION
 				+ "</p></body></html>";
+		}
+
+		public static string DrillHref(string kind, int dataIndex)
+		{
+			return "fork://open/" + kind + "/" + dataIndex;
+		}
+
+		public static string DrillLink(string kind, int dataIndex, string label)
+		{
+			return "<a class=\"drill\" href=\"" + DrillHref(kind, dataIndex) + "\">" + Escape(label) + "</a>";
 		}
 
 		public static string Escape(string text)

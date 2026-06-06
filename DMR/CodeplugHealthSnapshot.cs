@@ -6,8 +6,21 @@ namespace DMR
 {
 	public sealed class CodeplugHealthZoneRow
 	{
+		public int ZoneIndex;
 		public string Name;
 		public int ChannelCount;
+	}
+
+	public sealed class CodeplugHealthDrillItem
+	{
+		public int Index;
+		public string Name;
+	}
+
+	public sealed class CodeplugHealthDuplicateGroup
+	{
+		public string Name;
+		public List<int> Indices = new List<int>();
 	}
 
 	public sealed class CodeplugHealthSnapshot
@@ -20,20 +33,27 @@ namespace DMR
 		public int TgLists;
 		public int RelayZero;
 		public List<string> RelayZeroNames = new List<string>();
+		public List<CodeplugHealthDrillItem> RelayZeroDrill = new List<CodeplugHealthDrillItem>();
 		public int OrphanCount;
 		public List<string> OrphanNames = new List<string>();
+		public List<CodeplugHealthDrillItem> OrphanDrill = new List<CodeplugHealthDrillItem>();
 		public int DuplicateNameGroups;
 		public List<string> DuplicateNameLines = new List<string>();
+		public List<CodeplugHealthDuplicateGroup> DuplicateChannelGroups = new List<CodeplugHealthDuplicateGroup>();
 		public int EmptyZones;
 		public List<CodeplugHealthZoneRow> ZoneRows = new List<CodeplugHealthZoneRow>();
 		public int ChannelsNotInZone;
 		public List<string> ChannelsNotInZoneNames = new List<string>();
+		public List<CodeplugHealthDrillItem> ChannelsNotInZoneDrill = new List<CodeplugHealthDrillItem>();
 		public int DuplicateDmrIdGroups;
 		public List<string> DuplicateDmrIdLines = new List<string>();
+		public List<CodeplugHealthDrillItem> DuplicateDmrIdDrill = new List<CodeplugHealthDrillItem>();
 		public int DuplicateContactNameGroups;
 		public List<string> DuplicateContactNameLines = new List<string>();
+		public List<CodeplugHealthDuplicateGroup> DuplicateContactGroups = new List<CodeplugHealthDuplicateGroup>();
 		public int DigitalNoContact;
 		public List<string> DigitalNoContactNames = new List<string>();
+		public List<CodeplugHealthDrillItem> DigitalNoContactDrill = new List<CodeplugHealthDrillItem>();
 
 		public bool HasWarning
 		{
@@ -81,6 +101,7 @@ namespace DMR
 					if (snap.RelayZeroNames.Count < nameListLimit)
 					{
 						snap.RelayZeroNames.Add(channelName);
+						snap.RelayZeroDrill.Add(new CodeplugHealthDrillItem { Index = i, Name = channelName });
 					}
 				}
 				if (ChannelForm.data.GetChMode(i) == 1 && ch.Contact == 0)
@@ -89,6 +110,7 @@ namespace DMR
 					if (snap.DigitalNoContactNames.Count < nameListLimit)
 					{
 						snap.DigitalNoContactNames.Add(channelName);
+						snap.DigitalNoContactDrill.Add(new CodeplugHealthDrillItem { Index = i, Name = channelName });
 					}
 				}
 				if (ch.Contact > 0 && (ch.Contact > ContactForm.data.Count || !ContactForm.data.DataIsValid(ch.Contact - 1)))
@@ -97,6 +119,7 @@ namespace DMR
 					if (snap.OrphanNames.Count < nameListLimit)
 					{
 						snap.OrphanNames.Add(channelName);
+						snap.OrphanDrill.Add(new CodeplugHealthDrillItem { Index = i, Name = channelName });
 					}
 				}
 			}
@@ -112,6 +135,12 @@ namespace DMR
 				{
 					string chNums = string.Join(", ", entry.Value.ConvertAll(n => "#" + n));
 					snap.DuplicateNameLines.Add(entry.Key + " (×" + entry.Value.Count + "): " + chNums);
+					CodeplugHealthDuplicateGroup group = new CodeplugHealthDuplicateGroup { Name = entry.Key };
+					foreach (int oneBased in entry.Value)
+					{
+						group.Indices.Add(oneBased - 1);
+					}
+					snap.DuplicateChannelGroups.Add(group);
 				}
 			}
 
@@ -148,6 +177,7 @@ namespace DMR
 				}
 				snap.ZoneRows.Add(new CodeplugHealthZoneRow
 				{
+					ZoneIndex = z,
 					Name = ZoneForm.data.GetName(z),
 					ChannelCount = chCount
 				});
@@ -164,7 +194,9 @@ namespace DMR
 					snap.ChannelsNotInZone++;
 					if (snap.ChannelsNotInZoneNames.Count < nameListLimit)
 					{
-						snap.ChannelsNotInZoneNames.Add(ChannelForm.data.GetName(i));
+						string chName = ChannelForm.data.GetName(i);
+						snap.ChannelsNotInZoneNames.Add(chName);
+						snap.ChannelsNotInZoneDrill.Add(new CodeplugHealthDrillItem { Index = i, Name = chName });
 					}
 				}
 			}
@@ -204,6 +236,12 @@ namespace DMR
 				{
 					string nums = string.Join(", ", entry.Value.ConvertAll(n => "#" + n));
 					snap.DuplicateContactNameLines.Add(entry.Key + " (×" + entry.Value.Count + "): " + nums);
+					CodeplugHealthDuplicateGroup group = new CodeplugHealthDuplicateGroup { Name = entry.Key };
+					foreach (int oneBased in entry.Value)
+					{
+						group.Indices.Add(oneBased - 1);
+					}
+					snap.DuplicateContactGroups.Add(group);
 				}
 			}
 		}
@@ -243,8 +281,33 @@ namespace DMR
 				if (snap.DuplicateDmrIdLines.Count < nameListLimit)
 				{
 					snap.DuplicateDmrIdLines.Add("ID " + entry.Key + ": " + string.Join(", ", entry.Value.ToArray()));
+					int contactIndex = FindContactIndexByName(entry.Value[0]);
+					if (contactIndex >= 0)
+					{
+						snap.DuplicateDmrIdDrill.Add(new CodeplugHealthDrillItem
+						{
+							Index = contactIndex,
+							Name = entry.Value[0]
+						});
+					}
 				}
 			}
+		}
+
+		private static int FindContactIndexByName(string name)
+		{
+			if (string.IsNullOrEmpty(name))
+			{
+				return -1;
+			}
+			for (int i = 0; i < ContactForm.data.Count; i++)
+			{
+				if (ContactForm.data.DataIsValid(i) && string.Equals(ContactForm.data.GetName(i), name, StringComparison.OrdinalIgnoreCase))
+				{
+					return i;
+				}
+			}
+			return -1;
 		}
 
 		private static int CountValidContacts()

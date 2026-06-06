@@ -230,6 +230,8 @@ namespace DMR
 
 		private bool codeplugHealthLinkWired;
 
+		private ForkHtmlReportForm forkHealthReportForm;
+
 		private Panel pnlTreeFilter;
 
 		private Label lblTreeFilter;
@@ -1659,7 +1661,7 @@ namespace DMR
 			this.tsbtnCodeplugHealth.DisplayStyle = ToolStripItemDisplayStyle.Text;
 			this.tsbtnCodeplugHealth.Text = "Health";
 			this.tsbtnCodeplugHealth.Font = new Font(Theme.UiFont.FontFamily, 9.75f, FontStyle.Bold);
-			this.tsbtnCodeplugHealth.ToolTipText = "Codeplug health report (F7) — channels, contacts, warnings";
+			this.tsbtnCodeplugHealth.ToolTipText = "Codeplug health report (F7) — click names to open editors";
 			this.tsbtnCodeplugHealth.Click += this.ShowCodeplugHealthReport;
 			int backupIndex = this.tsrMain.Items.IndexOf(this.tsbtnAndroidBackup);
 			if (backupIndex >= 0)
@@ -1974,7 +1976,7 @@ namespace DMR
 			this.slblCodeplugHealth.LinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
 			this.slblCodeplugHealth.ActiveLinkColor = Color.White;
 			this.slblCodeplugHealth.VisitedLinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
-			this.slblCodeplugHealth.ToolTipText = "Open codeplug health report (F7)";
+			this.slblCodeplugHealth.ToolTipText = "Open codeplug health report (F7) — click warning names to fix";
 			this.slblCodeplugHealth.Click += this.ShowCodeplugHealthReport;
 			this.codeplugHealthLinkWired = true;
 #endif
@@ -2011,9 +2013,58 @@ namespace DMR
 		{
 #if OpenGD77
 			string html = CodeplugHealthReportHtml.Build(CodeplugHealthSnapshot.Collect());
-			using (ForkHtmlReportForm report = new ForkHtmlReportForm("Codeplug health", html, 720, 560))
+			if (this.forkHealthReportForm != null && !this.forkHealthReportForm.IsDisposed)
 			{
-				report.ShowDialog(this);
+				this.forkHealthReportForm.NavigateHtml(html);
+				this.forkHealthReportForm.BringToFront();
+				this.forkHealthReportForm.Focus();
+				return;
+			}
+			this.forkHealthReportForm = new ForkHtmlReportForm("Codeplug health", html, 720, 560);
+			this.forkHealthReportForm.CustomNavigation += this.OnHealthReportNavigate;
+			this.forkHealthReportForm.FormClosed += this.ForkHealthReportForm_FormClosed;
+			this.forkHealthReportForm.Show(this);
+#endif
+		}
+
+		private void ForkHealthReportForm_FormClosed(object sender, FormClosedEventArgs e)
+		{
+			if (sender == this.forkHealthReportForm)
+			{
+				this.forkHealthReportForm = null;
+			}
+		}
+
+		private void OnHealthReportNavigate(string uri)
+		{
+#if OpenGD77
+			if (string.IsNullOrEmpty(uri) || !uri.StartsWith("fork://open/", StringComparison.OrdinalIgnoreCase))
+			{
+				return;
+			}
+			string tail = uri.Substring("fork://open/".Length);
+			string[] parts = tail.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+			if (parts.Length != 2)
+			{
+				return;
+			}
+			int dataIndex;
+			if (!int.TryParse(parts[1], out dataIndex))
+			{
+				return;
+			}
+			string kind = parts[0].ToLowerInvariant();
+			switch (kind)
+			{
+			case "channel":
+				this.OpenChannelEditorByDataIndex(dataIndex);
+				break;
+			case "contact":
+				this.OpenContactEditorByDataIndex(dataIndex);
+				break;
+			case "zone":
+				this.OpenZoneEditorByDataIndex(dataIndex);
+				break;
 			}
 #endif
 		}
@@ -5241,6 +5292,28 @@ namespace DMR
 				return;
 			}
 			this.OpenContactEditorDirect(dataIndex);
+		}
+
+		public void OpenZoneEditorByDataIndex(int dataIndex)
+		{
+			if (dataIndex < 0 || !ZoneForm.data.ZoneChIsValid(dataIndex))
+			{
+				return;
+			}
+			TreeNode zoneNode = this.GetTreeNodeByTypeAndIndex(typeof(ZoneForm), dataIndex, this.tvwMain.Nodes);
+			if (zoneNode == null)
+			{
+				TreeNode zonesRoot = this.ForkLayoutFindNode(typeof(ZoneBasicForm));
+				if (zonesRoot != null)
+				{
+					this.InitZones(zonesRoot);
+					zoneNode = this.GetTreeNodeByTypeAndIndex(typeof(ZoneForm), dataIndex, this.tvwMain.Nodes);
+				}
+			}
+			if (zoneNode != null)
+			{
+				this.method_7(zoneNode, true);
+			}
 		}
 
 		private void OpenContactEditorDirect(int dataIndex)
