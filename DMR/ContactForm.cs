@@ -1162,12 +1162,39 @@ namespace DMR
 				this.method_3();
 				this.RefreshByUserMode();
 				this.RefreshDmrIdLookupUi();
+#if OpenGD77
+				this.RepositionForkDmrIdLookup();
+#endif
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message);
 			}
 		}
+
+#if OpenGD77
+		private void pnlContact_Resize(object sender, EventArgs e)
+		{
+			this.RepositionForkDmrIdLookup();
+		}
+
+		private void RepositionForkDmrIdLookup()
+		{
+			if (this.lnkLookupDmrId == null || this.txtCallId == null)
+			{
+				return;
+			}
+			int gap = Theme.Dpi(6);
+			int y = this.txtCallId.Top + Math.Max(0, (this.txtCallId.Height - this.lnkLookupDmrId.Height) / 2);
+			int x = this.txtCallId.Right + gap;
+			if (x + this.lnkLookupDmrId.Width > this.pnlContact.ClientSize.Width - Theme.Dpi(8))
+			{
+				x = this.txtCallId.Left;
+				y = this.txtCallId.Bottom + Theme.Dpi(2);
+			}
+			this.lnkLookupDmrId.Location = new Point(x, y);
+		}
+#endif
 
 		private void RefreshDmrIdLookupUi()
 		{
@@ -1226,8 +1253,13 @@ namespace DMR
 				this.InitData();
 				DmrIdLookup.AttachContextMenu(this.txtCallId, () => this.txtCallId.Text, this);
 				this.lnkLookupDmrId = DmrIdLookup.CreateLookupLink(() => this.txtCallId.Text, this);
-				this.lnkLookupDmrId.Location = new System.Drawing.Point(262, 47);
 				this.pnlContact.Controls.Add(this.lnkLookupDmrId);
+#if OpenGD77
+				Theme.ScaleNewControlTree(this.lnkLookupDmrId);
+				this.pnlContact.Resize += this.pnlContact_Resize;
+				this.RepositionForkDmrIdLookup();
+				Theme.ApplyStandardEditorColors(this);
+#endif
 				this.lnkLookupDmrId.BringToFront();
 				this.DispData();
 				this.method_3();
