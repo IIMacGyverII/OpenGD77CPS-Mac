@@ -3025,8 +3025,8 @@ namespace DMR
 				Theme.ApplyStandardEditorColors(this);
 				this.RestoreAndroidSectionNoteColor();
 				this.lnkLookupDmrId = DmrIdLookup.CreateLookupLink(() => this.GetSelectedContactCallId(), this);
-				this.lnkLookupDmrId.Location = new System.Drawing.Point(358, 181);
 				this.grpDigit.Controls.Add(this.lnkLookupDmrId);
+				this.RepositionForkDmrIdLink();
 				this.lnkLookupDmrId.BringToFront();
 				DmrIdLookup.AttachContextMenu(this.cmbContact, () => this.GetSelectedContactCallId(), this);
 				
@@ -3280,10 +3280,33 @@ namespace DMR
 			}
 			this.grpDigit.Size = show ? ForkGrpDigitFullSize : ForkGrpDigitCompactSize;
 			this.grpAnalog.Size = show ? ForkGrpAnalogFullSize : ForkGrpAnalogCompactSize;
+			this.UpdateForkAnalogPanelVisibility();
+			this.RepositionForkDmrIdLink();
 			if (reposition)
 			{
 				this.RepositionForkAndroidSection();
 			}
+		}
+
+		private void UpdateForkAnalogPanelVisibility()
+		{
+			if (this.chkShowAdvancedBinary == null)
+			{
+				return;
+			}
+			bool digitalOnly = this.cmbChMode.SelectedIndex == 1;
+			bool collapsed = !this.chkShowAdvancedBinary.Checked;
+			this.grpAnalog.Visible = !(digitalOnly && collapsed);
+		}
+
+		private void RepositionForkDmrIdLink()
+		{
+			if (this.lnkLookupDmrId == null)
+			{
+				return;
+			}
+			// Below Contact row; x=126 avoids clipping "RadioID.net" at the right edge of grpDigit.
+			this.lnkLookupDmrId.Location = new Point(126, 212);
 		}
 
 		private void RepositionForkAndroidSection()
@@ -3292,7 +3315,9 @@ namespace DMR
 			{
 				return;
 			}
-			int sectionBottom = Math.Max(this.grpAnalog.Bottom, this.grpDigit.Bottom);
+			int sectionBottom = this.grpAnalog.Visible
+				? Math.Max(this.grpAnalog.Bottom, this.grpDigit.Bottom)
+				: this.grpDigit.Bottom;
 			this.chkShowAdvancedBinary.Location = new Point(10, sectionBottom + 8);
 			this.grpAndroidFork.Location = new Point(10, this.chkShowAdvancedBinary.Bottom + 6);
 		}
@@ -3473,6 +3498,10 @@ namespace DMR
 			this.Node.ImageIndex = num;
 			int index = Convert.ToInt32(base.Tag);
 			ChannelForm.data.SetChMode(index, this.cmbChMode.Text);
+#if OpenGD77
+			this.UpdateForkAnalogPanelVisibility();
+			this.RepositionForkAndroidSection();
+#endif
 			((MainForm)base.MdiParent).RefreshRelatedForm(base.GetType(), false);
 		}
 
