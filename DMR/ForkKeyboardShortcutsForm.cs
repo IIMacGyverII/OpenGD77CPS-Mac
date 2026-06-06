@@ -27,7 +27,8 @@ namespace DMR
 						"  Ctrl+E     Export Android backup folder\n" +
 						"  Ctrl+O     Open codeplug\n" +
 						"  Ctrl+S     Save codeplug\n" +
-						"  F1         PriInterPhone workflow help\n\n" +
+						"  F1         PriInterPhone workflow help\n" +
+						"  F7         Codeplug health report (HTML)\n\n" +
 						"Channels grid\n" +
 						"  F2         Open channel editor\n" +
 						"  Del        Delete selected channel(s)\n" +

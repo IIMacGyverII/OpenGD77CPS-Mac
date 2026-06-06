@@ -218,13 +218,19 @@ namespace DMR
 
 		private ToolStripButton tsbtnWorkflowHelp;
 
+		private ToolStripButton tsbtnCodeplugHealth;
+
+		private ToolStripMenuItem tsmiCodeplugHealth;
+
 		private bool forkAdvancedMenuBuilt;
+
+		private bool forkCodeplugHealthUiBuilt;
 
 		private ToolStripStatusLabel slblCodeplugHealth;
 
 		private bool codeplugHealthLinkWired;
 
-		private const string ForkStatusHintDefault = "Ctrl+I import | Ctrl+E export | F1 help";
+		private const string ForkStatusHintDefault = "Ctrl+I import | F7 health report | F1 help";
 
 		private Timer forkStatusHintTimer;
 
@@ -1534,6 +1540,7 @@ namespace DMR
 			}
 			this.EnsureForkAdvancedMenu();
 			this.EnsureForkHelpMenu();
+			this.EnsureForkCodeplugHealthUi();
 			if (this.tsmiRestoreLayout == null)
 			{
 				this.tsmiRestoreLayout = new ToolStripMenuItem("Restore PriInterPhone default layout…");
@@ -1613,6 +1620,39 @@ namespace DMR
 					this.tsrMain.Items.Add(this.tsbtnWorkflowHelp);
 				}
 			}
+#endif
+		}
+
+		private void EnsureForkCodeplugHealthUi()
+		{
+#if OpenGD77
+			if (this.forkCodeplugHealthUiBuilt)
+			{
+				return;
+			}
+			this.tsmiCodeplugHealth = new ToolStripMenuItem("Codeplug health report…");
+			this.tsmiCodeplugHealth.ShortcutKeys = Keys.F7;
+			this.tsmiCodeplugHealth.ShowShortcutKeys = true;
+			this.tsmiCodeplugHealth.Click += this.ShowCodeplugHealthReport;
+			this.tsmiView.DropDownItems.Insert(0, this.tsmiCodeplugHealth);
+			this.tsmiView.DropDownItems.Insert(1, new ToolStripSeparator());
+
+			this.tsbtnCodeplugHealth = new ToolStripButton();
+			this.tsbtnCodeplugHealth.DisplayStyle = ToolStripItemDisplayStyle.Text;
+			this.tsbtnCodeplugHealth.Text = "Health";
+			this.tsbtnCodeplugHealth.Font = new Font(Theme.UiFont.FontFamily, 9.75f, FontStyle.Bold);
+			this.tsbtnCodeplugHealth.ToolTipText = "Codeplug health report (F7) — channels, contacts, warnings";
+			this.tsbtnCodeplugHealth.Click += this.ShowCodeplugHealthReport;
+			int backupIndex = this.tsrMain.Items.IndexOf(this.tsbtnAndroidBackup);
+			if (backupIndex >= 0)
+			{
+				this.tsrMain.Items.Insert(backupIndex + 1, this.tsbtnCodeplugHealth);
+			}
+			else
+			{
+				this.tsrMain.Items.Add(this.tsbtnCodeplugHealth);
+			}
+			this.forkCodeplugHealthUiBuilt = true;
 #endif
 		}
 
@@ -1753,9 +1793,12 @@ namespace DMR
 				return;
 			}
 			this.slblCodeplugHealth.IsLink = true;
-			this.slblCodeplugHealth.LinkBehavior = LinkBehavior.HoverUnderline;
-			this.slblCodeplugHealth.ToolTipText = "Click for HTML codeplug health report";
-			this.slblCodeplugHealth.Click += this.slblCodeplugHealth_Click;
+			this.slblCodeplugHealth.LinkBehavior = LinkBehavior.AlwaysUnderline;
+			this.slblCodeplugHealth.LinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
+			this.slblCodeplugHealth.ActiveLinkColor = Color.White;
+			this.slblCodeplugHealth.VisitedLinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
+			this.slblCodeplugHealth.ToolTipText = "Open codeplug health report (F7)";
+			this.slblCodeplugHealth.Click += this.ShowCodeplugHealthReport;
 			this.codeplugHealthLinkWired = true;
 #endif
 		}
@@ -1794,16 +1837,24 @@ namespace DMR
 			int zones = ZoneForm.data.ValidCount;
 			int tgLists = this.CountValidRxGroupLists();
 			int orphans = this.CountOrphanedChannelContacts();
+			bool hasWarning = relayZero > 0 || orphans > 0;
 			string relayNote = relayZero > 0 ? " | relay=0: " + relayZero : "";
 			string orphanNote = orphans > 0 ? " | orphan ct: " + orphans : "";
-			this.slblCodeplugHealth.Text = "Ch " + channels + " (" + digital + " dig, " + analog + " ana)"
-				+ " | Ct " + contacts + " | Zn " + zones + " | TG " + tgLists + relayNote + orphanNote;
-			bool hasWarning = relayZero > 0 || orphans > 0;
-			this.slblCodeplugHealth.ForeColor = hasWarning ? Color.DarkOrange : SystemColors.ControlText;
+			string warningTag = hasWarning ? " ⚠" : "";
+			this.slblCodeplugHealth.Text = "▶ Health report" + warningTag + " — "
+				+ channels + " ch (" + digital + "D/" + analog + "A)"
+				+ " | " + contacts + " ct | " + zones + " zn | " + tgLists + " TG"
+				+ relayNote + orphanNote;
+			this.slblCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Theme.Foreground;
+			if (this.tsbtnCodeplugHealth != null)
+			{
+				this.tsbtnCodeplugHealth.Text = hasWarning ? "Health ⚠" : "Health";
+				this.tsbtnCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Color.FromArgb(0x81, 0xC7, 0x84);
+			}
 #endif
 		}
 
-		private void slblCodeplugHealth_Click(object sender, EventArgs e)
+		private void ShowCodeplugHealthReport(object sender, EventArgs e)
 		{
 #if OpenGD77
 			int channels = 0;
@@ -2013,6 +2064,11 @@ namespace DMR
 			if (keyData == (Keys.Control | Keys.E))
 			{
 				this.tsmiExportCsv_Click(this, EventArgs.Empty);
+				return true;
+			}
+			if (keyData == Keys.F7)
+			{
+				this.ShowCodeplugHealthReport(this, EventArgs.Empty);
 				return true;
 			}
 #endif
