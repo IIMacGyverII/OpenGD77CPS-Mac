@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** In progress — v1.5.1: Tier 1.1 status bar hint + Tier 1.4 About links; v1.5.0: Tier 1.1 menu declutter + help/shortcuts; v1.4.9: Tier 1.7 codeplug health panel; v1.4.8: Contacts double-click lookup fix; v1.4.7: Contacts toolbar layout; v1.4.5–1.4.6: Tier 3.4 DMR ID lookup; v1.4.4: channel grid click-to-sync + v1.4.3 double-click fix; v1.4.2: Tier 2.3 docking UX (default layout, reset, persist); v1.4.0: Tier 2.8 grid bulk edit + Tier 2.9 column visibility + Tier 1.2 dark dock tabs; v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
+**Status:** In progress — v1.5.2: Tier 1.5 collapsible advanced codeplug fields; v1.5.1: Tier 1.1 status bar hint + Tier 1.4 About links; v1.5.0: Tier 1.1 menu declutter + help/shortcuts; v1.4.9: Tier 1.7 codeplug health panel; v1.4.8: Contacts double-click lookup fix; v1.4.7: Contacts toolbar layout; v1.4.5–1.4.6: Tier 3.4 DMR ID lookup; v1.4.4: channel grid click-to-sync + v1.4.3 double-click fix; v1.4.2: Tier 2.3 docking UX (default layout, reset, persist); v1.4.0: Tier 2.8 grid bulk edit + Tier 2.9 column visibility + Tier 1.2 dark dock tabs; v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
 
 ---
 
@@ -129,14 +129,14 @@ Already in `AboutForm.cs`: `FORK_VERSION`, `FORK_NAME`, warning text.
 
 ### 1.5 Channel editor — Android field grouping
 
-**Shipped:** v1.2.x+ — `CreateAndroidControls()` GroupBox “PriInterPhone / Android (CSV only)” with tooltips.
+**Shipped:** v1.5.2 — collapsible advanced codeplug checkbox (default hidden); v1.2.x+ — `CreateAndroidControls()` GroupBox “PriInterPhone / Android (CSV only)” with tooltips.
 
 Addresses v1.1 **layout overlap** class of issues without moving data off static arrays.
 
 | Improvement | Description | Primary files |
 |-------------|-------------|---------------|
 | **GroupBox or TabPage** | Section **“PriInterPhone / Android (CSV only)”**: Latitude, Longitude, Use Location, Encrypt Key, APRS-related fields, Contact Type, Channel Mode, Relay, etc. | `ChannelForm.cs` |
-| **Collapsible advanced** | Rarely used OEM fields in **“Advanced (binary codeplug)”** collapsed by default for fork users. | `ChannelForm.cs` |
+| **Collapsible advanced** | **Shipped v1.5.2** — “Show advanced codeplug fields” hides privacy/signaling/OEM controls; compact Digital/Analog groups. | `ChannelForm.cs` |
 | **Tooltips** | “Not stored in `.g77` — only preserved via CSV round-trip” on CSV-only fields. | `ChannelForm.cs` |
 
 **Acceptance criteria**

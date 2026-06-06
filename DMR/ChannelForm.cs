@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
@@ -2741,6 +2742,16 @@ namespace DMR
 		private TextBox txtLongitude;
 		private CheckBox chkUseLocation;
 		private ToolTip androidFieldsToolTip;
+#if OpenGD77
+		private GroupBox grpAndroidFork;
+		private CheckBox chkShowAdvancedBinary;
+		private Control[] forkAdvancedBinaryControls;
+		private Dictionary<Control, bool> forkAdvancedOriginalVisible;
+		private static readonly Size ForkGrpDigitFullSize = new Size(499, 408);
+		private static readonly Size ForkGrpDigitCompactSize = new Size(499, 230);
+		private static readonly Size ForkGrpAnalogFullSize = new Size(531, 408);
+		private static readonly Size ForkGrpAnalogCompactSize = new Size(531, 195);
+#endif
 
 		public static int CurCntCh
 		{
@@ -3008,6 +3019,9 @@ namespace DMR
 				
 				// Create Android-specific controls programmatically
 				this.CreateAndroidControls();
+#if OpenGD77
+				this.CreateForkAdvancedCollapse();
+#endif
 				Theme.ApplyStandardEditorColors(this);
 				this.RestoreAndroidSectionNoteColor();
 				this.lnkLookupDmrId = DmrIdLookup.CreateLookupLink(() => this.GetSelectedContactCallId(), this);
@@ -3047,7 +3061,12 @@ namespace DMR
 		private void CreateAndroidControls()
 		{
 			// Create a group box for Android-specific fields
-			var grpAndroid = new GroupBox();
+#if OpenGD77
+			this.grpAndroidFork = new GroupBox();
+			GroupBox grpAndroid = this.grpAndroidFork;
+#else
+			GroupBox grpAndroid = new GroupBox();
+#endif
 			grpAndroid.Text = "PriInterPhone / Android (CSV only)";
 			grpAndroid.Location = new System.Drawing.Point(10, 655);
 			grpAndroid.Size = new System.Drawing.Size(740, 200);
@@ -3193,6 +3212,92 @@ namespace DMR
 			this.pnlChannel.Controls.Add(grpAndroid);
 		}
 
+#if OpenGD77
+		private void CreateForkAdvancedCollapse()
+		{
+			this.forkAdvancedBinaryControls = new Control[]
+			{
+				this.cmbSquelch, this.lblSquelch, this.cmbSql, this.lblSql,
+				this.nudTot, this.lblTot, this.nudTotRekey, this.lblTotRekey,
+				this.chkLoneWoker, this.chkVox, this.chkAutoScan,
+				this.chkAllowTalkaround, this.chkRxOnly,
+				this.cmbKeySwitch, this.lblKeySwitch, this.cmbKey, this.lblKey,
+				this.nudTxColor, this.lblTxColor, this.cmbEmgSystem, this.lblEmgSystem,
+				this.chkPrivateCall, this.chkDataCall, this.chkEmgConfirmed,
+				this.cmbSte, this.lblSte, this.cmbNonSte, this.lblNonSte,
+				this.cmbRxSignaling, this.lblRxSignaling, this.cmbTxSignaling, this.lblTxSignaling,
+				this.cmbArts, this.lblArts, this.cmbPttidType, this.lblPttidType,
+				this.chkDataPl
+			};
+			this.forkAdvancedOriginalVisible = new Dictionary<Control, bool>();
+			foreach (Control control in this.forkAdvancedBinaryControls)
+			{
+				if (control != null)
+				{
+					this.forkAdvancedOriginalVisible[control] = control.Visible;
+				}
+			}
+			this.chkShowAdvancedBinary = new CheckBox();
+			this.chkShowAdvancedBinary.Text = "Show advanced codeplug fields (privacy, signaling, OEM\u2026)";
+			this.chkShowAdvancedBinary.AutoSize = true;
+			this.chkShowAdvancedBinary.Location = new Point(10, 628);
+			this.chkShowAdvancedBinary.CheckedChanged += this.chkShowAdvancedBinary_CheckedChanged;
+			this.pnlChannel.Controls.Add(this.chkShowAdvancedBinary);
+			this.chkShowAdvancedBinary.BringToFront();
+			if (this.grpAndroidFork != null)
+			{
+				this.grpAndroidFork.BringToFront();
+			}
+			bool showAdvanced = IniFileUtils.getProfileStringWithDefault("Setup", "ChannelShowAdvancedBinary", "no") == "yes";
+			this.chkShowAdvancedBinary.Checked = showAdvanced;
+			this.ApplyForkAdvancedBinaryVisibility(showAdvanced, true);
+		}
+
+		private void chkShowAdvancedBinary_CheckedChanged(object sender, EventArgs e)
+		{
+			bool show = this.chkShowAdvancedBinary.Checked;
+			IniFileUtils.WriteProfileString("Setup", "ChannelShowAdvancedBinary", show ? "yes" : "no");
+			this.ApplyForkAdvancedBinaryVisibility(show, true);
+		}
+
+		private void ApplyForkAdvancedBinaryVisibility(bool show, bool reposition)
+		{
+			foreach (Control control in this.forkAdvancedBinaryControls)
+			{
+				if (control == null)
+				{
+					continue;
+				}
+				if (show)
+				{
+					bool originalVisible;
+					control.Visible = this.forkAdvancedOriginalVisible.TryGetValue(control, out originalVisible) && originalVisible;
+				}
+				else
+				{
+					control.Visible = false;
+				}
+			}
+			this.grpDigit.Size = show ? ForkGrpDigitFullSize : ForkGrpDigitCompactSize;
+			this.grpAnalog.Size = show ? ForkGrpAnalogFullSize : ForkGrpAnalogCompactSize;
+			if (reposition)
+			{
+				this.RepositionForkAndroidSection();
+			}
+		}
+
+		private void RepositionForkAndroidSection()
+		{
+			if (this.grpAndroidFork == null || this.chkShowAdvancedBinary == null)
+			{
+				return;
+			}
+			int sectionBottom = Math.Max(this.grpAnalog.Bottom, this.grpDigit.Bottom);
+			this.chkShowAdvancedBinary.Location = new Point(10, sectionBottom + 8);
+			this.grpAndroidFork.Location = new Point(10, this.chkShowAdvancedBinary.Bottom + 6);
+		}
+#endif
+
 		private void ChannelForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			this.SaveData();
@@ -3254,11 +3359,21 @@ namespace DMR
 			{
 				this.androidFieldsToolTip.SetToolTip(this.txtLatitude, "Latitude (CSV only — not stored in .g77). Preserved via Android CSV round-trip.");
 				this.androidFieldsToolTip.SetToolTip(this.txtLongitude, "Longitude (CSV only — not stored in .g77). Preserved via Android CSV round-trip.");
+				this.androidFieldsToolTip.SetToolTip(this.lblLatitude, "Not stored in .g77 — only preserved via CSV round-trip.");
+				this.androidFieldsToolTip.SetToolTip(this.lblLongitude, "Not stored in .g77 — only preserved via CSV round-trip.");
 			}
 			if (this.chkUseLocation != null)
 			{
-				this.androidFieldsToolTip.SetToolTip(this.chkUseLocation, "Use Location (CSV only). Enables GPS/location features on the phone database.");
+				this.androidFieldsToolTip.SetToolTip(this.chkUseLocation, "Use Location (CSV only — not stored in .g77). Enables GPS/location on the phone database.");
 			}
+#if OpenGD77
+			if (this.chkShowAdvancedBinary != null)
+			{
+				this.androidFieldsToolTip.SetToolTip(this.chkShowAdvancedBinary,
+					"Stock GD-77 / OpenGD77 binary fields (privacy, signaling, TOT, scan flags).\n" +
+					"PriInterPhone CSV workflow uses the Android section below; expand only for USB codeplug tuning.");
+			}
+#endif
 			
 			// Set default selections
 			if (this.cmbInterrupt != null) this.cmbInterrupt.SelectedIndex = 0; // Default to OFF
