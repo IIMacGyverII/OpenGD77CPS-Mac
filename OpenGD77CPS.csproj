@@ -203,6 +203,9 @@
     <Compile Include="DMR.Properties\Settings.cs" />
     <Compile Include="DMR\AndroidBackupForm.cs" />
     <Compile Include="DMR\AndroidBackupReportHtml.cs" />
+    <Compile Include="DMR\CodeplugHealthReportHtml.cs" />
+    <Compile Include="DMR\ForkHtmlReportForm.cs" />
+    <Compile Include="DMR\ForkReportHtml.cs" />
     <Compile Include="DMR\AndroidBackupFolderPicker.cs" />
     <Compile Include="DMR\AndroidAdbBackup.cs" />
     <Compile Include="DMR\AndroidAdbPickForm.cs" />

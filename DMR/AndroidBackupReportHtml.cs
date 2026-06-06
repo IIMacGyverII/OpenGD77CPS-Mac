@@ -26,26 +26,18 @@ namespace DMR
 			AndroidContactIntegrityResult integrity)
 		{
 			StringBuilder html = new StringBuilder();
-			html.Append("<!DOCTYPE html><html><head><meta charset=\"utf-8\"/>");
-			html.Append("<style>");
-			html.Append("body{font-family:'Segoe UI',sans-serif;background:#0a1520;color:#e8eef4;margin:12px;font-size:13px;line-height:1.45;}");
-			html.Append("h1{font-size:16px;margin:0 0 8px;color:#fff;}");
-			html.Append("h2{font-size:13px;margin:18px 0 6px;color:#a8b8c8;text-transform:uppercase;letter-spacing:.04em;}");
-			html.Append(".path{color:#a8b8c8;font-size:12px;word-break:break-all;margin-bottom:12px;}");
-			html.Append("table{border-collapse:collapse;width:100%;margin:6px 0 14px;}");
-			html.Append("th,td{border:1px solid #1e3a5f;padding:6px 8px;text-align:left;}");
-			html.Append("th{background:#060d14;color:#a8b8c8;font-weight:600;}");
-			html.Append("tr:nth-child(even){background:#0d1c2a;}");
-			html.Append(".ok{color:#81c784;}.warn{color:#ffb74d;}.err{color:#ef5350;}.miss{color:#ef9a9a;}");
-			html.Append(".badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}");
-			html.Append(".badge-ok{background:#1b5e20;color:#c8e6c9;}.badge-warn{background:#e65100;color:#ffe0b2;}");
-			html.Append(".badge-err{background:#b71c1c;color:#ffcdd2;}");
-			html.Append("pre{white-space:pre-wrap;background:#060d14;border:1px solid #1e3a5f;padding:10px;border-radius:4px;font-size:12px;}");
-			html.Append("ul{margin:4px 0;padding-left:18px;}");
-			html.Append("</style></head><body>");
+			html.Append(ForkReportHtml.DocumentStart("Android backup report"));
+			html.Append("<div class=\"path\">").Append(ForkReportHtml.Escape(folderPath ?? "")).Append("</div>");
 
-			html.Append("<h1>Android backup report</h1>");
-			html.Append("<div class=\"path\">").Append(Escape(folderPath ?? "")).Append("</div>");
+			int csvRows = validation != null ? validation.CsvChannelRows : 0;
+			int added = diff != null ? diff.Added : 0;
+			int changed = diff != null ? diff.Changed : 0;
+			int warnCount = integrity != null ? integrity.Warnings.Count : 0;
+			ForkReportHtml.AppendMetricCards(html,
+				new[] { csvRows.ToString(), "CSV channels", "" },
+				new[] { added.ToString(), "To add", "ok" },
+				new[] { changed.ToString(), "To change", changed > 0 ? "warn" : "" },
+				new[] { warnCount.ToString(), "Warnings", warnCount > 0 ? "warn" : "" });
 
 			html.Append("<h2>Files</h2><table><tr><th>File</th><th>Status</th></tr>");
 			if (!string.IsNullOrEmpty(folderPath) && Directory.Exists(folderPath))
@@ -53,7 +45,7 @@ namespace DMR
 				foreach (string file in BackupFiles)
 				{
 					bool exists = File.Exists(Path.Combine(folderPath, file));
-					html.Append("<tr><td>").Append(Escape(file)).Append("</td><td class=\"")
+					html.Append("<tr><td>").Append(ForkReportHtml.Escape(file)).Append("</td><td class=\"")
 						.Append(exists ? "ok" : "miss").Append("\">")
 						.Append(exists ? "Found" : "Missing").Append("</td></tr>");
 				}
@@ -78,7 +70,7 @@ namespace DMR
 				html.Append("</table>");
 				if (!string.IsNullOrEmpty(validation.Summary))
 				{
-					html.Append("<pre>").Append(Escape(validation.Summary)).Append("</pre>");
+					html.Append("<pre>").Append(ForkReportHtml.Escape(validation.Summary)).Append("</pre>");
 				}
 			}
 
@@ -102,10 +94,10 @@ namespace DMR
 							continue;
 						}
 						string rowClass = row.Status == "Added" ? "ok" : (row.Status == "Deleted" ? "err" : "warn");
-						html.Append("<tr><td class=\"").Append(rowClass).Append("\">").Append(Escape(row.Status))
-							.Append("</td><td>").Append(Escape(row.ChannelName))
-							.Append("</td><td>").Append(Escape(row.ChannelNumber))
-							.Append("</td><td>").Append(Escape(row.Details)).Append("</td></tr>");
+						html.Append("<tr><td class=\"").Append(rowClass).Append("\">").Append(ForkReportHtml.Escape(row.Status))
+							.Append("</td><td>").Append(ForkReportHtml.Escape(row.ChannelName))
+							.Append("</td><td>").Append(ForkReportHtml.Escape(row.ChannelNumber))
+							.Append("</td><td>").Append(ForkReportHtml.Escape(row.Details)).Append("</td></tr>");
 						if (++shown >= 40)
 						{
 							break;
@@ -119,7 +111,7 @@ namespace DMR
 				}
 				else if (!string.IsNullOrEmpty(diff.Summary))
 				{
-					html.Append("<pre>").Append(Escape(diff.Summary)).Append("</pre>");
+					html.Append("<pre>").Append(ForkReportHtml.Escape(diff.Summary)).Append("</pre>");
 				}
 			}
 
@@ -128,14 +120,14 @@ namespace DMR
 				string iBadge = integrity.HasWarnings ? "badge-warn" : "badge-ok";
 				html.Append("<h2>Integrity <span class=\"badge ").Append(iBadge).Append("\">")
 					.Append(integrity.HasWarnings ? "Warnings" : "OK").Append("</span></h2>");
-				html.Append("<p>").Append(Escape(integrity.Summary)).Append("</p>");
+				html.Append("<p>").Append(ForkReportHtml.Escape(integrity.Summary)).Append("</p>");
 				if (integrity.HasWarnings && integrity.Warnings != null && integrity.Warnings.Count > 0)
 				{
 					html.Append("<ul>");
 					int shown = 0;
 					foreach (string warning in integrity.Warnings)
 					{
-						html.Append("<li class=\"warn\">").Append(Escape(warning)).Append("</li>");
+						html.Append("<li class=\"warn\">").Append(ForkReportHtml.Escape(warning)).Append("</li>");
 						if (++shown >= 30)
 						{
 							break;
@@ -145,31 +137,19 @@ namespace DMR
 					if (integrity.Warnings.Count > shown)
 					{
 						html.Append("<p class=\"warn\">").Append(integrity.Warnings.Count - shown)
-							.Append(" more warning(s) — see Log tab.</p>");
+							.Append(" more warning(s) — use Raw log for full list.</p>");
 					}
 				}
 			}
 
-			html.Append("<p style=\"color:#607080;font-size:11px;margin-top:20px;\">")
-				.Append(AboutForm.FORK_NAME).Append(" v").Append(AboutForm.FORK_VERSION)
-				.Append(" — Path B Android backup</p>");
-			html.Append("</body></html>");
+			html.Append(ForkReportHtml.DocumentEnd());
 			return html.ToString();
 		}
 
 		private static void AppendMetricRow(StringBuilder html, string label, string value, bool warn = false)
 		{
-			html.Append("<tr><td>").Append(Escape(label)).Append("</td><td class=\"")
-				.Append(warn ? "warn" : "").Append("\">").Append(Escape(value)).Append("</td></tr>");
-		}
-
-		private static string Escape(string text)
-		{
-			if (string.IsNullOrEmpty(text))
-			{
-				return "";
-			}
-			return text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+			html.Append("<tr><td>").Append(ForkReportHtml.Escape(label)).Append("</td><td class=\"")
+				.Append(warn ? "warn" : "").Append("\">").Append(ForkReportHtml.Escape(value)).Append("</td></tr>");
 		}
 	}
 }

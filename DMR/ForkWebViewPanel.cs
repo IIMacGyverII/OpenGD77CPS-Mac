@@ -15,6 +15,7 @@ namespace DMR
 		private Panel fallbackPanel;
 		private string pendingHtml;
 		private bool initStarted;
+		private Label statusLabel;
 
 		public bool IsWebViewAvailable { get; private set; }
 
@@ -56,7 +57,33 @@ namespace DMR
 			this.fallbackPanel.Controls.Add(lnk);
 			this.fallbackPanel.Controls.Add(lbl);
 			this.Controls.Add(this.fallbackPanel);
-			this.Load += this.ForkWebViewPanel_Load;
+			this.statusLabel = new Label
+			{
+				Dock = DockStyle.Fill,
+				ForeColor = Theme.MutedForeground,
+				Text = "Loading report…",
+				TextAlign = ContentAlignment.MiddleCenter,
+				Visible = true
+			};
+			this.Controls.Add(this.statusLabel);
+		}
+
+		/// <summary>Call from parent Form.Shown — WebView2 does not init until the control is shown.</summary>
+		public void EnsureInitialized()
+		{
+			if (this.initStarted)
+			{
+				return;
+			}
+			this.initStarted = true;
+			if (this.IsHandleCreated)
+			{
+				this.BeginInvoke(new Action(() => this.InitializeWebViewAsync()));
+			}
+			else
+			{
+				this.HandleCreated += (s, e) => this.BeginInvoke(new Action(() => this.InitializeWebViewAsync()));
+			}
 		}
 
 		public void NavigateHtml(string html)
@@ -66,16 +93,6 @@ namespace DMR
 			{
 				this.webView.NavigateToString(this.pendingHtml);
 			}
-		}
-
-		private void ForkWebViewPanel_Load(object sender, EventArgs e)
-		{
-			if (this.initStarted)
-			{
-				return;
-			}
-			this.initStarted = true;
-			this.BeginInvoke(new Action(() => this.InitializeWebViewAsync()));
 		}
 
 		private async void InitializeWebViewAsync()
@@ -91,6 +108,7 @@ namespace DMR
 				this.webView.BringToFront();
 				await this.webView.EnsureCoreWebView2Async(null);
 				this.IsWebViewAvailable = true;
+				this.statusLabel.Visible = false;
 				this.fallbackPanel.Visible = false;
 				if (!string.IsNullOrEmpty(this.pendingHtml))
 				{
@@ -106,6 +124,7 @@ namespace DMR
 					this.webView.Dispose();
 					this.webView = null;
 				}
+				this.statusLabel.Visible = false;
 				this.fallbackPanel.Visible = true;
 				this.fallbackPanel.BringToFront();
 			}

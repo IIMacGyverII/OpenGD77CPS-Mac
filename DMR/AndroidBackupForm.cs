@@ -14,9 +14,9 @@ namespace DMR
 		private readonly MainForm mainForm;
 		private readonly TextBox txtFolder;
 		private readonly ListView lstFiles;
-		private readonly TabControl tabReport;
 		private readonly TextBox txtValidation;
 		private readonly ForkWebViewPanel webReport;
+		private readonly SplitContainer splitMain;
 		private readonly Button btnBrowse;
 		private readonly Button btnPullAdb;
 		private readonly Button btnPushAdb;
@@ -24,9 +24,9 @@ namespace DMR
 		private readonly Button btnImportAll;
 		private readonly Button btnExportAll;
 		private readonly Button btnOpenFolder;
+		private readonly Button btnRawLog;
 		private readonly Label lblHint;
-		private readonly CheckBox chkIntegrity;
-		private readonly TextBox txtIntegrity;
+		private readonly Label lblReportCaption;
 		private AndroidBackupValidationResult lastValidation;
 
 		private static readonly string[] BackupFiles = new string[]
@@ -44,29 +44,30 @@ namespace DMR
 			this.Text = "Android backup — Path B";
 			this.StartPosition = FormStartPosition.CenterParent;
 			this.FormBorderStyle = FormBorderStyle.Sizable;
-			this.MinimumSize = new Size(560, 520);
-			this.ClientSize = new Size(560, 520);
-			this.Font = new Font("Segoe UI", 9.75f);
+			this.MinimumSize = new Size(640, 520);
+			this.ClientSize = new Size(720, 580);
+			this.Font = Theme.UiFont;
 			Theme.ApplyForkDialog(this);
 
 			this.lblHint = new Label
 			{
-				Location = new Point(12, 12),
-				Size = new Size(516, 48),
-				Text = "Path B: Pull from phone (ADB) or copy to PC for import. Export && push (ADB) sends CSVs to the phone. Log + HTML report tabs."
+				Dock = DockStyle.Top,
+				Height = 36,
+				Text = "Pick a phone backup folder — validation report fills the lower panel. Import/export buttons below."
 			};
 
+			Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 200 };
 			this.txtFolder = new TextBox
 			{
-				Location = new Point(12, 64),
-				Size = new Size(416, 23),
+				Location = new Point(12, 8),
+				Size = new Size(500, 23),
 				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
 			};
 			this.txtFolder.Leave += this.txtFolder_Leave;
 
 			this.btnBrowse = new Button
 			{
-				Location = new Point(434, 62),
+				Location = new Point(518, 6),
 				Size = new Size(94, 27),
 				Text = "Browse PC…",
 				Anchor = AnchorStyles.Top | AnchorStyles.Right
@@ -75,7 +76,7 @@ namespace DMR
 
 			this.btnPullAdb = new Button
 			{
-				Location = new Point(12, 88),
+				Location = new Point(12, 38),
 				Size = new Size(150, 27),
 				Text = "Pull from phone (ADB)…"
 			};
@@ -83,7 +84,7 @@ namespace DMR
 
 			this.btnPushAdb = new Button
 			{
-				Location = new Point(168, 88),
+				Location = new Point(168, 38),
 				Size = new Size(150, 27),
 				Text = "Export && push (ADB)…"
 			};
@@ -91,124 +92,111 @@ namespace DMR
 
 			this.lnkUsbHelp = new LinkLabel
 			{
-				Location = new Point(324, 93),
+				Location = new Point(324, 43),
 				AutoSize = true,
-				Text = "MTP/USB browse blocked? Use ADB or copy to PC (help)"
+				Text = "MTP/USB blocked? ADB or copy to PC (help)"
 			};
 			this.lnkUsbHelp.LinkClicked += this.lnkUsbHelp_LinkClicked;
 
 			this.lstFiles = new ListView
 			{
-				Location = new Point(12, 120),
-				Size = new Size(516, 120),
+				Location = new Point(12, 72),
+				Size = new Size(600, 118),
 				View = View.Details,
 				FullRowSelect = true,
 				HeaderStyle = ColumnHeaderStyle.Nonclickable,
-				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
-			};
-			this.lstFiles.Columns.Add("File", 160);
-			this.lstFiles.Columns.Add("Status", 340);
-
-			this.tabReport = new TabControl
-			{
-				Location = new Point(12, 248),
-				Size = new Size(536, 110),
 				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Bottom
 			};
-			TabPage tabLog = new TabPage("Log");
-			this.txtValidation = new TextBox
+			this.lstFiles.Columns.Add("File", 160);
+			this.lstFiles.Columns.Add("Status", 420);
+
+			topPanel.Controls.Add(this.txtFolder);
+			topPanel.Controls.Add(this.btnBrowse);
+			topPanel.Controls.Add(this.btnPullAdb);
+			topPanel.Controls.Add(this.btnPushAdb);
+			topPanel.Controls.Add(this.lnkUsbHelp);
+			topPanel.Controls.Add(this.lstFiles);
+
+			this.lblReportCaption = new Label
+			{
+				Text = "Validation report",
+				Dock = DockStyle.Top,
+				Height = 22,
+				ForeColor = Theme.MutedForeground,
+				Padding = new Padding(4, 4, 0, 0)
+			};
+			this.webReport = new ForkWebViewPanel { Dock = DockStyle.Fill };
+			this.txtValidation = new TextBox { Multiline = true, ReadOnly = true };
+
+			Panel reportPanel = new Panel { Dock = DockStyle.Fill };
+			reportPanel.Controls.Add(this.webReport);
+			reportPanel.Controls.Add(this.lblReportCaption);
+
+			this.splitMain = new SplitContainer
 			{
 				Dock = DockStyle.Fill,
-				Multiline = true,
-				ReadOnly = true,
-				ScrollBars = ScrollBars.Vertical,
-				Font = new Font("Consolas", 9f),
-				BackColor = Color.FromArgb(0x06, 0x0D, 0x14),
-				ForeColor = Color.FromArgb(0xE8, 0xEE, 0xF4),
-				BorderStyle = BorderStyle.None
+				Orientation = Orientation.Horizontal,
+				SplitterDistance = 200,
+				FixedPanel = FixedPanel.Panel1
 			};
-			tabLog.Controls.Add(this.txtValidation);
-			TabPage tabHtml = new TabPage("Report");
-			this.webReport = new ForkWebViewPanel();
-			tabHtml.Controls.Add(this.webReport);
-			this.tabReport.TabPages.Add(tabLog);
-			this.tabReport.TabPages.Add(tabHtml);
-
-			this.chkIntegrity = new CheckBox
-			{
-				Location = new Point(12, 368),
-				Size = new Size(516, 20),
-				AutoSize = true,
-				Visible = false,
-				Text = "Contact integrity warnings"
-			};
-			this.chkIntegrity.CheckedChanged += this.chkIntegrity_CheckedChanged;
-
-			this.txtIntegrity = new TextBox
-			{
-				Location = new Point(12, 390),
-				Size = new Size(536, 72),
-				Multiline = true,
-				ReadOnly = true,
-				Visible = false,
-				ScrollBars = ScrollBars.Vertical,
-				Font = new Font("Consolas", 9f),
-				ForeColor = Color.Khaki,
-				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
-			};
+			this.splitMain.Panel1.Controls.Add(topPanel);
+			this.splitMain.Panel2.Controls.Add(reportPanel);
 
 			this.btnImportAll = new Button
 			{
-				Location = new Point(12, 472),
+				Location = new Point(12, 8),
 				Size = new Size(130, 28),
-				Text = "Import all (Path B)",
-				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+				Text = "Import all (Path B)"
 			};
 			this.btnImportAll.Click += this.btnImportAll_Click;
 
 			this.btnExportAll = new Button
 			{
-				Location = new Point(148, 472),
+				Location = new Point(148, 8),
 				Size = new Size(100, 28),
-				Text = "Export all",
-				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+				Text = "Export all"
 			};
 			this.btnExportAll.Click += this.btnExportAll_Click;
 
 			this.btnOpenFolder = new Button
 			{
-				Location = new Point(254, 472),
+				Location = new Point(254, 8),
 				Size = new Size(100, 28),
-				Text = "Open folder",
-				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+				Text = "Open folder"
 			};
 			this.btnOpenFolder.Click += this.btnOpenFolder_Click;
 
+			this.btnRawLog = new Button
+			{
+				Location = new Point(360, 8),
+				Size = new Size(90, 28),
+				Text = "Raw log…"
+			};
+			this.btnRawLog.Click += this.btnRawLog_Click;
+
 			Button btnClose = new Button
 			{
-				Location = new Point(448, 472),
+				Location = new Point(608, 8),
 				Size = new Size(100, 28),
 				Text = "Close",
 				DialogResult = DialogResult.OK,
-				Anchor = AnchorStyles.Bottom | AnchorStyles.Right
+				Anchor = AnchorStyles.Top | AnchorStyles.Right
 			};
 			this.AcceptButton = btnClose;
 			this.CancelButton = btnClose;
 
+			Panel bottomPanel = new Panel { Dock = DockStyle.Bottom, Height = 44 };
+			bottomPanel.Controls.Add(this.btnImportAll);
+			bottomPanel.Controls.Add(this.btnExportAll);
+			bottomPanel.Controls.Add(this.btnOpenFolder);
+			bottomPanel.Controls.Add(this.btnRawLog);
+			bottomPanel.Controls.Add(btnClose);
+
+			this.Controls.Add(this.splitMain);
+			this.Controls.Add(bottomPanel);
 			this.Controls.Add(this.lblHint);
-			this.Controls.Add(this.txtFolder);
-			this.Controls.Add(this.btnBrowse);
-			this.Controls.Add(this.btnPullAdb);
-			this.Controls.Add(this.btnPushAdb);
-			this.Controls.Add(this.lnkUsbHelp);
-			this.Controls.Add(this.lstFiles);
-			this.Controls.Add(this.tabReport);
-			this.Controls.Add(this.chkIntegrity);
-			this.Controls.Add(this.txtIntegrity);
-			this.Controls.Add(this.btnImportAll);
-			this.Controls.Add(this.btnExportAll);
-			this.Controls.Add(this.btnOpenFolder);
-			this.Controls.Add(btnClose);
+
+			this.Shown += this.AndroidBackupForm_Shown;
 
 			string last = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
 			if (!string.IsNullOrEmpty(last))
@@ -218,6 +206,36 @@ namespace DMR
 				{
 					this.SetFolder(last, false);
 				}
+			}
+		}
+
+		private void AndroidBackupForm_Shown(object sender, EventArgs e)
+		{
+			this.webReport.EnsureInitialized();
+		}
+
+		private void btnRawLog_Click(object sender, EventArgs e)
+		{
+			using (Form dlg = new Form())
+			{
+				dlg.Text = "Android backup — raw log";
+				dlg.StartPosition = FormStartPosition.CenterParent;
+				dlg.ClientSize = new Size(560, 400);
+				dlg.Font = Theme.UiFont;
+				Theme.ApplyForkDialog(dlg);
+				TextBox txt = new TextBox
+				{
+					Dock = DockStyle.Fill,
+					Multiline = true,
+					ReadOnly = true,
+					ScrollBars = ScrollBars.Both,
+					Font = new Font("Consolas", 9f),
+					Text = this.txtValidation.Text,
+					BackColor = Color.FromArgb(0x06, 0x0D, 0x14),
+					ForeColor = Color.FromArgb(0xE8, 0xEE, 0xF4)
+				};
+				dlg.Controls.Add(txt);
+				dlg.ShowDialog(this);
 			}
 		}
 
@@ -279,12 +297,6 @@ namespace DMR
 			AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, this.txtFolder.Text.Trim());
 		}
 
-		private void chkIntegrity_CheckedChanged(object sender, EventArgs e)
-		{
-			this.txtIntegrity.Visible = this.chkIntegrity.Visible && this.chkIntegrity.Checked
-				&& !string.IsNullOrEmpty(this.txtIntegrity.Text);
-		}
-
 		private bool SetFolder(string folderPath, bool showErrors)
 		{
 			folderPath = folderPath == null ? "" : folderPath.Trim();
@@ -322,13 +334,16 @@ namespace DMR
 			}
 			AndroidContactIntegrityResult integrity = AndroidContactIntegrityChecker.CheckFolder(folderPath);
 			log.Append("\n\n").Append(integrity.Summary);
+			if (integrity.HasWarnings && !string.IsNullOrEmpty(integrity.DetailText))
+			{
+				log.Append("\n\n").Append(integrity.DetailText);
+			}
 			this.txtValidation.Text = log.ToString();
+			this.webReport.EnsureInitialized();
 			this.webReport.NavigateHtml(AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity));
-			this.chkIntegrity.Visible = integrity.HasWarnings;
-			this.chkIntegrity.Text = integrity.Summary;
-			this.chkIntegrity.Checked = integrity.HasWarnings;
-			this.txtIntegrity.Text = integrity.DetailText;
-			this.txtIntegrity.Visible = integrity.HasWarnings && this.chkIntegrity.Checked;
+			this.lblReportCaption.Text = integrity.HasWarnings || this.lastValidation.HasBlockingErrors
+				? "Validation report — review warnings below"
+				: "Validation report — ready to import";
 			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
 			return true;
 		}

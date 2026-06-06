@@ -1754,7 +1754,7 @@ namespace DMR
 			}
 			this.slblCodeplugHealth.IsLink = true;
 			this.slblCodeplugHealth.LinkBehavior = LinkBehavior.HoverUnderline;
-			this.slblCodeplugHealth.ToolTipText = "Click for full codeplug summary";
+			this.slblCodeplugHealth.ToolTipText = "Click for HTML codeplug health report";
 			this.slblCodeplugHealth.Click += this.slblCodeplugHealth_Click;
 			this.codeplugHealthLinkWired = true;
 #endif
@@ -1806,7 +1806,55 @@ namespace DMR
 		private void slblCodeplugHealth_Click(object sender, EventArgs e)
 		{
 #if OpenGD77
-			MessageBox.Show(this, this.BuildCodeplugHealthDetails(), "Codeplug summary", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			int channels = 0;
+			int digital = 0;
+			int analog = 0;
+			int relayZero = 0;
+			List<string> relayZeroNames = new List<string>();
+			List<string> orphanNames = new List<string>();
+			for (int i = 0; i < ChannelForm.data.Count; i++)
+			{
+				if (!ChannelForm.data.DataIsValid(i))
+				{
+					continue;
+				}
+				channels++;
+				switch (ChannelForm.data.GetChMode(i))
+				{
+				case 1:
+					digital++;
+					break;
+				case 0:
+					analog++;
+					break;
+				}
+				ChannelForm.ChannelOne ch = ChannelForm.data[i];
+				string channelName = ChannelForm.data.GetName(i);
+				if (ch.Relay == 0)
+				{
+					relayZero++;
+					if (relayZeroNames.Count < 12)
+					{
+						relayZeroNames.Add(channelName);
+					}
+				}
+				if (ch.Contact > 0 && (ch.Contact > ContactForm.data.Count || !ContactForm.data.DataIsValid(ch.Contact - 1)))
+				{
+					if (orphanNames.Count < 12)
+					{
+						orphanNames.Add(channelName);
+					}
+				}
+			}
+			int orphanTotal = this.CountOrphanedChannelContacts();
+			string html = CodeplugHealthReportHtml.Build(
+				channels, digital, analog,
+				this.CountValidContacts(), ZoneForm.data.ValidCount, this.CountValidRxGroupLists(),
+				relayZero, relayZeroNames, orphanTotal, orphanNames);
+			using (ForkHtmlReportForm report = new ForkHtmlReportForm("Codeplug health", html, 640, 480))
+			{
+				report.ShowDialog(this);
+			}
 #endif
 		}
 

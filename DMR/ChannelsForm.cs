@@ -124,7 +124,7 @@ namespace DMR
 			this.txtChannelFilter.Size = new System.Drawing.Size(180, 23);
 			this.txtChannelFilter.TextChanged += this.txtChannelFilter_TextChanged;
 			this.lblChannelsGridHint = new Label();
-			this.lblChannelsGridHint.Text = "Double-click or F2 opens editor · click row loads editor · sort via column header · D/A and G/P/A badges are color-coded";
+			this.lblChannelsGridHint.Text = "D=blue digital · A=amber analog · G=green · P=orange · A(gray)=all-call · double-click/F2 opens editor · header sorts";
 			this.lblChannelsGridHint.AutoSize = false;
 			this.lblChannelsGridHint.Size = new System.Drawing.Size(1100, 18);
 			this.lblChannelsGridHint.ForeColor = System.Drawing.SystemColors.GrayText;
