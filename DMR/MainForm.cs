@@ -230,7 +230,7 @@ namespace DMR
 
 		private bool codeplugHealthLinkWired;
 
-		private const string ForkStatusHintDefault = "Ctrl+I import | F7 health report | F1 help";
+		private const string ForkStatusHintDefault = "F8 backup | Ctrl+I import | F7 health | F1 help";
 
 		private Timer forkStatusHintTimer;
 
@@ -1653,8 +1653,24 @@ namespace DMR
 			{
 				this.tsrMain.Items.Add(this.tsbtnCodeplugHealth);
 			}
+			this.PolishForkAndroidBackupToolbar();
 			this.forkCodeplugHealthUiBuilt = true;
 #endif
+		}
+
+		private void PolishForkAndroidBackupToolbar()
+		{
+			if (this.tsbtnAndroidBackup != null)
+			{
+				this.tsbtnAndroidBackup.Font = new Font(Theme.UiFont.FontFamily, 9.75f, FontStyle.Bold);
+				this.tsbtnAndroidBackup.ForeColor = Color.FromArgb(0x64, 0xB5, 0xF6);
+				this.tsbtnAndroidBackup.ToolTipText = "Android backup manager (F8) — Path B import/export, validation report";
+			}
+			if (this.tsmiAndroidBackup != null)
+			{
+				this.tsmiAndroidBackup.ShortcutKeys = Keys.F8;
+				this.tsmiAndroidBackup.ShowShortcutKeys = true;
+			}
 		}
 
 		private void tsmiWorkflowHelp_Click(object sender, EventArgs e)
@@ -1999,6 +2015,11 @@ namespace DMR
 			if (keyData == Keys.F7)
 			{
 				this.ShowCodeplugHealthReport(this, EventArgs.Empty);
+				return true;
+			}
+			if (keyData == Keys.F8)
+			{
+				this.tsmiAndroidBackup_Click(this, EventArgs.Empty);
 				return true;
 			}
 #endif

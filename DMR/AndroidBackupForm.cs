@@ -41,7 +41,7 @@ namespace DMR
 		public AndroidBackupForm(MainForm owner)
 		{
 			this.mainForm = owner;
-			this.Text = "Android backup — Path B";
+			this.Text = "Android backup — PriInterPhone Path B";
 			this.StartPosition = FormStartPosition.CenterParent;
 			this.FormBorderStyle = FormBorderStyle.Sizable;
 			this.MinimumSize = new Size(640, 520);
@@ -52,8 +52,8 @@ namespace DMR
 			this.lblHint = new Label
 			{
 				Dock = DockStyle.Top,
-				Height = 36,
-				Text = "Pick a phone backup folder — validation report fills the lower panel. Import/export buttons below."
+				Height = 40,
+				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Import all (Path B).  Report below validates CSVs."
 			};
 
 			Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 200 };

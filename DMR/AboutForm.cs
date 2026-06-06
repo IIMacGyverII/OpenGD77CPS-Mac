@@ -12,7 +12,7 @@ namespace DMR
 		// inside a DMRModHooks release. Format: MAJOR.MINOR.PATCH.
 		// See phonedmrapp/.github/copilot-instructions.md → OpenGD77 Fork section.
 		// =====================================================================
-		public const string FORK_VERSION = "1.6.5";
+		public const string FORK_VERSION = "1.6.6";
 		public const string FORK_NAME    = "DMRModHooks / PriInterPhone fork";
 
 		//private IContainer components;
@@ -44,7 +44,7 @@ namespace DMR
 #endif
 			this.lblCompany.Text += "\n\nRoger VK3KYY/G4KYF\nColin G4EML\nJason VK7ZJA\nMike DL2MF";
 			this.lblForkInfo.Text =
-				"\u26A0  IIMacGyverII fork \u2014 patched for the PriInterPhone DMR radio\n" +
+				"\u26A0  IIMacGyverII fork (orange P icon) \u2014 patched for the PriInterPhone DMR radio\n" +
 				"(Ulefone Armor 26 Ultra et al.) running the DMRModHooks LSPosed module.\n" +
 				"DO NOT use this build to manage a stock Radioddity/Baofeng GD-77 \u2014\n" +
 				"the relay, timeslot, and contact-ID round-trip fixes are specific to\n" +
