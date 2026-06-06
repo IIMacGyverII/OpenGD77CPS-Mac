@@ -40,6 +40,8 @@ namespace DMR
 		private TextBox txtChannelFilter;
 		private Button btnDeleteSelect;
 		private ContextMenuStrip cmsGrid;
+		private int forkSortColumn = -1;
+		private bool forkSortAscending = true;
 
 		public TreeNode Node
 		{
@@ -118,12 +120,12 @@ namespace DMR
 			lblFilter.Location = new System.Drawing.Point(12, 15);
 			this.txtChannelFilter = new TextBox();
 			this.txtChannelFilter.Location = new System.Drawing.Point(54, 12);
-			this.txtChannelFilter.Size = new System.Drawing.Size(160, 23);
+			this.txtChannelFilter.Size = new System.Drawing.Size(200, 23);
 			this.txtChannelFilter.TextChanged += this.txtChannelFilter_TextChanged;
 			Label lblGridHint = new Label();
 			lblGridHint.Text = "Click row to load in editor (when open); double-click or F2 to edit";
 			lblGridHint.AutoSize = true;
-			lblGridHint.Location = new System.Drawing.Point(230, 15);
+			lblGridHint.Location = new System.Drawing.Point(270, 15);
 			lblGridHint.ForeColor = System.Drawing.SystemColors.GrayText;
 			this.pnlChannel.Controls.Add(lblFilter);
 			this.pnlChannel.Controls.Add(this.txtChannelFilter);
@@ -135,17 +137,111 @@ namespace DMR
 
 		private void txtChannelFilter_TextChanged(object sender, EventArgs e)
 		{
-			string query = this.txtChannelFilter.Text.Trim();
+			this.ApplyChannelFilter();
+		}
+
+		private void ApplyChannelFilter()
+		{
+			string query = this.txtChannelFilter == null ? "" : this.txtChannelFilter.Text.Trim();
 			foreach (DataGridViewRow row in this.dgvChannels.Rows)
 			{
+				if (row.IsNewRow)
+				{
+					continue;
+				}
 				if (string.IsNullOrEmpty(query))
 				{
 					row.Visible = true;
 					continue;
 				}
-				string name = row.Cells.Count > 1 ? Convert.ToString(row.Cells[1].Value) : "";
-				row.Visible = name != null && name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+				bool match = false;
+				for (int c = 0; c < row.Cells.Count; c++)
+				{
+					string cell = Convert.ToString(row.Cells[c].Value);
+					if (cell != null && cell.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
+					{
+						match = true;
+						break;
+					}
+				}
+				row.Visible = match;
 			}
+		}
+
+		private void dgvChannels_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+		{
+			if (e.ColumnIndex < 0)
+			{
+				return;
+			}
+			if (this.forkSortColumn == e.ColumnIndex)
+			{
+				this.forkSortAscending = !this.forkSortAscending;
+			}
+			else
+			{
+				this.forkSortColumn = e.ColumnIndex;
+				this.forkSortAscending = true;
+			}
+			this.SortChannelsGrid(e.ColumnIndex, this.forkSortAscending);
+		}
+
+		private void SortChannelsGrid(int columnIndex, bool ascending)
+		{
+			List<DataGridViewRow> rows = new List<DataGridViewRow>();
+			foreach (DataGridViewRow row in this.dgvChannels.Rows)
+			{
+				if (!row.IsNewRow)
+				{
+					rows.Add(row);
+				}
+			}
+			rows.Sort((a, b) => this.CompareChannelRows(a, b, columnIndex, ascending));
+			List<object> tags = new List<object>();
+			List<object[]> cellValues = new List<object[]>();
+			foreach (DataGridViewRow row in rows)
+			{
+				tags.Add(row.Tag);
+				object[] values = new object[row.Cells.Count];
+				for (int i = 0; i < row.Cells.Count; i++)
+				{
+					values[i] = row.Cells[i].Value;
+				}
+				cellValues.Add(values);
+			}
+			this.dgvChannels.Rows.Clear();
+			for (int i = 0; i < cellValues.Count; i++)
+			{
+				int index = this.dgvChannels.Rows.Add(cellValues[i]);
+				this.dgvChannels.Rows[index].Tag = tags[i];
+			}
+			this.ApplyChannelFilter();
+			this.dgvChannels.CurrentCell = null;
+		}
+
+		private int CompareChannelRows(DataGridViewRow a, DataGridViewRow b, int columnIndex, bool ascending)
+		{
+			string left = Convert.ToString(a.Cells[columnIndex].Value) ?? "";
+			string right = Convert.ToString(b.Cells[columnIndex].Value) ?? "";
+			int result;
+			if (columnIndex == 0)
+			{
+				int leftNum;
+				int rightNum;
+				if (int.TryParse(left, out leftNum) && int.TryParse(right, out rightNum))
+				{
+					result = leftNum.CompareTo(rightNum);
+				}
+				else
+				{
+					result = string.Compare(left, right, StringComparison.OrdinalIgnoreCase);
+				}
+			}
+			else
+			{
+				result = string.Compare(left, right, StringComparison.OrdinalIgnoreCase);
+			}
+			return ascending ? result : -result;
 		}
 
 		private void btnAdd_Click(object sender, EventArgs e)
@@ -1461,6 +1557,7 @@ namespace DMR
 			}
 			this.RestoreColumnVisibility();
 			this.dgvChannels.CellDoubleClick += this.dgvChannels_CellDoubleClick;
+			this.dgvChannels.ColumnHeaderMouseClick += this.dgvChannels_ColumnHeaderMouseClick;
 			Settings.smethod_37(this.cmbAddChMode, ChannelForm.SZ_CH_MODE);
 			Settings.smethod_37(this.cmbChMode, ChannelForm.SZ_CH_MODE);
 			Settings.smethod_37(this.cmbPower, ChannelForm.SZ_POWER);

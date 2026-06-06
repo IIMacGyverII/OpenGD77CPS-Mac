@@ -10,6 +10,9 @@ internal static class MainWindow
 		Application.EnableVisualStyles();
 		Application.SetCompatibleTextRenderingDefault(false);
 
+#if OpenGD77
+		ForkSplashForm.ShowIfNeeded();
+#endif
 		Application.Run(new MainForm(args));
 	}
 
