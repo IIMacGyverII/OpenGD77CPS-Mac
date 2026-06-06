@@ -1808,44 +1808,17 @@ namespace DMR
 		{
 #if OpenGD77
 			this.EnsureCodeplugHealthLink();
-			int channels = 0;
-			int digital = 0;
-			int analog = 0;
-			int relayZero = 0;
-			for (int i = 0; i < ChannelForm.data.Count; i++)
-			{
-				if (!ChannelForm.data.DataIsValid(i))
-				{
-					continue;
-				}
-				channels++;
-				switch (ChannelForm.data.GetChMode(i))
-				{
-				case 1:
-					digital++;
-					break;
-				case 0:
-					analog++;
-					break;
-				}
-				ChannelForm.ChannelOne ch = ChannelForm.data[i];
-				if (ch.Relay == 0)
-				{
-					relayZero++;
-				}
-			}
-			int contacts = this.CountValidContacts();
-			int zones = ZoneForm.data.ValidCount;
-			int tgLists = this.CountValidRxGroupLists();
-			int orphans = this.CountOrphanedChannelContacts();
-			bool hasWarning = relayZero > 0 || orphans > 0;
-			string relayNote = relayZero > 0 ? " | relay=0: " + relayZero : "";
-			string orphanNote = orphans > 0 ? " | orphan ct: " + orphans : "";
+			CodeplugHealthSnapshot snap = CodeplugHealthSnapshot.Collect();
+			bool hasWarning = snap.HasWarning;
+			string relayNote = snap.RelayZero > 0 ? " | relay=0: " + snap.RelayZero : "";
+			string orphanNote = snap.OrphanCount > 0 ? " | orphan ct: " + snap.OrphanCount : "";
+			string dupNote = snap.DuplicateNameGroups > 0 ? " | dup: " + snap.DuplicateNameGroups : "";
+			string zoneNote = snap.EmptyZones > 0 ? " | empty zn: " + snap.EmptyZones : "";
 			string warningTag = hasWarning ? " ⚠" : "";
 			this.slblCodeplugHealth.Text = "▶ Health report" + warningTag + " — "
-				+ channels + " ch (" + digital + "D/" + analog + "A)"
-				+ " | " + contacts + " ct | " + zones + " zn | " + tgLists + " TG"
-				+ relayNote + orphanNote;
+				+ snap.Channels + " ch (" + snap.Digital + "D/" + snap.Analog + "A)"
+				+ " | " + snap.Contacts + " ct | " + snap.Zones + " zn | " + snap.TgLists + " TG"
+				+ relayNote + orphanNote + dupNote + zoneNote;
 			this.slblCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Theme.Foreground;
 			if (this.tsbtnCodeplugHealth != null)
 			{
@@ -1858,52 +1831,8 @@ namespace DMR
 		private void ShowCodeplugHealthReport(object sender, EventArgs e)
 		{
 #if OpenGD77
-			int channels = 0;
-			int digital = 0;
-			int analog = 0;
-			int relayZero = 0;
-			List<string> relayZeroNames = new List<string>();
-			List<string> orphanNames = new List<string>();
-			for (int i = 0; i < ChannelForm.data.Count; i++)
-			{
-				if (!ChannelForm.data.DataIsValid(i))
-				{
-					continue;
-				}
-				channels++;
-				switch (ChannelForm.data.GetChMode(i))
-				{
-				case 1:
-					digital++;
-					break;
-				case 0:
-					analog++;
-					break;
-				}
-				ChannelForm.ChannelOne ch = ChannelForm.data[i];
-				string channelName = ChannelForm.data.GetName(i);
-				if (ch.Relay == 0)
-				{
-					relayZero++;
-					if (relayZeroNames.Count < 12)
-					{
-						relayZeroNames.Add(channelName);
-					}
-				}
-				if (ch.Contact > 0 && (ch.Contact > ContactForm.data.Count || !ContactForm.data.DataIsValid(ch.Contact - 1)))
-				{
-					if (orphanNames.Count < 12)
-					{
-						orphanNames.Add(channelName);
-					}
-				}
-			}
-			int orphanTotal = this.CountOrphanedChannelContacts();
-			string html = CodeplugHealthReportHtml.Build(
-				channels, digital, analog,
-				this.CountValidContacts(), ZoneForm.data.ValidCount, this.CountValidRxGroupLists(),
-				relayZero, relayZeroNames, orphanTotal, orphanNames);
-			using (ForkHtmlReportForm report = new ForkHtmlReportForm("Codeplug health", html, 640, 480))
+			string html = CodeplugHealthReportHtml.Build(CodeplugHealthSnapshot.Collect());
+			using (ForkHtmlReportForm report = new ForkHtmlReportForm("Codeplug health", html, 720, 560))
 			{
 				report.ShowDialog(this);
 			}

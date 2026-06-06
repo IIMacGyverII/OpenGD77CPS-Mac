@@ -858,6 +858,10 @@ namespace DMR
 
 		private CustomPanel pnlZone;
 
+		private TextBox txtZoneListFilter;
+		private Label lblZoneListFilter;
+		private List<SelectedItemUtils> forkUnselectedCache = new List<SelectedItemUtils>();
+
 		public static readonly int SPACE_ZONE;
 
 		public static BasicZone basicData;
@@ -1259,20 +1263,17 @@ namespace DMR
 				{
 					this.lstSelected.SelectedIndex = 0;
 				}
-				this.lstUnselected.Items.Clear();
+				this.forkUnselectedCache.Clear();
 				for (num = 0; num < 1024; num++)
 				{
 					if (!zoneOne.ChList.Contains((ushort)(num + 1)) && ChannelForm.data.DataIsValid(num))
 					{
 						num2 = num + 1;
 						text = ChannelForm.data.GetName(num);
-						this.lstUnselected.Items.Add(new SelectedItemUtils(-1, num2, text));
+						this.forkUnselectedCache.Add(new SelectedItemUtils(-1, num2, text));
 					}
 				}
-				if (this.lstUnselected.Items.Count > 0)
-				{
-					this.lstUnselected.SelectedIndex = 0;
-				}
+				this.ApplyZoneListFilter();
 				this.method_5();
 				this.method_6();
 				num4 = ZoneForm.basicData.CurZone;
@@ -1313,7 +1314,52 @@ namespace DMR
 			Settings.smethod_68(this);
 			Settings.smethod_71(this.tsrZone.smethod_10(), base.Name);
 			this.method_1();
+			this.EnsureZoneListFilter();
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+		}
+
+		private void EnsureZoneListFilter()
+		{
+			if (this.txtZoneListFilter != null)
+			{
+				return;
+			}
+			this.lblZoneListFilter = new Label();
+			this.lblZoneListFilter.Text = "Filter available:";
+			this.lblZoneListFilter.AutoSize = true;
+			this.txtZoneListFilter = new TextBox();
+			this.txtZoneListFilter.Size = new Size(140, 23);
+			this.txtZoneListFilter.TextChanged += this.txtZoneListFilter_TextChanged;
+			this.pnlZone.Controls.Add(this.lblZoneListFilter);
+			this.pnlZone.Controls.Add(this.txtZoneListFilter);
+			this.lblZoneListFilter.Location = new Point(86, 84);
+			this.txtZoneListFilter.Location = new Point(198, 81);
+			this.lblZoneListFilter.BringToFront();
+			this.txtZoneListFilter.BringToFront();
+		}
+
+		private void txtZoneListFilter_TextChanged(object sender, EventArgs e)
+		{
+			this.ApplyZoneListFilter();
+		}
+
+		private void ApplyZoneListFilter()
+		{
+			string query = this.txtZoneListFilter == null ? "" : this.txtZoneListFilter.Text.Trim();
+			this.lstUnselected.Items.Clear();
+			foreach (SelectedItemUtils item in this.forkUnselectedCache)
+			{
+				if (string.IsNullOrEmpty(query)
+					|| (item.Name != null && item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
+				{
+					this.lstUnselected.Items.Add(item);
+				}
+			}
+			if (this.lstUnselected.Items.Count > 0)
+			{
+				this.lstUnselected.SelectedIndex = 0;
+			}
 		}
 
 		private void ZoneForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -1334,6 +1380,7 @@ namespace DMR
 				num = this.lstSelected.Items.Add(@class);
 				this.lstSelected.SetSelected(num, true);
 				this.lstUnselected.Items.RemoveAt(this.lstUnselected.SelectedIndices[0]);
+				this.forkUnselectedCache.Remove(@class);
 			}
 			if (this.lstUnselected.SelectedItems.Count == 0)
 			{
@@ -1354,18 +1401,16 @@ namespace DMR
 
 		private void btnDel_Click(object sender, EventArgs e)
 		{
-			int num = 0;
 			int count = this.lstSelected.SelectedIndices.Count;
 			int num2 = this.lstSelected.SelectedIndices[count - 1];
 			this.lstUnselected.SelectedItems.Clear();
 			while (this.lstSelected.SelectedItems.Count > 0)
 			{
 				SelectedItemUtils @class = (SelectedItemUtils)this.lstSelected.SelectedItems[0];
-				num = this.method_3(@class);
 				@class.method_1(-1);
-				this.lstUnselected.Items.Insert(num, @class);
-				this.lstUnselected.SetSelected(num, true);
+				this.forkUnselectedCache.Add(@class);
 				this.lstSelected.Items.RemoveAt(this.lstSelected.SelectedIndices[0]);
+				this.ApplyZoneListFilter();
 			}
 			int num3 = num2 - count + 1;
 			if (num3 >= this.lstSelected.Items.Count)
