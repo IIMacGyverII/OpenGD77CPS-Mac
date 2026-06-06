@@ -1750,7 +1750,58 @@ namespace DMR
 			{
 				return;
 			}
-			this.BeginInvoke(new Action(() => this.ForkActivateGridRow(row, 0, true)));
+			int dataIndex = (int)row.Tag;
+			this.BeginInvoke(new Action(() => this.ForkActivateGridRowDeferred(dataIndex)));
+		}
+
+		private void ForkActivateGridRowDeferred(int dataIndex)
+		{
+			if (this.IsDisposed || this.dgvChannels == null || this.dgvChannels.IsDisposed)
+			{
+				return;
+			}
+			DataGridViewRow liveRow = this.ForkFindRowByDataIndex(dataIndex);
+			if (liveRow == null)
+			{
+				if (dataIndex == this.forkActiveChannelDataIndex)
+				{
+					this.dgvChannels.Invalidate();
+				}
+				return;
+			}
+			bool openEditor = true;
+			MainForm mainForm = this.GetMainForm();
+			if (mainForm != null && mainForm.GetOpenChannelEditorDataIndex() == dataIndex)
+			{
+				openEditor = false;
+			}
+			this.ForkActivateGridRow(liveRow, 0, openEditor);
+		}
+
+		private DataGridViewRow ForkFindRowByDataIndex(int dataIndex)
+		{
+			foreach (DataGridViewRow row in this.dgvChannels.Rows)
+			{
+				if (!row.IsNewRow && row.Tag != null && (int)row.Tag == dataIndex)
+				{
+					return row;
+				}
+			}
+			return null;
+		}
+
+		private bool ForkEnsureLiveRow(ref DataGridViewRow row)
+		{
+			if (row == null || row.IsNewRow || row.Tag == null)
+			{
+				return false;
+			}
+			if (row.DataGridView == this.dgvChannels)
+			{
+				return true;
+			}
+			row = this.ForkFindRowByDataIndex((int)row.Tag);
+			return row != null;
 		}
 
 		private void dgvChannels_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
@@ -1783,7 +1834,7 @@ namespace DMR
 
 		private void ForkActivateGridRow(DataGridViewRow row, int columnIndex, bool openEditor)
 		{
-			if (row == null || row.IsNewRow || row.Tag == null)
+			if (!this.ForkEnsureLiveRow(ref row))
 			{
 				return;
 			}
@@ -1798,10 +1849,14 @@ namespace DMR
 				if (this.dgvChannels.SelectedRows.Count != 1 || this.dgvChannels.SelectedRows[0] != row)
 				{
 					this.dgvChannels.ClearSelection();
-					row.Selected = true;
+					if (row.DataGridView == this.dgvChannels)
+					{
+						row.Selected = true;
+					}
 				}
 				int cellCol = columnIndex >= 0 && columnIndex < row.Cells.Count ? columnIndex : 0;
-				if (this.dgvChannels.CurrentCell == null || this.dgvChannels.CurrentCell.OwningRow != row)
+				if (row.DataGridView == this.dgvChannels
+					&& (this.dgvChannels.CurrentCell == null || this.dgvChannels.CurrentCell.OwningRow != row))
 				{
 					this.dgvChannels.CurrentCell = row.Cells[cellCol];
 				}
@@ -1874,6 +1929,7 @@ namespace DMR
 			{
 				return;
 			}
+			this.forkChannelClickHandled = true;
 			this.OpenChannelEditorForRow(this.dgvChannels.Rows[e.RowIndex]);
 		}
 

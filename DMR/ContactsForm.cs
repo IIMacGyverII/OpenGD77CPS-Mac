@@ -703,6 +703,7 @@ namespace DMR
 			{
 				return;
 			}
+			this.forkContactClickHandled = true;
 			if (e.ColumnIndex == ContactsForm.CallIdColumnIndex)
 			{
 				object cellValue = this.dgvContacts.Rows[e.RowIndex].Cells[ContactsForm.CallIdColumnIndex].Value;
@@ -1274,7 +1275,58 @@ namespace DMR
 			{
 				return;
 			}
-			this.BeginInvoke(new Action(() => this.ForkActivateGridRow(row, 0, true)));
+			int dataIndex = (int)row.Tag;
+			this.BeginInvoke(new Action(() => this.ForkActivateGridRowDeferred(dataIndex)));
+		}
+
+		private void ForkActivateGridRowDeferred(int dataIndex)
+		{
+			if (this.IsDisposed || this.dgvContacts == null || this.dgvContacts.IsDisposed)
+			{
+				return;
+			}
+			DataGridViewRow liveRow = this.ForkFindRowByDataIndex(dataIndex);
+			if (liveRow == null)
+			{
+				if (dataIndex == this.forkActiveContactDataIndex)
+				{
+					this.dgvContacts.Invalidate();
+				}
+				return;
+			}
+			bool openEditor = true;
+			MainForm mainForm = this.GetMainForm();
+			if (mainForm != null && mainForm.GetOpenContactEditorDataIndex() == dataIndex)
+			{
+				openEditor = false;
+			}
+			this.ForkActivateGridRow(liveRow, 0, openEditor);
+		}
+
+		private DataGridViewRow ForkFindRowByDataIndex(int dataIndex)
+		{
+			foreach (DataGridViewRow row in this.dgvContacts.Rows)
+			{
+				if (!row.IsNewRow && row.Tag != null && (int)row.Tag == dataIndex)
+				{
+					return row;
+				}
+			}
+			return null;
+		}
+
+		private bool ForkEnsureLiveRow(ref DataGridViewRow row)
+		{
+			if (row == null || row.IsNewRow || row.Tag == null)
+			{
+				return false;
+			}
+			if (row.DataGridView == this.dgvContacts)
+			{
+				return true;
+			}
+			row = this.ForkFindRowByDataIndex((int)row.Tag);
+			return row != null;
 		}
 
 		private void dgvContacts_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
@@ -1307,7 +1359,7 @@ namespace DMR
 
 		private void ForkActivateGridRow(DataGridViewRow row, int columnIndex, bool openEditor)
 		{
-			if (row == null || row.IsNewRow || row.Tag == null)
+			if (!this.ForkEnsureLiveRow(ref row))
 			{
 				return;
 			}
@@ -1322,10 +1374,14 @@ namespace DMR
 				if (this.dgvContacts.SelectedRows.Count != 1 || this.dgvContacts.SelectedRows[0] != row)
 				{
 					this.dgvContacts.ClearSelection();
-					row.Selected = true;
+					if (row.DataGridView == this.dgvContacts)
+					{
+						row.Selected = true;
+					}
 				}
 				int cellCol = columnIndex >= 0 && columnIndex < row.Cells.Count ? columnIndex : 0;
-				if (this.dgvContacts.CurrentCell == null || this.dgvContacts.CurrentCell.OwningRow != row)
+				if (row.DataGridView == this.dgvContacts
+					&& (this.dgvContacts.CurrentCell == null || this.dgvContacts.CurrentCell.OwningRow != row))
 				{
 					this.dgvContacts.CurrentCell = row.Cells[cellCol];
 				}
