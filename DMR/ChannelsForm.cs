@@ -124,7 +124,7 @@ namespace DMR
 			this.txtChannelFilter.Size = new System.Drawing.Size(180, 23);
 			this.txtChannelFilter.TextChanged += this.txtChannelFilter_TextChanged;
 			this.lblChannelsGridHint = new Label();
-			this.lblChannelsGridHint.Text = "Double-click or F2 opens editor · click row loads editor · click column header to sort";
+			this.lblChannelsGridHint.Text = "Double-click or F2 opens editor · click row loads editor · sort via column header · D/A and G/P/A badges are color-coded";
 			this.lblChannelsGridHint.AutoSize = false;
 			this.lblChannelsGridHint.Size = new System.Drawing.Size(1100, 18);
 			this.lblChannelsGridHint.ForeColor = System.Drawing.SystemColors.GrayText;
@@ -1580,7 +1580,7 @@ namespace DMR
 			{
 				80,
 				100,
-				80,
+				36,
 				80,
 				80,
 				80,
@@ -1619,6 +1619,7 @@ namespace DMR
 			}
 			this.RestoreColumnVisibility();
 			this.dgvChannels.CellDoubleClick += this.dgvChannels_CellDoubleClick;
+			this.dgvChannels.CellFormatting += this.dgvChannels_CellFormatting;
 			this.dgvChannels.ColumnHeaderMouseClick += this.dgvChannels_ColumnHeaderMouseClick;
 			Settings.smethod_37(this.cmbAddChMode, ChannelForm.SZ_CH_MODE);
 			Settings.smethod_37(this.cmbChMode, ChannelForm.SZ_CH_MODE);
@@ -2077,6 +2078,78 @@ namespace DMR
 			});
 		}
 
+		private void dgvChannels_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+		{
+			if (e.RowIndex < 0 || e.ColumnIndex < 0)
+			{
+				return;
+			}
+			DataGridViewRow row = this.dgvChannels.Rows[e.RowIndex];
+			if (row.IsNewRow)
+			{
+				return;
+			}
+			if (e.ColumnIndex == 2)
+			{
+				string mode = Convert.ToString(e.Value) ?? "";
+				string badge = GetChannelModeBadge(mode);
+				e.Value = badge;
+				e.FormattingApplied = true;
+				if (badge == "D")
+				{
+					e.CellStyle.BackColor = Color.FromArgb(0xD6, 0xE8, 0xF7);
+					e.CellStyle.ForeColor = Color.FromArgb(0x1A, 0x4A, 0x7A);
+				}
+				else if (badge == "A")
+				{
+					e.CellStyle.BackColor = Color.FromArgb(0xF5, 0xE6, 0xD0);
+					e.CellStyle.ForeColor = Color.FromArgb(0x7A, 0x4A, 0x1A);
+				}
+				e.CellStyle.Font = Theme.UiFontBold;
+				return;
+			}
+			if (e.ColumnIndex == 8)
+			{
+				string badge = Convert.ToString(e.Value) ?? "-";
+				switch (badge)
+				{
+				case "G":
+					e.CellStyle.BackColor = Color.FromArgb(0xC8, 0xE6, 0xC9);
+					e.CellStyle.ForeColor = Color.FromArgb(0x1B, 0x5E, 0x20);
+					break;
+				case "P":
+					e.CellStyle.BackColor = Color.FromArgb(0xFF, 0xE0, 0xB2);
+					e.CellStyle.ForeColor = Color.FromArgb(0xE6, 0x51, 0x00);
+					break;
+				case "A":
+					e.CellStyle.BackColor = Color.FromArgb(0xE0, 0xE0, 0xE0);
+					e.CellStyle.ForeColor = Color.FromArgb(0x42, 0x42, 0x42);
+					break;
+				default:
+					e.CellStyle.ForeColor = SystemColors.GrayText;
+					break;
+				}
+				e.CellStyle.Font = Theme.UiFontBold;
+			}
+		}
+
+		private static string GetChannelModeBadge(string chModeS)
+		{
+			if (string.IsNullOrEmpty(chModeS))
+			{
+				return "-";
+			}
+			if (chModeS.IndexOf("Digital", StringComparison.OrdinalIgnoreCase) >= 0)
+			{
+				return "D";
+			}
+			if (chModeS.IndexOf("Analog", StringComparison.OrdinalIgnoreCase) >= 0)
+			{
+				return "A";
+			}
+			return chModeS.Substring(0, 1).ToUpperInvariant();
+		}
+
 		private static string GetContactTypeBadge(ChannelForm.ChannelOne channelOne)
 		{
 #if OpenGD77
@@ -2486,19 +2559,6 @@ namespace DMR
 		private static bool smethod_0(string string_0)
 		{
 			return true;
-		}
-
-		/// <summary>
-		/// Import channels from CSV file (wrapper for ChannelsCsvImporter)
-		/// </summary>
-		/// <param name="filePath">Path to Channels.csv file</param>
-		/// <param name="clearFirst">If true, clear existing channels before import</param>
-		/// <param name="mainForm">Reference to main form for UI updates</param>
-		/// <param name="importedCount">Number of channels successfully imported</param>
-		/// <returns>True if import succeeded, false otherwise</returns>
-		public static bool ImportFromCsvFile(string filePath, bool clearFirst, Form mainForm, out int importedCount)
-		{
-			return ChannelsCsvImporter.ImportChannelsFromCsv(filePath, clearFirst, mainForm, out importedCount);
 		}
 
 		static ChannelsForm()

@@ -233,7 +233,7 @@
     <Compile Include="DMR\ChannelsForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="DMR\ChannelsCsvImporter.cs" />
+
     <Compile Include="DMR\CommPrgForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -320,9 +320,7 @@
     <Compile Include="DMR\VfoForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="DMR\VoteScanForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+
     <Compile Include="DMR\WaitForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -435,7 +433,7 @@
     <EmbeddedResource Include="DMR\ToolWindow.resx" />
     <EmbeddedResource Include="DMR\TreeForm.resx" />
     <EmbeddedResource Include="DMR\VfoForm.resx" />
-    <EmbeddedResource Include="DMR\VoteScanForm.resx" />
+
     <EmbeddedResource Include="DMR\WaitForm.resx" />
     <EmbeddedResource Include="DMR\ZoneBasicForm.resx" />
     <EmbeddedResource Include="DMR\ZoneForm.resx" />

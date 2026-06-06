@@ -13,6 +13,8 @@ namespace DMR
 		/// <summary>Tier 1.2 — default UI font for fork shell and editors.</summary>
 		public static readonly Font UiFont = new Font("Segoe UI", 9.75f, FontStyle.Regular);
 
+		public static readonly Font UiFontBold = new Font("Segoe UI", 9.75f, FontStyle.Bold);
+
 		public static readonly Font UiFontSmall = new Font("Segoe UI", 9f, FontStyle.Regular);
 
 		public static readonly Color Background = Color.FromArgb(0x0A, 0x15, 0x20);
