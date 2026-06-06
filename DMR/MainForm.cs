@@ -212,6 +212,8 @@ namespace DMR
 
 		private ToolStripStatusLabel slblCodeplugHealth;
 
+		private bool codeplugHealthLinkWired;
+
 		private ToolStripMenuItem tsmiClear;
 
 		private ToolStripSeparator toolStripSeparator4;
@@ -1066,10 +1068,12 @@ namespace DMR
 			this.slblComapny.Size = new Size(63, 17);
 			this.slblComapny.Text = "Prompt：";
 			this.slblCodeplugHealth.Name = "slblCodeplugHealth";
-			this.slblCodeplugHealth.Size = new Size(320, 17);
+			this.slblCodeplugHealth.Size = new Size(420, 17);
+			this.slblCodeplugHealth.Spring = true;
 			this.slblCodeplugHealth.Text = "";
 			this.slblForkVersion.Name = "slblForkVersion";
-			this.slblForkVersion.Spring = true;
+			this.slblForkVersion.Spring = false;
+			this.slblForkVersion.AutoSize = true;
 			this.slblForkVersion.TextAlign = ContentAlignment.MiddleRight;
 			this.tsrMain.Items.AddRange(new ToolStripItem[13]
 			{
@@ -1599,15 +1603,30 @@ namespace DMR
 			this.ForeColor = SystemColors.ControlText;
 			this.tvwMain.BackColor = SystemColors.Window;
 			this.tvwMain.ForeColor = SystemColors.WindowText;
-			this.slblForkVersion.Text = AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION
-				+ " — Path B: File → Import Android backup (not channel-grid Import)";
+			this.slblForkVersion.Text = AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION;
 			this.UpdateCodeplugHealth();
+#endif
+		}
+
+		private void EnsureCodeplugHealthLink()
+		{
+#if OpenGD77
+			if (this.codeplugHealthLinkWired)
+			{
+				return;
+			}
+			this.slblCodeplugHealth.IsLink = true;
+			this.slblCodeplugHealth.LinkBehavior = LinkBehavior.HoverUnderline;
+			this.slblCodeplugHealth.ToolTipText = "Click for full codeplug summary";
+			this.slblCodeplugHealth.Click += this.slblCodeplugHealth_Click;
+			this.codeplugHealthLinkWired = true;
 #endif
 		}
 
 		private void UpdateCodeplugHealth()
 		{
 #if OpenGD77
+			this.EnsureCodeplugHealthLink();
 			int channels = 0;
 			int digital = 0;
 			int analog = 0;
@@ -1635,12 +1654,108 @@ namespace DMR
 				}
 			}
 			int contacts = this.CountValidContacts();
+			int zones = ZoneForm.data.ValidCount;
+			int tgLists = this.CountValidRxGroupLists();
 			int orphans = this.CountOrphanedChannelContacts();
-			string relayNote = relayZero > 0 ? ", relay=0: " + relayZero : "";
-			string orphanNote = orphans > 0 ? ", orphan ct: " + orphans : "";
+			string relayNote = relayZero > 0 ? " | relay=0: " + relayZero : "";
+			string orphanNote = orphans > 0 ? " | orphan ct: " + orphans : "";
 			this.slblCodeplugHealth.Text = "Ch " + channels + " (" + digital + " dig, " + analog + " ana)"
-				+ " | Contacts " + contacts + relayNote + orphanNote;
+				+ " | Ct " + contacts + " | Zn " + zones + " | TG " + tgLists + relayNote + orphanNote;
+			bool hasWarning = relayZero > 0 || orphans > 0;
+			this.slblCodeplugHealth.ForeColor = hasWarning ? Color.DarkOrange : SystemColors.ControlText;
 #endif
+		}
+
+		private void slblCodeplugHealth_Click(object sender, EventArgs e)
+		{
+#if OpenGD77
+			MessageBox.Show(this, this.BuildCodeplugHealthDetails(), "Codeplug summary", MessageBoxButtons.OK, MessageBoxIcon.Information);
+#endif
+		}
+
+		private string BuildCodeplugHealthDetails()
+		{
+			StringBuilder sb = new StringBuilder();
+			int channels = 0;
+			int digital = 0;
+			int analog = 0;
+			int relayZero = 0;
+			List<string> relayZeroNames = new List<string>();
+			List<string> orphanNames = new List<string>();
+			for (int i = 0; i < ChannelForm.data.Count; i++)
+			{
+				if (!ChannelForm.data.DataIsValid(i))
+				{
+					continue;
+				}
+				channels++;
+				switch (ChannelForm.data.GetChMode(i))
+				{
+				case 1:
+					digital++;
+					break;
+				case 0:
+					analog++;
+					break;
+				}
+				ChannelForm.ChannelOne ch = ChannelForm.data[i];
+				string channelName = ChannelForm.data.GetName(i);
+				if (ch.Relay == 0)
+				{
+					relayZero++;
+					if (relayZeroNames.Count < 8)
+					{
+						relayZeroNames.Add(channelName);
+					}
+				}
+				if (ch.Contact > 0 && (ch.Contact > ContactForm.data.Count || !ContactForm.data.DataIsValid(ch.Contact - 1)))
+				{
+					if (orphanNames.Count < 8)
+					{
+						orphanNames.Add(channelName);
+					}
+				}
+			}
+			sb.AppendLine("Channels: " + channels + " total (" + digital + " digital, " + analog + " analog)");
+			sb.AppendLine("Contacts: " + this.CountValidContacts());
+			sb.AppendLine("Zones: " + ZoneForm.data.ValidCount);
+			sb.AppendLine("TG lists: " + this.CountValidRxGroupLists());
+			if (relayZero > 0)
+			{
+				sb.AppendLine();
+				sb.AppendLine("Relay = 0 (may fail on phone): " + relayZero);
+				foreach (string name in relayZeroNames)
+				{
+					sb.AppendLine("  • " + name);
+				}
+				if (relayZero > relayZeroNames.Count)
+				{
+					sb.AppendLine("  … and " + (relayZero - relayZeroNames.Count) + " more");
+				}
+			}
+			if (orphanNames.Count > 0)
+			{
+				sb.AppendLine();
+				sb.AppendLine("Channels with missing/invalid TX contact:");
+				foreach (string name in orphanNames)
+				{
+					sb.AppendLine("  • " + name);
+				}
+			}
+			return sb.ToString().TrimEnd();
+		}
+
+		private int CountValidRxGroupLists()
+		{
+			int count = 0;
+			for (int i = 0; i < RxGroupListForm.data.Count; i++)
+			{
+				if (RxGroupListForm.data.DataIsValid(i))
+				{
+					count++;
+				}
+			}
+			return count;
 		}
 
 		private int CountOrphanedChannelContacts()
@@ -1696,6 +1811,23 @@ namespace DMR
 #endif
 		}
 
+
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+#if OpenGD77
+			if (keyData == (Keys.Control | Keys.I))
+			{
+				this.tsmiImportCsv_Click(this, EventArgs.Empty);
+				return true;
+			}
+			if (keyData == (Keys.Control | Keys.E))
+			{
+				this.tsmiExportCsv_Click(this, EventArgs.Empty);
+				return true;
+			}
+#endif
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
 
 		private void MainForm_MdiChildActivate(object sender, EventArgs e)
 		{

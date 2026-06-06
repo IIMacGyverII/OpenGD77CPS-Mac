@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** In progress — v1.4.6: DMR ID lookup buttons/links + double-click; v1.4.5: Tier 3.4 DMR ID lookup (RadioID.net); v1.4.4: channel grid click-to-sync + v1.4.3 double-click fix; v1.4.2: Tier 2.3 docking UX (default layout, reset, persist); v1.4.0: Tier 2.8 grid bulk edit + Tier 2.9 column visibility + Tier 1.2 dark dock tabs; v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
+**Status:** In progress — v1.4.9: Tier 1.7 codeplug health panel (zones/TG, click details); v1.4.8: Contacts double-click lookup fix; v1.4.7: Contacts toolbar layout; v1.4.5–1.4.6: Tier 3.4 DMR ID lookup; v1.4.4: channel grid click-to-sync + v1.4.3 double-click fix; v1.4.2: Tier 2.3 docking UX (default layout, reset, persist); v1.4.0: Tier 2.8 grid bulk edit + Tier 2.9 column visibility + Tier 1.2 dark dock tabs; v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
 
 ---
 
@@ -157,6 +157,8 @@ Every CSV read must strip BOM; every CSV write must use `new UTF8Encoding(false)
 
 ### 1.7 Codeplug summary / health panel
 
+**Shipped:** v1.4.9 — status bar shows channels, contacts, zones, TG lists, relay=0/orphan warnings (orange); click for detail dialog; global Ctrl+I/Ctrl+E.
+
 A small read-only status area (status strip or side panel) populated at load/import time:
 
 | Stat | Example |
@@ -174,6 +176,8 @@ Zero new forms needed — populates `statusStrip` labels and/or a `ToolStripDrop
 
 ### 1.8 Contact type badge in channel grid
 
+**Shipped:** v1.4.0 — **Type** column (`G`/`P`/`A`) via `GetContactTypeBadge` in `ChannelsForm.cs`.
+
 Add a narrow **Type** column to the channel list grid showing `G` (Group), `P` (Private), or `A` (All-Call) for the assigned contact. Given the swapped Group/Private history, having this visible at a glance in the grid lets the user spot an inversion without opening each channel.
 
 **Primary file:** `ChannelsForm.cs` — read `ContactType` from `ChannelOne` at row-render time.
@@ -181,6 +185,8 @@ Add a narrow **Type** column to the channel list grid showing `G` (Group), `P` (
 ---
 
 ### 1.9 Keyboard shortcuts
+
+**Shipped (partial):** v1.4.9 — global **Ctrl+I** / **Ctrl+E** from any editor; v1.4.0+ grid **F2** / **Del** / **Ctrl+D** on Channels.
 
 Standard shortcuts currently absent:
 
@@ -380,7 +386,7 @@ Choose only if Tier 1–2 are insufficient.
 
 ### 3.4 DMR ID lookup integration
 
-**Shipped:** v1.4.5 — right-click lookup; v1.4.6 — visible button/link + double-click Call ID cell + hint label. Opens `https://www.radioid.net/database/view?id={DMR_ID}` in the default browser.
+**Shipped:** v1.4.5–1.4.8 — right-click, link/button, layout fix, reliable `CellDoubleClick` row lookup. Opens `https://www.radioid.net/database/view?id={DMR_ID}` in the default browser.
 
 **Where:** `DmrIdLookup.cs`; `ChannelForm.cs` (TX Contact), `ContactsForm.cs` (Call ID column), `ContactForm.cs` (Call ID field).
 
