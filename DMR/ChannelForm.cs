@@ -3021,6 +3021,7 @@ namespace DMR
 				this.CreateAndroidControls();
 #if OpenGD77
 				this.CreateForkAdvancedCollapse();
+				this.RepositionForkAndroidSection();
 #endif
 				Theme.ApplyStandardEditorColors(this);
 				this.RestoreAndroidSectionNoteColor();
@@ -3201,12 +3202,17 @@ namespace DMR
 			var lblInfo = new Label();
 			lblInfo.Text = "Note: These fields are Android-specific. EncryptKey, Latitude, Longitude and Use Location are CSV-only (not stored in binary codeplug).";
 			lblInfo.Location = new System.Drawing.Point(xCol1, yPos);
-			lblInfo.Size = new System.Drawing.Size(700, 30);
+			lblInfo.MaximumSize = new System.Drawing.Size(700, 0);
+			lblInfo.AutoSize = true;
 			lblInfo.ForeColor = System.Drawing.Color.DarkBlue;
 			grpAndroid.Controls.Add(lblInfo);
 
 			// Expand group box to fit new row
-			grpAndroid.Size = new System.Drawing.Size(740, yPos + 45);
+			grpAndroid.Size = new System.Drawing.Size(740, yPos + lblInfo.Height + 18);
+
+			grpAndroid.Font = Theme.UiFont;
+			Theme.ScaleNewControlTree(grpAndroid);
+			Theme.ApplyStandardEditorColors(grpAndroid);
 
 			// Add the group box to the form
 			this.pnlChannel.Controls.Add(grpAndroid);
@@ -3241,8 +3247,10 @@ namespace DMR
 			this.chkShowAdvancedBinary.Text = "Show advanced codeplug fields (privacy, signaling, OEM\u2026)";
 			this.chkShowAdvancedBinary.AutoSize = true;
 			this.chkShowAdvancedBinary.Location = new Point(10, 628);
+			this.chkShowAdvancedBinary.Font = Theme.UiFont;
 			this.chkShowAdvancedBinary.CheckedChanged += this.chkShowAdvancedBinary_CheckedChanged;
 			this.pnlChannel.Controls.Add(this.chkShowAdvancedBinary);
+			Theme.ScaleNewControlTree(this.chkShowAdvancedBinary);
 			this.chkShowAdvancedBinary.BringToFront();
 			if (this.grpAndroidFork != null)
 			{

@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -16,6 +17,33 @@ namespace DMR
 		public static readonly Font UiFontBold = new Font("Segoe UI", 9.75f, FontStyle.Bold);
 
 		public static readonly Font UiFontSmall = new Font("Segoe UI", 9f, FontStyle.Regular);
+
+		/// <summary>WinForms scale factor from MainForm startup (96 DPI = 1.0).</summary>
+		public static SizeF GetDpiScale()
+		{
+			return Settings.smethod_6();
+		}
+
+		/// <summary>Scale a 96-DPI design pixel value to the current display DPI.</summary>
+		public static int Dpi(int designPixels)
+		{
+			return (int)Math.Round(designPixels * GetDpiScale().Width);
+		}
+
+		/// <summary>Scale controls added after Form.Scale() (e.g. ChannelForm Android section).</summary>
+		public static void ScaleNewControlTree(Control root)
+		{
+			if (root == null)
+			{
+				return;
+			}
+			SizeF factor = GetDpiScale();
+			if (Math.Abs(factor.Width - 1f) < 0.02f && Math.Abs(factor.Height - 1f) < 0.02f)
+			{
+				return;
+			}
+			root.Scale(factor);
+		}
 
 		public static readonly Color Background = Color.FromArgb(0x0A, 0x15, 0x20);
 		public static readonly Color Chrome = Color.FromArgb(0x06, 0x0D, 0x14);
