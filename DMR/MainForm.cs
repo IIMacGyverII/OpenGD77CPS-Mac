@@ -224,6 +224,10 @@ namespace DMR
 
 		private bool codeplugHealthLinkWired;
 
+		private const string ForkStatusHintDefault = "Ctrl+I import | Ctrl+E export | F1 help";
+
+		private Timer forkStatusHintTimer;
+
 		private ToolStripMenuItem tsmiClear;
 
 		private ToolStripSeparator toolStripSeparator4;
@@ -302,9 +306,19 @@ namespace DMR
 
 		protected override void Dispose(bool disposing)
 		{
-			if (disposing && this.components != null)
+			if (disposing)
 			{
-				this.components.Dispose();
+#if OpenGD77
+				if (this.forkStatusHintTimer != null)
+				{
+					this.forkStatusHintTimer.Dispose();
+					this.forkStatusHintTimer = null;
+				}
+#endif
+				if (this.components != null)
+				{
+					this.components.Dispose();
+				}
 			}
 			base.Dispose(disposing);
 		}
@@ -1681,6 +1695,53 @@ namespace DMR
 			this.tvwMain.ForeColor = SystemColors.WindowText;
 			this.slblForkVersion.Text = AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION;
 			this.UpdateCodeplugHealth();
+			this.ApplyForkStatusHint();
+#endif
+		}
+
+		private void ApplyForkStatusHint()
+		{
+#if OpenGD77
+			if (this.slblComapny == null)
+			{
+				return;
+			}
+			if (this.forkStatusHintTimer != null && this.forkStatusHintTimer.Enabled)
+			{
+				return;
+			}
+			string text = this.slblComapny.Text ?? "";
+			if (string.IsNullOrEmpty(text) || text == "Prompt：" || text.StartsWith("Prompt", StringComparison.Ordinal))
+			{
+				this.slblComapny.Text = ForkStatusHintDefault;
+			}
+#endif
+		}
+
+		private void ShowForkStatusMessage(string message, int revertMs = 8000)
+		{
+#if OpenGD77
+			if (string.IsNullOrEmpty(message) || this.slblComapny == null)
+			{
+				return;
+			}
+			if (this.forkStatusHintTimer == null)
+			{
+				this.forkStatusHintTimer = new Timer();
+				this.forkStatusHintTimer.Tick += this.ForkStatusHintTimer_Tick;
+			}
+			this.forkStatusHintTimer.Stop();
+			this.slblComapny.Text = message;
+			this.forkStatusHintTimer.Interval = revertMs;
+			this.forkStatusHintTimer.Start();
+#endif
+		}
+
+		private void ForkStatusHintTimer_Tick(object sender, EventArgs e)
+		{
+#if OpenGD77
+			this.forkStatusHintTimer.Stop();
+			this.ApplyForkStatusHint();
 #endif
 		}
 
@@ -3872,6 +3933,7 @@ namespace DMR
 			}
 
 			AndroidBatchResult.ShowDialog(this, batch);
+			this.ShowForkStatusMessage(batch.Title + " — " + batch.StatsLine);
 			this.UpdateForkChrome();
 			this.InitTree();
 		}
@@ -4026,6 +4088,7 @@ namespace DMR
 			{
 				AndroidBatchResult.ShowDialog(this, batch);
 			}
+			this.ShowForkStatusMessage(batch.Title + " — " + batch.StatsLine + " (UTF-8, no BOM)");
 			this.UpdateForkChrome();
 			return !batch.HasErrors;
 		}

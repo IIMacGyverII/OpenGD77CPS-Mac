@@ -4,7 +4,7 @@
 **Applies to:** [OpenGD77CPS-Mac](https://github.com/IIMacGyverII/OpenGD77CPS-Mac) (fork source)  
 **Related:** [phonedmrapp](https://github.com/IIMacGyverII/phonedmrapp) / `DMRModHooks` Android module  
 **Last updated:** June 5, 2026  
-**Status:** In progress — v1.5.0: Tier 1.1 menu declutter + help/shortcuts; v1.4.9: Tier 1.7 codeplug health panel; v1.4.8: Contacts double-click lookup fix; v1.4.7: Contacts toolbar layout; v1.4.5–1.4.6: Tier 3.4 DMR ID lookup; v1.4.4: channel grid click-to-sync + v1.4.3 double-click fix; v1.4.2: Tier 2.3 docking UX (default layout, reset, persist); v1.4.0: Tier 2.8 grid bulk edit + Tier 2.9 column visibility + Tier 1.2 dark dock tabs; v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
+**Status:** In progress — v1.5.1: Tier 1.1 status bar hint + Tier 1.4 About links; v1.5.0: Tier 1.1 menu declutter + help/shortcuts; v1.4.9: Tier 1.7 codeplug health panel; v1.4.8: Contacts double-click lookup fix; v1.4.7: Contacts toolbar layout; v1.4.5–1.4.6: Tier 3.4 DMR ID lookup; v1.4.4: channel grid click-to-sync + v1.4.3 double-click fix; v1.4.2: Tier 2.3 docking UX (default layout, reset, persist); v1.4.0: Tier 2.8 grid bulk edit + Tier 2.9 column visibility + Tier 1.2 dark dock tabs; v1.3.6: Tier 2.4 import/export summary dialog + busy overlay; v1.3.5: push folder any safe name; v1.3.4: Tier 2.10b ADB push export to phone; v1.3.3: Tier 2.6 contact integrity checker + DPI manifest; v1.3.2: Tier 2.10 ADB pull for phone backups; v1.3.1: MTP copy-to-PC folder picker; v1.3.0: Tier 2.5 pre-import channel diff (Apply/Cancel); v1.2.7: File menu layout fix; v1.2.6: label fix all editors, channel filter, grid stripes, import preview counts; v1.2.4–5 validation/Ctrl+Z; v1.2.1–3 Tier 1 shell
 
 ---
 
@@ -61,7 +61,8 @@ A full port to WPF, Avalonia, MAUI, or Electron is possible but is a **multi-mon
 | **Menu declutter** | Move USB Read/Write, firmware loader, calibration, stock OpenGD77 extras under **Advanced → Stock OpenGD77 / USB** (collapsed by default). | `MainForm.cs` |
 
 **Shipped:** v1.5.0 — Advanced submenu fix; View help + keyboard shortcuts; toolbar Help; F1.
-| **Status bar hint** | Persistent text: `PriInterPhone CSV fork v{FORK_VERSION} — use File → Import CSV for Android backups`. | `MainForm.cs` |
+**Shipped:** v1.5.1 — Left status bar workflow hint; import/export summary flash; export notes UTF-8 no BOM.
+| **Status bar hint** | Persistent text: `Ctrl+I import | Ctrl+E export | F1 help` (left label); health counts in center. | `MainForm.cs` |
 
 **Acceptance criteria**
 
@@ -122,11 +123,13 @@ Already in `AboutForm.cs`: `FORK_VERSION`, `FORK_NAME`, warning text.
 |----------|-------------|
 | Optional splash | Short splash on startup with fork name + warning. |
 | Window title | Include `FORK_VERSION` in `MainForm.Text` (may already be partial). |
-| Links | GitHub: OpenGD77CPS-Mac + phonedmrapp releases. |
+| Links | GitHub: OpenGD77CPS-Mac + phonedmrapp releases. **Shipped:** v1.5.1 — About dialog link labels. |
 
 ---
 
 ### 1.5 Channel editor — Android field grouping
+
+**Shipped:** v1.2.x+ — `CreateAndroidControls()` GroupBox “PriInterPhone / Android (CSV only)” with tooltips.
 
 Addresses v1.1 **layout overlap** class of issues without moving data off static arrays.
 
@@ -188,7 +191,7 @@ Add a narrow **Type** column to the channel list grid showing `G` (Group), `P` (
 
 ### 1.9 Keyboard shortcuts
 
-**Shipped (partial):** v1.4.9 — global **Ctrl+I** / **Ctrl+E** from any editor; v1.4.0+ grid **F2** / **Del** / **Ctrl+D** on Channels.
+**Shipped:** v1.5.0 — **View → Keyboard shortcuts…** reference; v1.4.9 — global **Ctrl+I** / **Ctrl+E**; v1.4.0+ grid **F2** / **Del** / **Ctrl+D**; **Ctrl+Z** revert on channel editor.
 
 Standard shortcuts currently absent:
 

@@ -12,7 +12,7 @@ namespace DMR
 		// inside a DMRModHooks release. Format: MAJOR.MINOR.PATCH.
 		// See phonedmrapp/.github/copilot-instructions.md → OpenGD77 Fork section.
 		// =====================================================================
-		public const string FORK_VERSION = "1.5.0";
+		public const string FORK_VERSION = "1.5.1";
 		public const string FORK_NAME    = "DMRModHooks / PriInterPhone fork";
 
 		//private IContainer components;
@@ -48,8 +48,34 @@ namespace DMR
 				"(Ulefone Armor 26 Ultra et al.) running the DMRModHooks LSPosed module.\n" +
 				"DO NOT use this build to manage a stock Radioddity/Baofeng GD-77 \u2014\n" +
 				"the relay, timeslot, and contact-ID round-trip fixes are specific to\n" +
-				"the Android database and will corrupt a real GD-77 codeplug.\n\n" +
-				"Source: https://github.com/IIMacGyverII/OpenGD77CPS-Mac";
+				"the Android database and will corrupt a real GD-77 codeplug.";
+			this.AddForkAboutLinks();
+		}
+
+		private void AddForkAboutLinks()
+		{
+			LinkLabel lnkCps = new LinkLabel();
+			lnkCps.Text = "OpenGD77CPS-Mac source on GitHub";
+			lnkCps.Location = new Point(15, 348);
+			lnkCps.AutoSize = true;
+			lnkCps.LinkClicked += (s, e) =>
+			{
+				e.Link.Visited = true;
+				System.Diagnostics.Process.Start("https://github.com/IIMacGyverII/OpenGD77CPS-Mac");
+			};
+			LinkLabel lnkBuilds = new LinkLabel();
+			lnkBuilds.Text = "phonedmrapp OpenGD77Fork builds & release notes";
+			lnkBuilds.Location = new Point(15, 368);
+			lnkBuilds.AutoSize = true;
+			lnkBuilds.LinkClicked += (s, e) =>
+			{
+				e.Link.Visited = true;
+				System.Diagnostics.Process.Start("https://github.com/IIMacGyverII/phonedmrapp/tree/main/OpenGD77Fork");
+			};
+			this.Controls.Add(lnkCps);
+			this.Controls.Add(lnkBuilds);
+			lnkCps.BringToFront();
+			lnkBuilds.BringToFront();
 		}
 
 		private void btnClose_Click(object sender, EventArgs e)
