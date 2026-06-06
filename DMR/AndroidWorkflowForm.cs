@@ -100,15 +100,27 @@ namespace DMR
 			{
 				return;
 			}
+			ShowWorkflow(owner, true);
+#endif
+		}
+
+		public static void ShowWorkflow(IWin32Window owner)
+		{
+#if OpenGD77
+			ShowWorkflow(owner, false);
+#endif
+		}
+
+		private static void ShowWorkflow(IWin32Window owner, bool persistDismiss)
+		{
 			using (AndroidWorkflowForm dlg = new AndroidWorkflowForm())
 			{
 				dlg.ShowDialog(owner);
-				if (dlg.chkDismiss.Checked)
+				if (persistDismiss && dlg.chkDismiss.Checked)
 				{
 					IniFileUtils.WriteProfileString(IniSection, IniKeyDismissed, "yes");
 				}
 			}
-#endif
 		}
 
 		private static void OpenUrl(string url)

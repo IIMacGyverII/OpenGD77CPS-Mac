@@ -210,6 +210,16 @@ namespace DMR
 
 		private ToolStripMenuItem tsmiAdvanced;
 
+		private ToolStripMenuItem tsmiStockOpenGd77;
+
+		private ToolStripMenuItem tsmiWorkflowHelp;
+
+		private ToolStripMenuItem tsmiKeyboardShortcuts;
+
+		private ToolStripButton tsbtnWorkflowHelp;
+
+		private bool forkAdvancedMenuBuilt;
+
 		private ToolStripStatusLabel slblCodeplugHealth;
 
 		private bool codeplugHealthLinkWired;
@@ -723,17 +733,6 @@ namespace DMR
 			this.tsmiWrite.Size = new Size(156, 22);
 			this.tsmiWrite.Text = "Write";
 			this.tsmiWrite.Click += this.tsbtnWrite_Click;
-			this.tsmiAdvanced.DropDownItems.AddRange(new ToolStripItem[]
-			{
-				this.tsmiRead,
-				this.tsmiWrite,
-				new ToolStripSeparator(),
-				this.tsmiFirmwareLoader,
-				this.tsmiCalibration,
-				this.tsmiOpenGD77,
-				this.tsmiContactsDownload,
-				this.tsmiDMRID
-			});
 			this.tsmiAdvanced.Name = "tsmiAdvanced";
 			this.tsmiAdvanced.Size = new Size(71, 21);
 			this.tsmiAdvanced.Text = "Advanced";
@@ -782,14 +781,7 @@ namespace DMR
 			this.tsmiExtras.Name = "tsmiExtras";
 			this.tsmiExtras.Size = new Size(77, 21);
 			this.tsmiExtras.Text = "Extras";
-			this.tsmiExtras.DropDownItems.AddRange(new ToolStripItem[]
-			{
-				this.tsmiContactsDownload,
-				this.tsmiCalibration,
-				this.tsmiDMRID,
-				tsmiOpenGD77,
-				tsmiFirmwareLoader
-			});
+			this.tsmiExtras.Visible = false;
 
 			this.tsmiContactsDownload.Name = "tsmiContactsDownload";
 			//this.tsmiContactsDownload.ShortcutKeys = (Keys)131154;
@@ -1526,6 +1518,8 @@ namespace DMR
 			{
 				this.tsmiFile.Text = "File";
 			}
+			this.EnsureForkAdvancedMenu();
+			this.EnsureForkHelpMenu();
 			if (this.tsmiRestoreLayout == null)
 			{
 				this.tsmiRestoreLayout = new ToolStripMenuItem("Restore PriInterPhone default layout…");
@@ -1534,6 +1528,88 @@ namespace DMR
 				this.tsmiView.DropDownItems.Add(this.tsmiRestoreLayout);
 			}
 #endif
+		}
+
+		private void EnsureForkAdvancedMenu()
+		{
+#if OpenGD77
+			if (this.forkAdvancedMenuBuilt)
+			{
+				return;
+			}
+			ToolStripItem[] stockItems = new ToolStripItem[]
+			{
+				this.tsmiFirmwareLoader,
+				this.tsmiCalibration,
+				this.tsmiOpenGD77,
+				this.tsmiContactsDownload,
+				this.tsmiDMRID
+			};
+			foreach (ToolStripItem item in stockItems)
+			{
+				if (item == null)
+				{
+					continue;
+				}
+				ToolStrip parent = item.GetCurrentParent();
+				if (parent != null)
+				{
+					parent.Items.Remove(item);
+				}
+			}
+			this.tsmiAdvanced.DropDownItems.Clear();
+			this.tsmiAdvanced.DropDownItems.Add(this.tsmiRead);
+			this.tsmiAdvanced.DropDownItems.Add(this.tsmiWrite);
+			this.tsmiAdvanced.DropDownItems.Add(new ToolStripSeparator());
+			this.tsmiStockOpenGd77 = new ToolStripMenuItem("Stock OpenGD77 / USB");
+			this.tsmiStockOpenGd77.DropDownItems.AddRange(stockItems);
+			this.tsmiAdvanced.DropDownItems.Add(this.tsmiStockOpenGd77);
+			this.tsmiAdvanced.Text = "Advanced";
+			this.forkAdvancedMenuBuilt = true;
+#endif
+		}
+
+		private void EnsureForkHelpMenu()
+		{
+#if OpenGD77
+			if (this.tsmiWorkflowHelp == null)
+			{
+				this.tsmiWorkflowHelp = new ToolStripMenuItem("PriInterPhone workflow help…");
+				this.tsmiWorkflowHelp.Click += this.tsmiWorkflowHelp_Click;
+				this.tsmiKeyboardShortcuts = new ToolStripMenuItem("Keyboard shortcuts…");
+				this.tsmiKeyboardShortcuts.Click += this.tsmiKeyboardShortcuts_Click;
+				this.tsmiView.DropDownItems.Insert(0, this.tsmiKeyboardShortcuts);
+				this.tsmiView.DropDownItems.Insert(0, this.tsmiWorkflowHelp);
+				this.tsmiView.DropDownItems.Insert(2, new ToolStripSeparator());
+			}
+			if (this.tsbtnWorkflowHelp == null)
+			{
+				this.tsbtnWorkflowHelp = new ToolStripButton();
+				this.tsbtnWorkflowHelp.DisplayStyle = ToolStripItemDisplayStyle.Text;
+				this.tsbtnWorkflowHelp.Text = "Help";
+				this.tsbtnWorkflowHelp.ToolTipText = "PriInterPhone workflow help (F1)";
+				this.tsbtnWorkflowHelp.Click += this.tsmiWorkflowHelp_Click;
+				int aboutIndex = this.tsrMain.Items.IndexOf(this.tsbtnAbout);
+				if (aboutIndex >= 0)
+				{
+					this.tsrMain.Items.Insert(aboutIndex, this.tsbtnWorkflowHelp);
+				}
+				else
+				{
+					this.tsrMain.Items.Add(this.tsbtnWorkflowHelp);
+				}
+			}
+#endif
+		}
+
+		private void tsmiWorkflowHelp_Click(object sender, EventArgs e)
+		{
+			AndroidWorkflowForm.ShowWorkflow(this);
+		}
+
+		private void tsmiKeyboardShortcuts_Click(object sender, EventArgs e)
+		{
+			ForkKeyboardShortcutsForm.Show(this);
 		}
 
 		private void tsmiRestoreLayout_Click(object sender, EventArgs e)
@@ -1815,6 +1891,11 @@ namespace DMR
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
 		{
 #if OpenGD77
+			if (keyData == Keys.F1)
+			{
+				AndroidWorkflowForm.ShowWorkflow(this);
+				return true;
+			}
 			if (keyData == (Keys.Control | Keys.I))
 			{
 				this.tsmiImportCsv_Click(this, EventArgs.Empty);
