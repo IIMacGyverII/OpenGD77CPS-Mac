@@ -2311,7 +2311,7 @@ namespace DMR
 			this.ClientSize = new System.Drawing.Size(1136, 531);
 			this.Controls.Add(this.btnImportClearAll);
 			this.Controls.Add(this.pnlChannel);
-			this.Font = new System.Drawing.Font("Arial", 10F);
+			this.Font = Theme.UiFont;
 			this.Name = "ChannelsForm";
 			this.Text = "Channels";
 			this.Load += new System.EventHandler(this.ChannelsForm_Load);

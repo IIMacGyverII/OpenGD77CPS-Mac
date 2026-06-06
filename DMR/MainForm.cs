@@ -993,7 +993,7 @@ namespace DMR
 			tabGradient.StartColor = SystemColors.Control;
 			tabGradient.TextColor = SystemColors.ControlDarkDark;
 			autoHideStripSkin.TabGradient = tabGradient;
-			autoHideStripSkin.TextFont = new Font("Microsoft Yahei", 9f);
+			autoHideStripSkin.TextFont = Theme.UiFontSmall;
 			dockPanelSkin.AutoHideStripSkin = autoHideStripSkin;
 			tabGradient2.EndColor = SystemColors.ControlLightLight;
 			tabGradient2.StartColor = SystemColors.ControlLightLight;
@@ -1007,7 +1007,7 @@ namespace DMR
 			tabGradient3.TextColor = SystemColors.ControlText;
 			dockPaneStripGradient.InactiveTabGradient = tabGradient3;
 			dockPaneStripSkin.DocumentGradient = dockPaneStripGradient;
-			dockPaneStripSkin.TextFont = new Font("Microsoft Yahei", 9f);
+			dockPaneStripSkin.TextFont = Theme.UiFontSmall;
 			tabGradient4.EndColor = SystemColors.ActiveCaption;
 			tabGradient4.LinearGradientMode = LinearGradientMode.Vertical;
 			tabGradient4.StartColor = SystemColors.GradientActiveCaption;
@@ -1430,7 +1430,7 @@ namespace DMR
 			this.imgMain.Images.Clear();
 			this.imgMain.Images.AddStrip(Resources.smethod_0());
 			base.AutoScaleMode = AutoScaleMode.Font;
-			this.Font = new Font("Arial", 10f, FontStyle.Regular);
+			this.Font = Theme.UiFont;
 			this.GetAllLang();
 
 

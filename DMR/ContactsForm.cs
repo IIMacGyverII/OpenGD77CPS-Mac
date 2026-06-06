@@ -307,7 +307,7 @@ namespace DMR
 			// 
 			this.ClientSize = new System.Drawing.Size(965, 381);
 			this.Controls.Add(this.pnlContact);
-			this.Font = new System.Drawing.Font("Arial", 10F);
+			this.Font = Theme.UiFont;
 			this.Name = "ContactsForm";
 			this.Text = "Contacts";
 			this.pnlContact.ResumeLayout(false);

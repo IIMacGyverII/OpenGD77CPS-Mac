@@ -1071,7 +1071,7 @@ namespace DMR
 			// 
 			this.ClientSize = new System.Drawing.Size(314, 267);
 			this.Controls.Add(this.pnlContact);
-			this.Font = new System.Drawing.Font("Arial", 10F);
+			this.Font = Theme.UiFont;
 			this.Name = "ContactForm";
 			this.Text = "Digital Contact";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ContactForm_FormClosing);

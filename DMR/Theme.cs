@@ -10,6 +10,11 @@ namespace DMR
 	/// </summary>
 	public static class Theme
 	{
+		/// <summary>Tier 1.2 — default UI font for fork shell and editors.</summary>
+		public static readonly Font UiFont = new Font("Segoe UI", 9.75f, FontStyle.Regular);
+
+		public static readonly Font UiFontSmall = new Font("Segoe UI", 9f, FontStyle.Regular);
+
 		public static readonly Color Background = Color.FromArgb(0x0A, 0x15, 0x20);
 		public static readonly Color Chrome = Color.FromArgb(0x06, 0x0D, 0x14);
 		public static readonly Color Accent = Color.FromArgb(0x1E, 0x3A, 0x5F);
@@ -124,7 +129,7 @@ namespace DMR
 				return;
 			}
 
-			skin.AutoHideStripSkin.TextFont = new Font("Segoe UI", 9f);
+			skin.AutoHideStripSkin.TextFont = UiFontSmall;
 			skin.AutoHideStripSkin.DockStripGradient.StartColor = Chrome;
 			skin.AutoHideStripSkin.DockStripGradient.EndColor = Chrome;
 			skin.AutoHideStripSkin.TabGradient.StartColor = Accent;
@@ -140,7 +145,7 @@ namespace DMR
 			document.InactiveTabGradient.StartColor = Chrome;
 			document.InactiveTabGradient.EndColor = Background;
 			document.InactiveTabGradient.TextColor = MutedForeground;
-			skin.DockPaneStripSkin.TextFont = new Font("Segoe UI", 9f);
+			skin.DockPaneStripSkin.TextFont = UiFontSmall;
 
 			DockPaneStripToolWindowGradient tool = skin.DockPaneStripSkin.ToolWindowGradient;
 			tool.DockStripGradient.StartColor = Chrome;

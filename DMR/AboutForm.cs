@@ -12,7 +12,7 @@ namespace DMR
 		// inside a DMRModHooks release. Format: MAJOR.MINOR.PATCH.
 		// See phonedmrapp/.github/copilot-instructions.md → OpenGD77 Fork section.
 		// =====================================================================
-		public const string FORK_VERSION = "1.5.4";
+		public const string FORK_VERSION = "1.5.5";
 		public const string FORK_NAME    = "DMRModHooks / PriInterPhone fork";
 
 		//private IContainer components;
@@ -146,7 +146,7 @@ namespace DMR
 			this.lblForkInfo.Size = new System.Drawing.Size(380, 160);
 			this.lblForkInfo.TabIndex = 0;
 			this.lblForkInfo.TextAlign = System.Drawing.ContentAlignment.TopLeft;
-			this.lblForkInfo.Font = new System.Drawing.Font("Arial", 8.5F, System.Drawing.FontStyle.Bold);
+			this.lblForkInfo.Font = new System.Drawing.Font("Segoe UI", 8.75F, System.Drawing.FontStyle.Bold);
 			this.lblForkInfo.ForeColor = System.Drawing.Color.DarkRed;
 			// 
 			// AboutForm
@@ -157,7 +157,7 @@ namespace DMR
 			this.Controls.Add(this.lblForkInfo);
 			this.Controls.Add(this.lblTranslationCredit);
 			this.Controls.Add(this.lblVersion);
-			this.Font = new System.Drawing.Font("Arial", 10F);
+			this.Font = Theme.UiFont;
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
 			this.Name = "AboutForm";
