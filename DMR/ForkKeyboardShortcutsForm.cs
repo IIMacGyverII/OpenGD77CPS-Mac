@@ -34,7 +34,7 @@ namespace DMR
 						"  F2         Open channel editor\n" +
 						"  Del        Delete selected channel(s)\n" +
 						"  Ctrl+D     Duplicate selected channel(s)\n" +
-						"  Click row  Load channel in editor (when already open)\n\n" +
+						"  Click row  Open channel in editor\n\n" +
 						"Channel editor\n" +
 						"  Ctrl+Z     Revert to state when channel was opened\n\n" +
 						"Contacts grid\n" +

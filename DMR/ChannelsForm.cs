@@ -44,6 +44,12 @@ namespace DMR
 		private ContextMenuStrip cmsGrid;
 		private int forkSortColumn = -1;
 		private bool forkSortAscending = true;
+		private bool forkChannelClickHandled;
+		private bool forkActivatingRow;
+		private int forkActiveChannelDataIndex = -1;
+		private static readonly Color ForkActiveRowBack = Color.FromArgb(0xC5, 0xD8, 0xF0);
+		private static readonly Color ForkActiveRowFore = Color.FromArgb(0x0A, 0x2A, 0x52);
+		private static readonly Color ForkActiveRowBorder = Color.FromArgb(0x1E, 0x5A, 0x9E);
 
 		public TreeNode Node
 		{
@@ -109,6 +115,7 @@ namespace DMR
 			this.DispData();
 			this.cmbAddChMode.SelectedIndex = 0;
 			Theme.ApplyStandardEditorColors(this);
+			this.SyncActiveChannelHighlightFromEditor();
 		}
 
 		private void EnsureChannelFilterBox()
@@ -124,7 +131,7 @@ namespace DMR
 			this.txtChannelFilter.Size = new System.Drawing.Size(180, 23);
 			this.txtChannelFilter.TextChanged += this.txtChannelFilter_TextChanged;
 			this.lblChannelsGridHint = new Label();
-			this.lblChannelsGridHint.Text = "D=blue digital · A=amber analog · G=green · P=orange · A(gray)=all-call · double-click/F2 opens editor · header sorts";
+			this.lblChannelsGridHint.Text = "D=blue digital · A=amber analog · G=green · P=orange · A(gray)=all-call · click row/F2 opens editor (blue row = active) · header sorts";
 			this.lblChannelsGridHint.AutoSize = false;
 			this.lblChannelsGridHint.Size = new System.Drawing.Size(1100, 18);
 			this.lblChannelsGridHint.ForeColor = System.Drawing.SystemColors.GrayText;
@@ -246,6 +253,21 @@ namespace DMR
 				this.forkSortAscending = true;
 			}
 			this.SortChannelsGrid(e.ColumnIndex, this.forkSortAscending);
+			this.RefreshSortHeaderGlyphs();
+		}
+
+		private void RefreshSortHeaderGlyphs()
+		{
+			string[] headers = SZ_DISPLAY_HEADER_TEXT;
+			for (int i = 0; i < this.dgvChannels.Columns.Count && i < headers.Length; i++)
+			{
+				string text = headers[i];
+				if (i == this.forkSortColumn)
+				{
+					text += this.forkSortAscending ? " \u25B2" : " \u25BC";
+				}
+				this.dgvChannels.Columns[i].HeaderText = text;
+			}
 		}
 
 		private void SortChannelsGrid(int columnIndex, bool ascending)
@@ -278,7 +300,21 @@ namespace DMR
 				this.dgvChannels.Rows[index].Tag = tags[i];
 			}
 			this.ApplyChannelFilter();
-			this.dgvChannels.CurrentCell = null;
+			if (this.forkActiveChannelDataIndex >= 0)
+			{
+				foreach (DataGridViewRow row in this.dgvChannels.Rows)
+				{
+					if (!row.IsNewRow && row.Tag != null && (int)row.Tag == this.forkActiveChannelDataIndex)
+					{
+						this.ForkActivateGridRow(row, 0, false);
+						break;
+					}
+				}
+			}
+			else
+			{
+				this.dgvChannels.CurrentCell = null;
+			}
 		}
 
 		private int CompareChannelRows(DataGridViewRow a, DataGridViewRow b, int columnIndex, bool ascending)
@@ -1599,6 +1635,7 @@ namespace DMR
 			this.dgvChannels.AllowUserToResizeRows = false;
 			this.dgvChannels.AllowUserToOrderColumns = false;
 			this.dgvChannels.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+			this.dgvChannels.MultiSelect = false;
 			ForkGridBadges.EnableGridPolish(this.dgvChannels);
 			DataGridViewTextBoxColumn dataGridViewTextBoxColumn = null;
 			string[] sZ_HEADER_TEXT = SZ_DISPLAY_HEADER_TEXT;
@@ -1613,6 +1650,7 @@ namespace DMR
 				this.dgvChannels.Columns.Add(dataGridViewTextBoxColumn);
 			}
 			this.RestoreColumnVisibility();
+			this.dgvChannels.CellMouseDown += this.dgvChannels_CellMouseDown;
 			this.dgvChannels.CellDoubleClick += this.dgvChannels_CellDoubleClick;
 			this.dgvChannels.CellFormatting += this.dgvChannels_CellFormatting;
 			this.dgvChannels.ColumnHeaderMouseClick += this.dgvChannels_ColumnHeaderMouseClick;
@@ -1665,10 +1703,29 @@ namespace DMR
 				DataGridView dataGridView = sender as DataGridView;
 				if (e.RowIndex >= dataGridView.FirstDisplayedScrollingRowIndex)
 				{
-					using (SolidBrush brush = new SolidBrush(dataGridView.RowHeadersDefaultCellStyle.ForeColor))
+					DataGridViewRow paintRow = dataGridView.Rows[e.RowIndex];
+					bool isActive = paintRow.Tag != null && (int)paintRow.Tag == this.forkActiveChannelDataIndex;
+					Rectangle headerBounds = new Rectangle(
+						e.RowBounds.Left,
+						e.RowBounds.Top,
+						dataGridView.RowHeadersWidth,
+						e.RowBounds.Height);
+					if (isActive)
+					{
+						using (SolidBrush back = new SolidBrush(ForkActiveRowBack))
+						{
+							e.Graphics.FillRectangle(back, headerBounds);
+						}
+						using (Pen border = new Pen(ForkActiveRowBorder, 2f))
+						{
+							e.Graphics.DrawLine(border, headerBounds.Right - 1, headerBounds.Top, headerBounds.Right - 1, headerBounds.Bottom);
+						}
+					}
+					Color fore = isActive ? ForkActiveRowFore : dataGridView.RowHeadersDefaultCellStyle.ForeColor;
+					using (SolidBrush brush = new SolidBrush(fore))
 					{
 						string s = (e.RowIndex + 1).ToString();
-						e.Graphics.DrawString(s, e.InheritedRowStyle.Font, brush, (float)(e.RowBounds.Location.X + 15), (float)(e.RowBounds.Location.Y + 5));
+						e.Graphics.DrawString(s, e.InheritedRowStyle.Font, brush, (float)(headerBounds.Left + 15), (float)(headerBounds.Top + 5));
 					}
 				}
 			}
@@ -1681,20 +1738,128 @@ namespace DMR
 		private void dgvChannels_SelectionChanged(object sender, EventArgs e)
 		{
 			this.updateAddAndDeleteButtons();
-			if (this.dgvChannels.SelectedRows.Count != 1)
+			if (this.forkChannelClickHandled)
+			{
+				this.forkChannelClickHandled = false;
+				return;
+			}
+			if (this.forkActivatingRow)
 			{
 				return;
 			}
+			DataGridViewRow row = this.dgvChannels.CurrentRow;
+			if (row == null || row.IsNewRow || !row.Selected || row.Tag == null)
+			{
+				return;
+			}
+			this.BeginInvoke(new Action(() => this.ForkActivateGridRow(row, 0, true)));
+		}
+
+		private void dgvChannels_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+		{
+			if (e.Button != MouseButtons.Left)
+			{
+				return;
+			}
+			if (e.RowIndex < 0 || e.ColumnIndex < 0)
+			{
+				return;
+			}
+			if (e.RowIndex >= this.dgvChannels.Rows.Count)
+			{
+				return;
+			}
+			this.forkChannelClickHandled = true;
+			this.ForkActivateGridRow(this.dgvChannels.Rows[e.RowIndex], e.ColumnIndex, true);
+		}
+
+		private void dgvChannels_RowHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+		{
+			if (e.RowIndex < 0 || e.RowIndex >= this.dgvChannels.Rows.Count)
+			{
+				return;
+			}
+			this.forkChannelClickHandled = true;
+			this.ForkActivateGridRow(this.dgvChannels.Rows[e.RowIndex], 0, true);
+		}
+
+		private void ForkActivateGridRow(DataGridViewRow row, int columnIndex, bool openEditor)
+		{
+			if (row == null || row.IsNewRow || row.Tag == null)
+			{
+				return;
+			}
+			if (this.forkActivatingRow)
+			{
+				return;
+			}
+			this.forkActivatingRow = true;
+			try
+			{
+				this.forkActiveChannelDataIndex = (int)row.Tag;
+				if (this.dgvChannels.SelectedRows.Count != 1 || this.dgvChannels.SelectedRows[0] != row)
+				{
+					this.dgvChannels.ClearSelection();
+					row.Selected = true;
+				}
+				int cellCol = columnIndex >= 0 && columnIndex < row.Cells.Count ? columnIndex : 0;
+				if (this.dgvChannels.CurrentCell == null || this.dgvChannels.CurrentCell.OwningRow != row)
+				{
+					this.dgvChannels.CurrentCell = row.Cells[cellCol];
+				}
+				this.ForkScrollRowIntoView(row.Index);
+				this.dgvChannels.Invalidate();
+				if (openEditor)
+				{
+					this.OpenChannelEditorForRow(row);
+				}
+			}
+			finally
+			{
+				this.forkActivatingRow = false;
+			}
+		}
+
+		private void ForkScrollRowIntoView(int rowIndex)
+		{
+			if (rowIndex < 0 || rowIndex >= this.dgvChannels.Rows.Count)
+			{
+				return;
+			}
+			int first = this.dgvChannels.FirstDisplayedScrollingRowIndex;
+			int visible = this.dgvChannels.DisplayedRowCount(false);
+			if (rowIndex < first || rowIndex >= first + visible)
+			{
+				this.dgvChannels.FirstDisplayedScrollingRowIndex = rowIndex;
+			}
+		}
+
+		private void SyncActiveChannelHighlightFromEditor()
+		{
 			MainForm mainForm = this.GetMainForm();
-			if (mainForm == null || !mainForm.IsChannelEditorOpen())
+			if (mainForm == null)
 			{
 				return;
 			}
-			DataGridViewRow row = this.dgvChannels.SelectedRows[0];
-			if (row.Tag != null)
+			int openIndex = mainForm.GetOpenChannelEditorDataIndex();
+			if (openIndex < 0)
 			{
-				mainForm.OpenChannelEditorByDataIndex((int)row.Tag);
+				return;
 			}
+			this.forkActiveChannelDataIndex = openIndex;
+			foreach (DataGridViewRow row in this.dgvChannels.Rows)
+			{
+				if (row.IsNewRow || row.Tag == null)
+				{
+					continue;
+				}
+				if ((int)row.Tag == openIndex)
+				{
+					this.ForkActivateGridRow(row, 0, false);
+					return;
+				}
+			}
+			this.dgvChannels.Invalidate();
 		}
 
 		private void dgvChannels_RowHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
@@ -1752,12 +1917,15 @@ namespace DMR
 			{
 				return;
 			}
+			int dataIndex = (int)row.Tag;
+			this.forkActiveChannelDataIndex = dataIndex;
+			this.dgvChannels.Invalidate();
 			MainForm mainForm = this.GetMainForm();
 			if (mainForm == null)
 			{
 				return;
 			}
-			mainForm.OpenChannelEditorByDataIndex((int)row.Tag);
+			mainForm.OpenChannelEditorByDataIndex(dataIndex);
 		}
 
 		private MainForm GetMainForm()
@@ -2084,14 +2252,22 @@ namespace DMR
 			{
 				return;
 			}
+			bool isActive = row.Tag != null && (int)row.Tag == this.forkActiveChannelDataIndex;
 			if (e.ColumnIndex == 2)
 			{
 				ForkGridBadges.ApplyChannelModeStyle(e, Convert.ToString(e.Value) ?? "");
-				return;
 			}
-			if (e.ColumnIndex == 8)
+			else if (e.ColumnIndex == 8)
 			{
 				ForkGridBadges.ApplyContactTypeStyle(e, Convert.ToString(e.Value) ?? "-");
+			}
+			if (isActive)
+			{
+				e.CellStyle.BackColor = ForkActiveRowBack;
+				e.CellStyle.ForeColor = ForkActiveRowFore;
+				e.CellStyle.SelectionBackColor = ForkActiveRowBack;
+				e.CellStyle.SelectionForeColor = ForkActiveRowFore;
+				e.CellStyle.Font = Theme.UiFontBold;
 			}
 		}
 
@@ -2439,6 +2615,7 @@ namespace DMR
 			this.dgvChannels.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
 			this.dgvChannels.Size = new System.Drawing.Size(1110, 457);
 			this.dgvChannels.TabIndex = 9;
+			this.dgvChannels.RowHeaderMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvChannels_RowHeaderMouseClick);
 			this.dgvChannels.RowHeaderMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dgvChannels_RowHeaderMouseDoubleClick);
 			this.dgvChannels.RowPostPaint += new System.Windows.Forms.DataGridViewRowPostPaintEventHandler(this.NligzloMrR);
 			this.dgvChannels.SelectionChanged += new System.EventHandler(this.dgvChannels_SelectionChanged);

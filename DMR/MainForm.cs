@@ -4980,10 +4980,6 @@ namespace DMR
 			{
 				return;
 			}
-			if (this.GetOpenChannelEditorDataIndex() == dataIndex)
-			{
-				return;
-			}
 			TreeNode channelNode = this.GetTreeNodeByTypeAndIndex(typeof(ChannelForm), dataIndex, this.tvwMain.Nodes);
 			if (channelNode == null)
 			{

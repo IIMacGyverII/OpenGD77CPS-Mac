@@ -99,6 +99,33 @@ namespace DMR
 			grid.BackgroundColor = Color.White;
 			grid.DefaultCellStyle.BackColor = Color.White;
 			grid.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(0xE8, 0xF0, 0xF8);
+			grid.DefaultCellStyle.SelectionBackColor = Color.FromArgb(0xC5, 0xD8, 0xF0);
+			grid.DefaultCellStyle.SelectionForeColor = Color.FromArgb(0x0A, 0x2A, 0x52);
+			ApplyFlatGridHeaders(grid);
+		}
+
+		/// <summary>Stop column/row headers changing color when a cell in that column is selected.</summary>
+		public static void ApplyFlatGridHeaders(DataGridView grid)
+		{
+			if (grid == null)
+			{
+				return;
+			}
+			grid.EnableHeadersVisualStyles = false;
+			Color headerBack = Color.FromArgb(0xE8, 0xEE, 0xF4);
+			Color headerFore = Color.FromArgb(0x2A, 0x3A, 0x4A);
+			grid.ColumnHeadersDefaultCellStyle.BackColor = headerBack;
+			grid.ColumnHeadersDefaultCellStyle.ForeColor = headerFore;
+			grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = headerBack;
+			grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = headerFore;
+			grid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+			grid.ColumnHeadersDefaultCellStyle.Font = Theme.UiFontBold;
+			grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+			grid.RowHeadersDefaultCellStyle.BackColor = headerBack;
+			grid.RowHeadersDefaultCellStyle.ForeColor = headerFore;
+			grid.RowHeadersDefaultCellStyle.SelectionBackColor = headerBack;
+			grid.RowHeadersDefaultCellStyle.SelectionForeColor = headerFore;
+			grid.RowHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
 		}
 	}
 }
