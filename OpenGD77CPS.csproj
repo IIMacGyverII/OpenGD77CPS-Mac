@@ -309,6 +309,7 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="DMR\RxGroupListsForm.cs" />
+    <Compile Include="DMR\ScanListsForm.cs" />
     <Compile Include="DMR\RxGroupListForm.cs">
       <SubType>Form</SubType>
     </Compile>

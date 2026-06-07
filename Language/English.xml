@@ -587,6 +587,11 @@
 			<Control Id="dgvRxLists" Text="#,Name,Contacts,1st contact" />
 		</Controls>
 	</RxGroupListsForm>
+	<ScanListsForm Text="Scan Lists">
+		<Controls>
+			<Control Id="dgvScanLists" Text="#,Name,Channels,1st channel,TB" />
+		</Controls>
+	</ScanListsForm>
 	<SignalingBasicForm Text="Signaling Basic">
 		<Controls>
 			<Control Id="chkCallAlert" Text="Call Alert Encode" />

@@ -2530,6 +2530,14 @@ namespace DMR
 					rxListsGrid.RefreshSingleRow(index);
 				}
 			}
+			else if (type == typeof(NormalScanForm))
+			{
+				ISingleRow scanListsGrid = this.GetForm(typeof(ScanListsForm));
+				if (scanListsGrid != null)
+				{
+					scanListsGrid.RefreshSingleRow(index);
+				}
+			}
 #endif
 		}
 
@@ -2584,6 +2592,18 @@ namespace DMR
 			}
 			else if (type == typeof(NormalScanForm))
 			{
+#if OpenGD77
+				int scanIndex = this.GetOpenScanEditorDataIndex();
+				ISingleRow scanListsGrid = this.GetForm(typeof(ScanListsForm));
+				if (scanListsGrid != null && scanIndex >= 0)
+				{
+					scanListsGrid.RefreshSingleRow(scanIndex);
+				}
+				else
+				{
+					this.RefreshForm(typeof(ScanListsForm));
+				}
+#endif
 				this.RefreshForm(typeof(ChannelForm));
 			}
 			else if (type == typeof(ChannelForm))
@@ -2641,6 +2661,10 @@ namespace DMR
 			else if (type == typeof(RxGroupListsForm))
 			{
 				this.RefreshForm(typeof(RxGroupListForm));
+			}
+			else if (type == typeof(ScanListsForm))
+			{
+				this.RefreshForm(typeof(NormalScanForm));
 			}
 #endif
 			else if (type == typeof(ZoneForm))
@@ -3002,6 +3026,10 @@ namespace DMR
 					}
 					else if (treeNodeItem.Type == typeof(RxGroupListForm)
 						|| treeNodeItem.Type == typeof(RxGroupListsForm))
+					{
+						value = 16;
+					}
+					else if (treeNodeItem.Type == typeof(ScanListsForm))
 					{
 						value = 16;
 					}
@@ -4495,16 +4523,16 @@ namespace DMR
 
 		private void tsmiScanBasic_Click(object sender, EventArgs e)
 		{
-			TreeNode treeNode = this.method_9(typeof(ScanBasicForm), this.tvwMain.Nodes);
-			if (treeNode != null)
-			{
-				this.method_7(treeNode, true);
-			}
+			this.OpenScanBasicForm();
 		}
 
 		private void tsmiScanList_Click(object sender, EventArgs e)
 		{
+#if OpenGD77
+			TreeNode treeNode = this.method_9(typeof(ScanListsForm), this.tvwMain.Nodes);
+#else
 			TreeNode treeNode = this.method_9(typeof(NormalScanForm), this.tvwMain.Nodes);
+#endif
 			if (treeNode != null)
 			{
 				this.method_7(treeNode, true);
@@ -5438,6 +5466,63 @@ namespace DMR
 			}
 		}
 
+		public int GetOpenScanEditorDataIndex()
+		{
+			foreach (Form form in base.MdiChildren)
+			{
+				if (form.GetType() == typeof(NormalScanForm) && form.Visible && form.Tag != null)
+				{
+					return Convert.ToInt32(form.Tag);
+				}
+			}
+			return -1;
+		}
+
+		public void OpenScanEditorByDataIndex(int dataIndex)
+		{
+			if (dataIndex < 0 || !NormalScanForm.data.DataIsValid(dataIndex))
+			{
+				return;
+			}
+			TreeNode scanNode = this.GetTreeNodeByTypeAndIndex(typeof(NormalScanForm), dataIndex, this.tvwMain.Nodes);
+			if (scanNode == null)
+			{
+#if OpenGD77
+				TreeNode scanRoot = this.ForkLayoutFindNode(typeof(ScanListsForm));
+				if (scanRoot != null)
+				{
+					this.InitScans(scanRoot);
+					scanNode = this.GetTreeNodeByTypeAndIndex(typeof(NormalScanForm), dataIndex, this.tvwMain.Nodes);
+				}
+#endif
+			}
+			if (scanNode != null)
+			{
+				this.method_7(scanNode, true);
+			}
+		}
+
+		private void OpenScanBasicForm()
+		{
+			foreach (Form form in base.MdiChildren)
+			{
+				if (form.GetType() == typeof(ScanBasicForm))
+				{
+					form.Activate();
+					form.BringToFront();
+					return;
+				}
+			}
+			ScanBasicForm scanBasicForm = new ScanBasicForm();
+			scanBasicForm.MdiParent = this;
+			scanBasicForm.Show();
+			scanBasicForm.Focus();
+			scanBasicForm.BringToFront();
+#if OpenGD77
+			Theme.ApplyStandardEditorColors(scanBasicForm);
+#endif
+		}
+
 		private void OpenContactEditorDirect(int dataIndex)
 		{
 			TreeNode contactNode = this.GetTreeNodeByType(typeof(ContactForm), dataIndex);
@@ -5559,7 +5644,11 @@ namespace DMR
 #endif
 			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroup, typeof(ZoneBasicForm), typeof(ZoneForm), ZoneForm.NUM_ZONES, -1, 16, ZoneForm.data));
 			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroup, typeof(ChannelsForm), typeof(ChannelForm), ChannelForm.CurCntCh, -1, 17, ChannelForm.data));
+#if OpenGD77
+			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroup, typeof(ScanListsForm), typeof(NormalScanForm), 64, -1, 16, NormalScanForm.data));
+#else
 			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroup, typeof(ScanBasicForm), typeof(NormalScanForm), 64, -1, 16, NormalScanForm.data));
+#endif
 			this.lstTreeNodeItem.Add(new TreeNodeItem(null, null, null, 0, -1, 17, null));
 			int num = 0;
 			for (int i = 0; i < 2; i++)
@@ -5665,7 +5754,11 @@ namespace DMR
 			this.InitZones(parentNode);
 			parentNode = this.method_9(typeof(ChannelsForm), this.tvwMain.Nodes);
 			this.InitChannels(parentNode);
+#if OpenGD77
+			parentNode = this.method_9(typeof(ScanListsForm), this.tvwMain.Nodes);
+#else
 			parentNode = this.method_9(typeof(ScanBasicForm), this.tvwMain.Nodes);
+#endif
 			this.InitScans(parentNode);
 		}
 
@@ -5681,7 +5774,11 @@ namespace DMR
 			this.InitRxGroupLists(parentNode);
 			parentNode = this.method_9(typeof(ChannelsForm), this.tvwMain.Nodes);
 			this.InitChannels(parentNode);
+#if OpenGD77
+			parentNode = this.method_9(typeof(ScanListsForm), this.tvwMain.Nodes);
+#else
 			parentNode = this.method_9(typeof(ScanBasicForm), this.tvwMain.Nodes);
+#endif
 			this.InitScans(parentNode);
 			parentNode = this.method_9(typeof(ZoneBasicForm), this.tvwMain.Nodes);
 			this.InitZones(parentNode);

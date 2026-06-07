@@ -1243,6 +1243,14 @@ namespace DMR
 		private void NormalScanForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			this.SaveData();
+#if OpenGD77
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm != null && base.Tag != null)
+			{
+				int idx = Convert.ToInt32(base.Tag);
+				mainForm.RefreshRelatedForm(typeof(NormalScanForm), idx);
+			}
+#endif
 		}
 
 		private void method_4()
