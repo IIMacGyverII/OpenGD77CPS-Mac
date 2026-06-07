@@ -520,11 +520,22 @@ namespace DMR
 				e.Handled = true;
 				return;
 			}
+			if (e.Control && e.KeyCode == Keys.D)
+			{
+				this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty);
+				e.Handled = true;
+				return;
+			}
 			if (e.KeyCode == Keys.F7)
 			{
 				this.btnHealth_Click(this, EventArgs.Empty);
 				e.Handled = true;
 			}
+		}
+
+		private static bool HasPendingDiffChanges(AndroidImportDiffResult diff)
+		{
+			return diff != null && (diff.Added > 0 || diff.Changed > 0 || diff.Deleted > 0);
 		}
 
 		private void btnRecent_Click(object sender, EventArgs e)
@@ -891,6 +902,10 @@ namespace DMR
 			{
 				scrollId = "studio-post-import-health";
 			}
+			else if (diff != null && !this.diffPreApproved && HasPendingDiffChanges(diff))
+			{
+				scrollId = "studio-import-diff";
+			}
 			this.webReport.NavigateHtml(
 				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
 				scrollId);
@@ -903,6 +918,12 @@ namespace DMR
 			else if (integrity.HasWarnings)
 			{
 				this.lblReportStatus.Text = "Warnings — review before import";
+				this.lblReportStatus.ForeColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
+			}
+			else if (diff != null && !this.diffPreApproved && HasPendingDiffChanges(diff))
+			{
+				int pending = diff.Added + diff.Changed + diff.Deleted;
+				this.lblReportStatus.Text = pending + " channel change(s) — Review diff…";
 				this.lblReportStatus.ForeColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
 			}
 			else

@@ -87,7 +87,7 @@ namespace DMR
 
 			if (diff != null)
 			{
-				html.Append("<h2>Import diff preview</h2>");
+				html.Append("<h2 id=\"studio-import-diff\">Import diff preview</h2>");
 				html.Append("<table><tr><th>Added</th><th>Changed</th><th>Deleted</th><th>Unchanged</th></tr><tr>");
 				html.Append("<td class=\"ok\">").Append(diff.Added).Append("</td>");
 				html.Append("<td class=\"warn\">").Append(diff.Changed).Append("</td>");
@@ -149,11 +149,12 @@ namespace DMR
 				html.Append("<p>").Append(ForkReportHtml.Escape(integrity.Summary)).Append("</p>");
 				if (integrity.HasWarnings && integrity.Warnings != null && integrity.Warnings.Count > 0)
 				{
+					html.Append("<p class=\"foot\">Click a channel name (blue link) to open it in the loaded codeplug editor.</p>");
 					html.Append("<ul>");
 					int shown = 0;
 					foreach (string warning in integrity.Warnings)
 					{
-						html.Append("<li class=\"warn\">").Append(ForkReportHtml.Escape(warning)).Append("</li>");
+						html.Append("<li class=\"warn\">").Append(FormatIntegrityWarning(warning)).Append("</li>");
 						if (++shown >= 30)
 						{
 							break;
@@ -170,6 +171,31 @@ namespace DMR
 
 			html.Append(ForkReportHtml.DocumentEnd());
 			return html.ToString();
+		}
+
+		private static string FormatIntegrityWarning(string warning)
+		{
+			if (string.IsNullOrEmpty(warning))
+			{
+				return "";
+			}
+			int colon = warning.IndexOf(':');
+			if (colon <= 0)
+			{
+				return ForkReportHtml.Escape(warning);
+			}
+			string channelName = warning.Substring(0, colon).Trim();
+			if (string.IsNullOrEmpty(channelName))
+			{
+				return ForkReportHtml.Escape(warning);
+			}
+			int channelIndex = AndroidImportDiff.FindLoadedChannelIndexByName(channelName);
+			if (channelIndex < 0)
+			{
+				return ForkReportHtml.Escape(warning);
+			}
+			return ForkReportHtml.DrillLink("channel", channelIndex, channelName)
+				+ ForkReportHtml.Escape(warning.Substring(colon));
 		}
 
 		private static void AppendMetricRow(StringBuilder html, string label, string value, bool warn = false)

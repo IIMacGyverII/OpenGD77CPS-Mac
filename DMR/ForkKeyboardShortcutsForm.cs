@@ -35,6 +35,7 @@ namespace DMR
 						"Codeplug Studio\n" +
 						"  Ctrl+O     Browse backup folder\n" +
 						"  Ctrl+I     Import all (Path B)\n" +
+						"  Ctrl+D     Review diff…\n" +
 						"  Ctrl+E     Export all\n" +
 						"  F7         Codeplug health report\n" +
 						"  Recent     Pick a recently used backup folder\n" +
