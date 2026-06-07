@@ -225,15 +225,19 @@ namespace DMR
 		private void ApplyChannelFilter()
 		{
 			string query = this.txtChannelFilter == null ? "" : this.txtChannelFilter.Text.Trim();
+			int visible = 0;
+			int total = 0;
 			foreach (DataGridViewRow row in this.dgvChannels.Rows)
 			{
 				if (row.IsNewRow)
 				{
 					continue;
 				}
+				total++;
 				if (string.IsNullOrEmpty(query))
 				{
 					row.Visible = true;
+					visible++;
 					continue;
 				}
 				bool match = false;
@@ -247,6 +251,16 @@ namespace DMR
 					}
 				}
 				row.Visible = match;
+				if (match)
+				{
+					visible++;
+				}
+			}
+			if (this.lblChannelFilter != null)
+			{
+				this.lblChannelFilter.Text = string.IsNullOrEmpty(query)
+					? "Filter:"
+					: "Filter (" + visible + "/" + total + "):";
 			}
 		}
 

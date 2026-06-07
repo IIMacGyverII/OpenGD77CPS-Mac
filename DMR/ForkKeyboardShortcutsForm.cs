@@ -34,6 +34,7 @@ namespace DMR
 						"             Recent / drop folder — same recent list as Studio\n" +
 						"             Double-click a file row to open that CSV\n" +
 						"  Ctrl+Shift+S  Codeplug Studio — CSV-only backup workflow\n" +
+						"  CodeplugStudio.cmd  Thin Studio launcher in install folder\n" +
 						"  --studio      Launch Studio only (optional folder path)\n" +
 						"  folder path   Drag a backup folder onto OpenGD77CPS.exe to open Studio\n\n" +
 						"Codeplug Studio\n" +

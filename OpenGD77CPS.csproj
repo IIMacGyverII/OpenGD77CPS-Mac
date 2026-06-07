@@ -76,6 +76,9 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="app.manifest" />
+    <Content Include="CodeplugStudio.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

@@ -253,7 +253,7 @@ namespace DMR
 
 		private readonly List<ForkTreeFilterEntry> forkTreeFilterStash = new List<ForkTreeFilterEntry>();
 
-		private const string ForkStatusHintDefault = "Ctrl+Shift+S Studio | F8 backup | F7 health | F1 shortcuts";
+		private const string ForkStatusHintDefault = "CodeplugStudio.cmd | Ctrl+Shift+S Studio | F8 backup | F7 health | F1";
 
 		private sealed class ForkTreeFilterEntry
 		{

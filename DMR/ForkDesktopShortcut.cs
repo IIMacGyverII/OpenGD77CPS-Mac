@@ -57,7 +57,8 @@ namespace DMR
 				{
 					MessageBox.Show(owner,
 						"Desktop shortcut created:\n\n" + linkPath + "\n\n"
-						+ "Double-click it to open Codeplug Studio. Drag a backup folder onto the shortcut to load that folder.",
+						+ "Double-click it to open Codeplug Studio. Drag a backup folder onto the shortcut to load that folder.\n\n"
+						+ "You can also run CodeplugStudio.cmd from the CPS install folder.",
 						"Desktop shortcut",
 						MessageBoxButtons.OK,
 						MessageBoxIcon.Information);

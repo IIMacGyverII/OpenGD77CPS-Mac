@@ -40,7 +40,7 @@ namespace DMR
 					"1. Export the 5-file backup folder from the radio app (Contacts, TG_Lists, Channels, Zones, DTMF).\n" +
 					"2. On PC: use Pull from phone (ADB) if USB debugging is on, or copy the folder to Desktop/Documents (MTP browse in CPS does not work).\n" +
 					"3. On PC: Ctrl+Shift+S opens Codeplug Studio (CSV-only) or F8 for Android backup manager.\n" +
-					"   Tip: drag a backup folder onto OpenGD77CPS.exe, or create a Desktop shortcut (--studio) from Studio.\n" +
+					"   Tip: run CodeplugStudio.cmd, drag a folder onto OpenGD77CPS.exe, or create a Desktop shortcut from Studio.\n" +
 					"   Validate, Review diff, then Import all (Path B). Or File → Import CSV… / Ctrl+I.\n" +
 					"4. Edit channels in the tree; Android-only fields live in the PriInterPhone section on each channel.\n" +
 					"5. Export with File → Export CSV… or Ctrl+E. Files are UTF-8 without BOM.\n" +
