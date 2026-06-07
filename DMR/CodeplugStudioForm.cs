@@ -1027,7 +1027,15 @@ namespace DMR
 			{
 				statusColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
 			}
+			bool hasChannelsCsv = File.Exists(channelsPath);
 			this.SetReportStatusChip(statusSummary, statusColor);
+			ForkPostImportUi.ConfigureDiffLink(
+				this.lblReportStatus, diff, this.diffPreApproved, hasChannelsCsv,
+				() => this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty), this.footerTip);
+			if (!ForkPostImportUi.ShouldOfferDiffLink(diff, this.diffPreApproved, hasChannelsCsv))
+			{
+				this.footerTip.SetToolTip(this.lblReportStatus, ForkPostImportUi.FolderCaptionDefaultTip);
+			}
 
 			this.UpdateDiffImportButtons(channelsPath, diff);
 			return true;
@@ -1182,6 +1190,7 @@ namespace DMR
 			{
 				return;
 			}
+			ForkPostImportUi.ClearDiffLink(this.lblReportStatus, this.footerTip);
 			ForkPostImportUi.ClearHealthLink(this.lblReportStatus, this.footerTip);
 			ForkPostImportUi.ClearHealthButton(this.btnHealth, this.footerTip);
 			this.lblReportStatus.Text = text;

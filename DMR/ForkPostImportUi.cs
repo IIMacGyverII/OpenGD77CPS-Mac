@@ -22,6 +22,8 @@ namespace DMR
 		internal const string PostImportReportFootWarn = "Fix issues above or use amber status, Health ⚠ footer/toolbar/menu, or F7 for the full report.";
 		internal const string PostImportReportFootOk = "Click a highlighted name to open the editor.";
 		internal const string F8StudioBannerHealthHint = "Post-import scrolls to health · click names in health section, report link, amber status, Health ⚠ footer/toolbar, or F7";
+		internal const string PendingDiffLinkTip = "Click to review channel changes before import (Ctrl+D)";
+		internal const string FolderCaptionDefaultTip = "Re-validate CSVs in the loaded folder (F5)";
 
 		public static bool ImportHasHealthWarnings()
 		{
@@ -150,8 +152,79 @@ namespace DMR
 				&& ForkPostImportUi.ImportHasHealthWarnings();
 		}
 
+		public static bool ShouldOfferDiffLink(AndroidImportDiffResult diff, bool diffPreApproved, bool hasChannelsCsv)
+		{
+			return hasChannelsCsv
+				&& diff != null
+				&& !diffPreApproved
+				&& AndroidImportDiff.HasPendingDiffChanges(diff);
+		}
+
+		public static void ConfigureDiffLink(Label label, AndroidImportDiffResult diff, bool diffPreApproved, bool hasChannelsCsv, Action openReviewDiff, ToolTip toolTip = null)
+		{
+			ForkPostImportUi.ClearDiffLink(label, toolTip);
+			if (label == null || openReviewDiff == null || !ForkPostImportUi.ShouldOfferDiffLink(diff, diffPreApproved, hasChannelsCsv))
+			{
+				return;
+			}
+			label.Cursor = Cursors.Hand;
+			EventHandler handler = (s, e) => openReviewDiff();
+			label.Tag = handler;
+			label.Click += handler;
+			if (toolTip != null)
+			{
+				toolTip.SetToolTip(label, ForkPostImportUi.PendingDiffLinkTip);
+			}
+		}
+
+		public static void ClearDiffLink(Label label, ToolTip toolTip = null, string defaultTip = null)
+		{
+			if (label == null)
+			{
+				return;
+			}
+			EventHandler handler = label.Tag as EventHandler;
+			if (handler != null)
+			{
+				label.Click -= handler;
+				label.Tag = null;
+			}
+			label.Cursor = Cursors.Default;
+			if (toolTip != null && !string.IsNullOrEmpty(defaultTip))
+			{
+				toolTip.SetToolTip(label, defaultTip);
+			}
+		}
+
+		public static Color FolderStatusCaptionColor(
+			AndroidBackupValidationResult validation,
+			AndroidContactIntegrityResult integrity,
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv)
+		{
+			if (validation != null && validation.HasBlockingErrors)
+			{
+				return ForkPostImportUi.ErrColor;
+			}
+			if (integrity != null && integrity.HasWarnings)
+			{
+				return ForkPostImportUi.WarnColor;
+			}
+			if (ForkPostImportUi.ShouldOfferDiffLink(diff, diffPreApproved, hasChannelsCsv))
+			{
+				return ForkPostImportUi.WarnColor;
+			}
+			if (validation != null && !validation.HasBlockingErrors)
+			{
+				return ForkPostImportUi.OkColor;
+			}
+			return Theme.MutedForeground;
+		}
+
 		public static void ConfigureHealthLink(Label label, AndroidBatchResult batch, Action openHealthReport, ToolTip toolTip = null)
 		{
+			ForkPostImportUi.ClearDiffLink(label, toolTip);
 			ForkPostImportUi.ClearHealthLink(label, toolTip);
 			if (label == null || openHealthReport == null || !ForkPostImportUi.ShouldOfferHealthLink(batch))
 			{

@@ -677,11 +677,20 @@ namespace DMR
 			}
 			else
 			{
-				ForkPostImportUi.ClearHealthLink(this.lblReportCaption, this.footerTip, "Re-validate CSVs in the loaded folder (F5)");
+				bool hasChannelsCsv = File.Exists(channelsPath);
+				ForkPostImportUi.ClearHealthLink(this.lblReportCaption, this.footerTip);
 				ForkPostImportUi.ClearHealthButton(this.btnHealth, this.footerTip);
 				this.lblReportCaption.Text = AndroidBackupReportHtml.GetFolderStatusSummary(
-					this.lastValidation, integrity, diff, this.diffPreApproved, File.Exists(channelsPath));
-				this.lblReportCaption.ForeColor = Theme.MutedForeground;
+					this.lastValidation, integrity, diff, this.diffPreApproved, hasChannelsCsv);
+				this.lblReportCaption.ForeColor = ForkPostImportUi.FolderStatusCaptionColor(
+					this.lastValidation, integrity, diff, this.diffPreApproved, hasChannelsCsv);
+				ForkPostImportUi.ConfigureDiffLink(
+					this.lblReportCaption, diff, this.diffPreApproved, hasChannelsCsv,
+					() => this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty), this.footerTip);
+				if (!ForkPostImportUi.ShouldOfferDiffLink(diff, this.diffPreApproved, hasChannelsCsv))
+				{
+					this.footerTip.SetToolTip(this.lblReportCaption, ForkPostImportUi.FolderCaptionDefaultTip);
+				}
 			}
 			this.UpdateDiffImportButtons(channelsPath, diff);
 			return true;
