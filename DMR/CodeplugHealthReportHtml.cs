@@ -14,14 +14,15 @@ namespace DMR
 
 			StringBuilder html = new StringBuilder();
 			html.Append(ForkReportHtml.DocumentStart("Codeplug health"));
-			html.Append("<p class=\"path\">Click a highlighted name to open that channel, contact, or zone in the editor. Counts refresh automatically as you fix issues.</p>");
+			html.Append("<p class=\"path\">Click a highlighted name to open that channel, contact, zone, TG/Rx list, or scan list in the editor. Counts refresh automatically as you fix issues.</p>");
 			ForkReportHtml.AppendMetricCards(html,
 				new[] { snap.Channels.ToString(), "Channels", "" },
 				new[] { snap.Digital.ToString(), "Digital", "ok" },
 				new[] { snap.Analog.ToString(), "Analog", "warn" },
 				new[] { snap.Contacts.ToString(), "Contacts", "" },
 				new[] { snap.Zones.ToString(), "Zones", "" },
-				new[] { snap.TgLists.ToString(), "TG lists", "" });
+				new[] { snap.TgLists.ToString(), "TG lists", "" },
+				new[] { snap.ScanLists.ToString(), "Scan lists", "" });
 
 			string badgeClass = snap.HasWarning ? "badge-warn" : "badge-ok";
 			string badgeText = snap.HasWarning ? "Review warnings" : "Healthy";
@@ -97,6 +98,43 @@ namespace DMR
 					"warn", "These channels exist but are not assigned to a zone.");
 			}
 
+			if (snap.EmptyScanLists > 0)
+			{
+				AppendDrillList(html, "Empty scan lists", snap.EmptyScanLists, snap.EmptyScanDrill, "scanlist",
+					"warn", "Scan lists with no member channels.");
+			}
+
+			if (snap.InvalidScanRefs > 0)
+			{
+				AppendDrillList(html, "Invalid scan channel refs", snap.InvalidScanRefs, snap.InvalidScanRefDrill, "scanlist",
+					"warn", "Scan lists reference channels that are missing or invalid in the codeplug.");
+			}
+
+			if (snap.ScanRows.Count > 0)
+			{
+				html.Append("<h2>Scan list breakdown</h2>");
+				html.Append("<table><tr><th>Scan list</th><th>Channels</th><th>Bad refs</th></tr>");
+				int scanTableRows = 0;
+				foreach (CodeplugHealthScanRow row in snap.ScanRows)
+				{
+					string rowClass = row.ChannelCount == 0 ? "miss" : (row.InvalidRefCount > 0 ? "warn" : "");
+					html.Append("<tr><td class=\"").Append(rowClass).Append("\">")
+						.Append(ForkReportHtml.DrillLink("scanlist", row.ScanIndex, row.Name)).Append("</td><td>")
+						.Append(row.ChannelCount).Append("</td><td>")
+						.Append(row.InvalidRefCount > 0 ? row.InvalidRefCount.ToString() : "—").Append("</td></tr>");
+					scanTableRows++;
+					if (scanTableRows >= 40)
+					{
+						break;
+					}
+				}
+				if (snap.ScanRows.Count > scanTableRows)
+				{
+					html.Append("<tr><td colspan=\"3\">… and ").Append(snap.ScanRows.Count - scanTableRows).Append(" more scan lists</td></tr>");
+				}
+				html.Append("</table>");
+			}
+
 			if (snap.ZoneRows.Count > 0)
 			{
 				html.Append("<h2>Zone breakdown</h2>");
@@ -123,7 +161,7 @@ namespace DMR
 
 			if (!snap.HasWarning)
 			{
-				html.Append("<p class=\"ok\">No relay=0, orphan-contact, duplicate channel/contact names, duplicate DMR ID, digital-no-contact, or zone issues detected in the loaded codeplug.</p>");
+				html.Append("<p class=\"ok\">No relay=0, orphan-contact, duplicate channel/contact names, duplicate DMR ID, digital-no-contact, zone, or scan-list issues detected in the loaded codeplug.</p>");
 			}
 
 			html.Append(ForkReportHtml.DocumentEnd());

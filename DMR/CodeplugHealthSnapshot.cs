@@ -11,6 +11,14 @@ namespace DMR
 		public int ChannelCount;
 	}
 
+	public sealed class CodeplugHealthScanRow
+	{
+		public int ScanIndex;
+		public string Name;
+		public int ChannelCount;
+		public int InvalidRefCount;
+	}
+
 	public sealed class CodeplugHealthDrillItem
 	{
 		public int Index;
@@ -31,6 +39,12 @@ namespace DMR
 		public int Contacts;
 		public int Zones;
 		public int TgLists;
+		public int ScanLists;
+		public int EmptyScanLists;
+		public List<CodeplugHealthDrillItem> EmptyScanDrill = new List<CodeplugHealthDrillItem>();
+		public int InvalidScanRefs;
+		public List<CodeplugHealthDrillItem> InvalidScanRefDrill = new List<CodeplugHealthDrillItem>();
+		public List<CodeplugHealthScanRow> ScanRows = new List<CodeplugHealthScanRow>();
 		public int RelayZero;
 		public List<string> RelayZeroNames = new List<string>();
 		public List<CodeplugHealthDrillItem> RelayZeroDrill = new List<CodeplugHealthDrillItem>();
@@ -61,7 +75,8 @@ namespace DMR
 			{
 				return this.RelayZero > 0 || this.OrphanCount > 0 || this.DuplicateNameGroups > 0
 					|| this.EmptyZones > 0 || this.ChannelsNotInZone > 0 || this.DuplicateDmrIdGroups > 0
-					|| this.DuplicateContactNameGroups > 0 || this.DigitalNoContact > 0;
+					|| this.DuplicateContactNameGroups > 0 || this.DigitalNoContact > 0
+					|| this.EmptyScanLists > 0 || this.InvalidScanRefs > 0;
 			}
 		}
 
@@ -147,6 +162,7 @@ namespace DMR
 			snap.Contacts = CountValidContacts();
 			snap.Zones = ZoneForm.data.ValidCount;
 			snap.TgLists = CountValidRxGroupLists();
+			CollectScanHealth(snap, nameListLimit);
 			CollectDuplicateDmrIds(snap, nameListLimit);
 			CollectDuplicateContactNames(snap, nameListLimit);
 
@@ -202,6 +218,67 @@ namespace DMR
 			}
 
 			return snap;
+		}
+
+		private static void CollectScanHealth(CodeplugHealthSnapshot snap, int nameListLimit)
+		{
+			for (int s = 0; s < NormalScanForm.data.Count; s++)
+			{
+				if (!NormalScanForm.data.DataIsValid(s))
+				{
+					continue;
+				}
+				snap.ScanLists++;
+				int chCount = 0;
+				int invalidRefs = 0;
+				ushort[] chList = NormalScanForm.data[s].ChList;
+				for (int i = 0; i < chList.Length; i++)
+				{
+					ushort chRef = chList[i];
+					if (chRef <= 1 || chRef > 1025)
+					{
+						continue;
+					}
+					chCount++;
+					if (!ChannelForm.data.DataIsValid(chRef - 2))
+					{
+						invalidRefs++;
+					}
+				}
+				if (chCount == 0)
+				{
+					snap.EmptyScanLists++;
+					if (snap.EmptyScanDrill.Count < nameListLimit)
+					{
+						snap.EmptyScanDrill.Add(new CodeplugHealthDrillItem
+						{
+							Index = s,
+							Name = NormalScanForm.data[s].Name
+						});
+					}
+				}
+				if (invalidRefs > 0)
+				{
+					snap.InvalidScanRefs += invalidRefs;
+					if (snap.InvalidScanRefDrill.Count < nameListLimit)
+					{
+						string label = NormalScanForm.data[s].Name + " (" + invalidRefs + " bad ref"
+							+ (invalidRefs == 1 ? "" : "s") + ")";
+						snap.InvalidScanRefDrill.Add(new CodeplugHealthDrillItem
+						{
+							Index = s,
+							Name = label
+						});
+					}
+				}
+				snap.ScanRows.Add(new CodeplugHealthScanRow
+				{
+					ScanIndex = s,
+					Name = NormalScanForm.data[s].Name,
+					ChannelCount = chCount,
+					InvalidRefCount = invalidRefs
+				});
+			}
 		}
 
 		private static void CollectDuplicateContactNames(CodeplugHealthSnapshot snap, int nameListLimit)
