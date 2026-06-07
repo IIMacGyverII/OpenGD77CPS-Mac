@@ -62,7 +62,7 @@ namespace DMR
 			{
 				Dock = DockStyle.Top,
 				Height = 40,
-				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Review diff → Import all (Path B).  F5 refreshes report.  Post-import scrolls to health warnings · F7 full health report."
+				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Review diff → Import all (Path B).  F5 refreshes report.  Post-import scrolls to health · click amber status or F7."
 			};
 
 			Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 200 };
@@ -659,9 +659,12 @@ namespace DMR
 			if (operationResult != null)
 			{
 				ForkPostImportUi.ApplyBatchCaption(this.lblReportCaption, operationResult);
+				ForkPostImportUi.ConfigureHealthLink(
+					this.lblReportCaption, operationResult, () => this.mainForm.OpenCodeplugHealthReport(), this.footerTip);
 			}
 			else
 			{
+				ForkPostImportUi.ClearHealthLink(this.lblReportCaption, this.footerTip, "Re-validate CSVs in the loaded folder (F5)");
 				this.lblReportCaption.Text = AndroidBackupReportHtml.GetFolderStatusSummary(
 					this.lastValidation, integrity, diff, this.diffPreApproved, File.Exists(channelsPath));
 				this.lblReportCaption.ForeColor = Theme.MutedForeground;

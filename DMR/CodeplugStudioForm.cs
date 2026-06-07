@@ -264,7 +264,7 @@ namespace DMR
 
 			Label lblHint = new Label
 			{
-				Text = "F5 refresh · post-import scrolls to health · F7 full report · drop folder, Recent, or double-click a CSV card",
+				Text = "F5 refresh · post-import scrolls to health · click amber status or F7 · drop folder, Recent, or double-click a CSV card",
 				Font = Theme.UiFontSmall,
 				ForeColor = Theme.MutedForeground,
 				AutoSize = true,
@@ -1181,6 +1181,7 @@ namespace DMR
 			{
 				return;
 			}
+			ForkPostImportUi.ClearHealthLink(this.lblReportStatus, this.footerTip);
 			this.lblReportStatus.Text = text;
 			this.lblReportStatus.ForeColor = color;
 			Control parent = this.lblReportStatus.Parent;
@@ -1199,6 +1200,8 @@ namespace DMR
 				return;
 			}
 			ForkPostImportUi.ApplyBatchCaption(this.lblReportStatus, batch);
+			ForkPostImportUi.ConfigureHealthLink(
+				this.lblReportStatus, batch, () => this.mainForm.OpenCodeplugHealthReport(), this.footerTip);
 			Control parent = this.lblReportStatus == null ? null : this.lblReportStatus.Parent;
 			if (parent != null && this.lblReportStatus != null)
 			{
