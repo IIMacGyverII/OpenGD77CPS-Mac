@@ -299,7 +299,9 @@ namespace DMR
 				new[] { snap.Digital.ToString(), "Digital", "ok" },
 				new[] { snap.Analog.ToString(), "Analog", "warn" },
 				new[] { snap.Contacts.ToString(), "Contacts", "" },
-				new[] { snap.Zones.ToString(), "Zones", "" });
+				new[] { snap.Zones.ToString(), "Zones", "" },
+				new[] { snap.TgLists.ToString(), "TG lists", "" },
+				new[] { snap.ScanLists.ToString(), "Scan lists", "" });
 
 			if (snap.RelayZero > 0)
 			{
@@ -322,15 +324,65 @@ namespace DMR
 				AppendDrillList(html, "Duplicate contact DMR IDs", snap.DuplicateDmrIdGroups, snap.DuplicateDmrIdDrill, "contact",
 					"warn", "Multiple contacts share the same Call ID.", "health-dup-dmr-id", maxItems);
 			}
+			if (snap.DuplicateContactNameGroups > 0)
+			{
+				AppendDuplicateGroupList(html, "Duplicate contact names", snap.DuplicateContactNameGroups,
+					snap.DuplicateContactGroups, "contact", "warn",
+					"Multiple contacts share the same name.", "health-dup-ct-names", maxItems);
+			}
 			if (snap.DigitalNoContact > 0)
 			{
 				AppendDrillList(html, "Digital without TX contact", snap.DigitalNoContact, snap.DigitalNoContactDrill, "channel",
 					"warn", "Digital channels should reference a contact for TX routing.", "health-dig-no-contact", maxItems);
 			}
+			if (snap.EmptyZones > 0)
+			{
+				html.Append("<h2 id=\"health-empty-zones\">Empty zones <span class=\"badge badge-warn\">").Append(snap.EmptyZones).Append("</span></h2>");
+				html.Append("<p class=\"warn\">Zones with no member channels.</p><ul>");
+				int emptyZoneShown = 0;
+				foreach (CodeplugHealthZoneRow row in snap.ZoneRows)
+				{
+					if (row.ChannelCount != 0)
+					{
+						continue;
+					}
+					html.Append("<li>").Append(ForkReportHtml.DrillLink("zone", row.ZoneIndex, row.Name)).Append("</li>");
+					emptyZoneShown++;
+					if (emptyZoneShown >= maxItems)
+					{
+						break;
+					}
+				}
+				if (snap.EmptyZones > emptyZoneShown)
+				{
+					html.Append("<li>… and ").Append(snap.EmptyZones - emptyZoneShown).Append(" more</li>");
+				}
+				html.Append("</ul>");
+			}
 			if (snap.ChannelsNotInZone > 0)
 			{
 				AppendDrillList(html, "Channels not in any zone", snap.ChannelsNotInZone, snap.ChannelsNotInZoneDrill, "channel",
 					"warn", "These channels are not assigned to a zone.", "health-no-zone", maxItems);
+			}
+			if (snap.EmptyTgLists > 0)
+			{
+				AppendDrillList(html, "Empty TG/Rx lists", snap.EmptyTgLists, snap.EmptyTgDrill, "tglist",
+					"warn", "TG/Rx group lists with no member contacts.", "health-empty-tg", maxItems);
+			}
+			if (snap.InvalidTgRefs > 0)
+			{
+				AppendDrillList(html, "Invalid TG/Rx contact refs", snap.InvalidTgRefs, snap.InvalidTgRefDrill, "tglist",
+					"warn", "TG/Rx lists reference missing contacts or non-group entries.", "health-bad-tg-ref", maxItems);
+			}
+			if (snap.EmptyScanLists > 0)
+			{
+				AppendDrillList(html, "Empty scan lists", snap.EmptyScanLists, snap.EmptyScanDrill, "scanlist",
+					"warn", "Scan lists with no member channels.", "health-empty-scan", maxItems);
+			}
+			if (snap.InvalidScanRefs > 0)
+			{
+				AppendDrillList(html, "Invalid scan channel refs", snap.InvalidScanRefs, snap.InvalidScanRefDrill, "scanlist",
+					"warn", "Scan lists reference missing or invalid channels.", "health-bad-scan-ref", maxItems);
 			}
 			if (!snap.HasWarning)
 			{
