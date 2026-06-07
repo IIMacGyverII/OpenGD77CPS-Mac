@@ -28,6 +28,41 @@ namespace DMR
 			return CodeplugHealthSnapshot.Collect().HasWarning;
 		}
 
+		public static string HealthCategoryStatusNote(CodeplugHealthSnapshot snap)
+		{
+			if (snap == null || snap.WarningCategoryCount <= 1)
+			{
+				return "";
+			}
+			return " (" + snap.WarningCategoryCount + " cat)";
+		}
+
+		public static string HealthCategoryTooltip(CodeplugHealthSnapshot snap)
+		{
+			if (snap == null || !snap.HasWarning)
+			{
+				return ForkPostImportUi.MainToolbarHealthTipDefault;
+			}
+			if (snap.WarningCategoryCount > 1)
+			{
+				return ForkPostImportUi.PostImportHealthLinkTip + " — " + snap.WarningCategoryCount + " warning categories";
+			}
+			return ForkPostImportUi.PostImportHealthLinkTip;
+		}
+
+		public static string HealthMenuLabel(CodeplugHealthSnapshot snap)
+		{
+			if (snap == null || !snap.HasWarning)
+			{
+				return "Codeplug health report…";
+			}
+			if (snap.WarningCategoryCount > 1)
+			{
+				return "Codeplug health report ⚠ (" + snap.WarningCategoryCount + ")…";
+			}
+			return "Codeplug health report ⚠…";
+		}
+
 		public static void ApplyBatchCaption(Label label, AndroidBatchResult batch)
 		{
 			if (label == null || batch == null)
@@ -129,19 +164,18 @@ namespace DMR
 			}
 		}
 
-		public static void ApplyMainHealthStatusLink(ToolStripStatusLabel label, bool hasWarning)
+		public static void ApplyMainHealthStatusLink(ToolStripStatusLabel label, CodeplugHealthSnapshot snap)
 		{
 			if (label == null)
 			{
 				return;
 			}
+			bool hasWarning = snap != null && snap.HasWarning;
 			label.ForeColor = hasWarning ? ForkPostImportUi.WarnColor : Theme.Foreground;
 			label.LinkColor = hasWarning ? ForkPostImportUi.WarnColor : ForkPostImportUi.HealthLinkColorDefault;
 			label.VisitedLinkColor = hasWarning ? ForkPostImportUi.WarnColor : ForkPostImportUi.HealthLinkColorDefault;
 			label.ActiveLinkColor = Color.White;
-			label.ToolTipText = hasWarning
-				? ForkPostImportUi.PostImportHealthLinkTip
-				: ForkPostImportUi.MainToolbarHealthTipDefault;
+			label.ToolTipText = ForkPostImportUi.HealthCategoryTooltip(snap);
 		}
 
 		private static void ApplyHealthButtonState(Button button, bool highlight)

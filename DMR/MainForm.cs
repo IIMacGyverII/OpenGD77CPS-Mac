@@ -2308,22 +2308,21 @@ namespace DMR
 			string badScanNote = snap.InvalidScanRefs > 0 ? " | bad sc ref: " + snap.InvalidScanRefs : "";
 			string notInZoneNote = snap.ChannelsNotInZone > 0 ? " | no zn: " + snap.ChannelsNotInZone : "";
 			string warningTag = hasWarning ? " ⚠" : "";
-			this.slblCodeplugHealth.Text = "▶ Health report" + warningTag + " — "
+			string categoryNote = ForkPostImportUi.HealthCategoryStatusNote(snap);
+			this.slblCodeplugHealth.Text = "▶ Health report" + warningTag + categoryNote + " — "
 				+ snap.Channels + " ch (" + snap.Digital + "D/" + snap.Analog + "A)"
 				+ " | " + snap.Contacts + " ct | " + snap.Zones + " zn | " + snap.TgLists + " TG | " + snap.ScanLists + " sc"
 				+ relayNote + orphanNote + dupNote + dupIdNote + dupCtNameNote + digNoCtNote + zoneNote + notInZoneNote + emptyTgNote + badTgNote + emptyScanNote + badScanNote;
-			ForkPostImportUi.ApplyMainHealthStatusLink(this.slblCodeplugHealth, hasWarning);
+			ForkPostImportUi.ApplyMainHealthStatusLink(this.slblCodeplugHealth, snap);
 			if (this.tsbtnCodeplugHealth != null)
 			{
 				this.tsbtnCodeplugHealth.Text = hasWarning ? "Health ⚠" : "Health";
 				this.tsbtnCodeplugHealth.ForeColor = hasWarning ? ForkPostImportUi.WarnColor : ForkPostImportUi.OkColor;
-				this.tsbtnCodeplugHealth.ToolTipText = hasWarning
-					? ForkPostImportUi.PostImportHealthLinkTip
-					: ForkPostImportUi.MainToolbarHealthTipDefault;
+				this.tsbtnCodeplugHealth.ToolTipText = ForkPostImportUi.HealthCategoryTooltip(snap);
 			}
 			if (this.tsmiCodeplugHealth != null)
 			{
-				this.tsmiCodeplugHealth.Text = hasWarning ? "Codeplug health report ⚠…" : "Codeplug health report…";
+				this.tsmiCodeplugHealth.Text = ForkPostImportUi.HealthMenuLabel(snap);
 			}
 			if (this.forkHealthReportForm != null && !this.forkHealthReportForm.IsDisposed && this.forkHealthReportForm.Visible)
 			{
