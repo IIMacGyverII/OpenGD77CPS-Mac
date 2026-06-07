@@ -32,9 +32,11 @@ namespace DMR
 						"  F8         Android backup manager (diff + import)\n" +
 						"  Ctrl+Shift+S  Codeplug Studio — CSV-only backup workflow\n\n" +
 						"Codeplug Studio\n" +
+						"  Ctrl+O     Browse backup folder\n" +
 						"  Ctrl+I     Import all (Path B)\n" +
 						"  Ctrl+E     Export all\n" +
 						"  F7         Codeplug health report\n" +
+						"  Recent     Pick a recently used backup folder\n" +
 						"  Drop folder  Load backup folder from Explorer\n\n" +
 						"Navigation tree\n" +
 						"  Filter box Search zones, channels, contacts, etc.\n\n" +

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -37,6 +38,8 @@ namespace DMR
 
 		private readonly MainForm mainForm;
 		private TextBox txtFolder;
+		private Button btnRecent;
+		private ContextMenuStrip recentMenu;
 		private FlowLayoutPanel pnlCsvTiles;
 		private ForkWebViewPanel webReport;
 		private Label lblReportCaption;
@@ -53,7 +56,7 @@ namespace DMR
 
 		public bool UserOpenedFullCps { get; private set; }
 
-		public CodeplugStudioForm(MainForm owner)
+		public CodeplugStudioForm(MainForm owner, string launchFolder = null)
 		{
 			this.mainForm = owner;
 			this.Text = "PriInterPhone Codeplug Studio";
@@ -68,7 +71,7 @@ namespace DMR
 			Button btnPullAdb;
 			Button btnPushAdb;
 			LinkLabel lnkHelp;
-			Panel pnlFolderCard = this.BuildFolderCard(out btnBrowse, out btnPullAdb, out btnPushAdb, out lnkHelp);
+			Panel pnlFolderCard = this.BuildFolderCard(out btnBrowse, out btnRecent, out btnPullAdb, out btnPushAdb, out lnkHelp);
 			this.pnlCsvTiles = this.BuildCsvTileRow();
 			Panel pnlReportCard = this.BuildReportCard();
 			Panel pnlFooter = this.BuildFooterPanel();
@@ -88,6 +91,7 @@ namespace DMR
 			this.Controls.Add(pnlHeader);
 
 			btnBrowse.Click += this.btnBrowse_Click;
+			btnRecent.Click += this.btnRecent_Click;
 			btnPullAdb.Click += this.btnPullAdb_Click;
 			btnPushAdb.Click += this.btnPushAdb_Click;
 			lnkHelp.LinkClicked += this.lnkHelp_LinkClicked;
@@ -105,15 +109,20 @@ namespace DMR
 			this.EnableFolderDragDrop(pnlFolderCard);
 			this.EnableFolderDragDrop(pnlReportCard);
 
-			string last = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
-			if (!string.IsNullOrEmpty(last))
+			string initial = launchFolder;
+			if (string.IsNullOrEmpty(initial))
 			{
-				this.txtFolder.Text = last;
-				if (AndroidBackupFolderPicker.IsReadableBackupFolder(last))
+				initial = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
+			}
+			if (!string.IsNullOrEmpty(initial))
+			{
+				this.txtFolder.Text = initial;
+				if (AndroidBackupFolderPicker.IsReadableBackupFolder(initial))
 				{
-					this.SetFolder(last, false);
+					this.SetFolder(initial, false);
 				}
 			}
+			this.RefreshRecentMenu();
 		}
 
 		private Panel BuildHeaderPanel()
@@ -148,7 +157,7 @@ namespace DMR
 			return header;
 		}
 
-		private Panel BuildFolderCard(out Button btnBrowse, out Button btnPullAdb, out Button btnPushAdb, out LinkLabel lnkHelp)
+		private Panel BuildFolderCard(out Button btnBrowse, out Button btnRecent, out Button btnPullAdb, out Button btnPushAdb, out LinkLabel lnkHelp)
 		{
 			Panel card = new StudioCardPanel
 			{
@@ -175,6 +184,14 @@ namespace DMR
 			};
 			Theme.ApplyStudioTextBox(this.txtFolder);
 
+			btnRecent = new Button
+			{
+				Text = "Recent ▾",
+				Size = new Size(Theme.Dpi(88), Theme.Dpi(28)),
+				Anchor = AnchorStyles.Top | AnchorStyles.Right
+			};
+			Theme.ApplyStudioButton(btnRecent, false, false);
+
 			btnBrowse = new Button
 			{
 				Text = "Browse…",
@@ -182,6 +199,9 @@ namespace DMR
 				Anchor = AnchorStyles.Top | AnchorStyles.Right
 			};
 			Theme.ApplyStudioButton(btnBrowse, false, true);
+
+			this.recentMenu = new ContextMenuStrip();
+			Theme.ApplyForkContextMenu(this.recentMenu);
 
 			btnPullAdb = new Button
 			{
@@ -209,7 +229,7 @@ namespace DMR
 
 			Label lblHint = new Label
 			{
-				Text = "Drop a backup folder here, or double-click a CSV card to open that file",
+				Text = "Drop a folder, pick Recent, or double-click a CSV card",
 				Font = Theme.UiFontSmall,
 				ForeColor = Theme.MutedForeground,
 				AutoSize = true,
@@ -218,24 +238,28 @@ namespace DMR
 
 			card.Controls.Add(lblFolder);
 			card.Controls.Add(this.txtFolder);
+			card.Controls.Add(btnRecent);
 			card.Controls.Add(btnBrowse);
 			card.Controls.Add(btnPullAdb);
 			card.Controls.Add(btnPushAdb);
 			card.Controls.Add(lnkHelp);
 			card.Controls.Add(lblHint);
 			Button browseForLayout = btnBrowse;
+			Button recentForLayout = btnRecent;
 			Label hintForLayout = lblHint;
-			card.Resize += (s, e) => this.LayoutFolderCard(card, browseForLayout, hintForLayout);
+			card.Resize += (s, e) => this.LayoutFolderCard(card, recentForLayout, browseForLayout, hintForLayout);
 			return card;
 		}
 
-		private void LayoutFolderCard(Panel card, Button browse, Label hint)
+		private void LayoutFolderCard(Panel card, Button recent, Button browse, Label hint)
 		{
 			int pad = Theme.Dpi(14);
+			int gap = Theme.Dpi(8);
 			int right = card.ClientSize.Width - pad;
-			this.txtFolder.Width = right - pad - browse.Width - Theme.Dpi(8);
-			this.txtFolder.Location = new Point(pad, Theme.Dpi(30));
 			browse.Location = new Point(right - browse.Width, Theme.Dpi(28));
+			recent.Location = new Point(browse.Left - gap - recent.Width, Theme.Dpi(28));
+			this.txtFolder.Width = Math.Max(Theme.Dpi(120), recent.Left - pad - gap);
+			this.txtFolder.Location = new Point(pad, Theme.Dpi(30));
 			hint.Location = new Point(right - hint.PreferredWidth, Theme.Dpi(72));
 		}
 
@@ -470,6 +494,12 @@ namespace DMR
 
 		private void CodeplugStudioForm_KeyDown(object sender, KeyEventArgs e)
 		{
+			if (e.Control && e.KeyCode == Keys.O)
+			{
+				this.btnBrowse_Click(this, EventArgs.Empty);
+				e.Handled = true;
+				return;
+			}
 			if (e.Control && e.KeyCode == Keys.I)
 			{
 				this.btnImportAll_Click(this.btnImportAll, EventArgs.Empty);
@@ -486,6 +516,54 @@ namespace DMR
 			{
 				this.btnHealth_Click(this, EventArgs.Empty);
 				e.Handled = true;
+			}
+		}
+
+		private void btnRecent_Click(object sender, EventArgs e)
+		{
+			this.RefreshRecentMenu();
+			if (this.recentMenu.Items.Count == 0)
+			{
+				return;
+			}
+			Button btn = sender as Button;
+			if (btn == null)
+			{
+				this.recentMenu.Show(Cursor.Position);
+				return;
+			}
+			this.recentMenu.Show(btn, new Point(0, btn.Height));
+		}
+
+		private void RefreshRecentMenu()
+		{
+			this.recentMenu.Items.Clear();
+			IReadOnlyList<string> folders = StudioRecentFolders.Load();
+			foreach (string path in folders)
+			{
+				bool readable = AndroidBackupFolderPicker.IsReadableBackupFolder(path);
+				ToolStripMenuItem item = new ToolStripMenuItem(StudioRecentFolders.FormatMenuLabel(path))
+				{
+					Tag = path,
+					ToolTipText = path,
+					Enabled = readable
+				};
+				item.Click += this.recentFolderItem_Click;
+				this.recentMenu.Items.Add(item);
+			}
+			if (this.btnRecent != null)
+			{
+				this.btnRecent.Enabled = this.recentMenu.Items.Count > 0;
+			}
+		}
+
+		private void recentFolderItem_Click(object sender, EventArgs e)
+		{
+			ToolStripMenuItem item = sender as ToolStripMenuItem;
+			string path = item == null ? null : item.Tag as string;
+			if (!string.IsNullOrEmpty(path))
+			{
+				this.SetFolder(path, true);
 			}
 		}
 
@@ -757,6 +835,8 @@ namespace DMR
 
 			this.txtFolder.Text = folderPath;
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
+			StudioRecentFolders.Record(folderPath);
+			this.RefreshRecentMenu();
 			if (!string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
 			{
 				this.lastDiffFolder = folderPath;

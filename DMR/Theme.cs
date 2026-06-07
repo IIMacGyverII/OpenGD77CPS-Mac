@@ -152,6 +152,23 @@ namespace DMR
 			form.ForeColor = Foreground;
 		}
 
+		/// <summary>Dark styling for fork context menus (e.g. Studio recent folders).</summary>
+		public static void ApplyForkContextMenu(ContextMenuStrip menu)
+		{
+			if (menu == null)
+			{
+				return;
+			}
+			menu.BackColor = Chrome;
+			menu.ForeColor = Foreground;
+			menu.RenderMode = ToolStripRenderMode.System;
+			foreach (ToolStripItem item in menu.Items)
+			{
+				item.BackColor = Chrome;
+				item.ForeColor = Foreground;
+			}
+		}
+
 		/// <summary>Restore readable labels on decompiled editor forms (light panel + dark text).</summary>
 		public static void ApplyStandardEditorColors(Control root)
 		{

@@ -233,6 +233,7 @@ namespace DMR
 		private bool forkCodeplugStudioUiBuilt;
 
 		private bool forkStudioLaunch;
+		private string forkStudioLaunchFolder;
 
 		private ToolStripStatusLabel slblCodeplugHealth;
 
@@ -1278,14 +1279,25 @@ namespace DMR
 		{
 			MainForm.StartupArgs = args;
 			this.forkStudioLaunch = false;
+			this.forkStudioLaunchFolder = null;
 			if (args != null)
 			{
-				foreach (string arg in args)
+				for (int i = 0; i < args.Length; i++)
 				{
+					string arg = args[i];
 					if (string.Equals(arg, "--studio", StringComparison.OrdinalIgnoreCase))
 					{
 						this.forkStudioLaunch = true;
-						break;
+						if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+						{
+							this.forkStudioLaunchFolder = args[++i];
+						}
+						continue;
+					}
+					if (arg.StartsWith("--studio=", StringComparison.OrdinalIgnoreCase))
+					{
+						this.forkStudioLaunch = true;
+						this.forkStudioLaunchFolder = arg.Substring("--studio=".Length).Trim('"');
 					}
 				}
 			}
@@ -4169,7 +4181,7 @@ namespace DMR
 				this.ShowInTaskbar = false;
 			}
 			bool openedFullCps = false;
-			using (CodeplugStudioForm studio = new CodeplugStudioForm(this))
+			using (CodeplugStudioForm studio = new CodeplugStudioForm(this, this.forkStudioLaunchFolder))
 			{
 				studio.ShowDialog(this);
 				openedFullCps = studio.UserOpenedFullCps;

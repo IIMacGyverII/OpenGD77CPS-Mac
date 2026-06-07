@@ -203,6 +203,7 @@
     <Compile Include="DMR.Properties\Settings.cs" />
     <Compile Include="DMR\AndroidBackupForm.cs" />
     <Compile Include="DMR\CodeplugStudioForm.cs" />
+    <Compile Include="DMR\StudioRecentFolders.cs" />
     <Compile Include="DMR\AndroidBackupReportHtml.cs" />
     <Compile Include="DMR\CodeplugHealthReportHtml.cs" />
     <Compile Include="DMR\CodeplugHealthSnapshot.cs" />
