@@ -42,10 +42,8 @@ namespace DMR
 		{
 			this.mainForm = owner;
 			this.Text = "PriInterPhone Codeplug Studio";
-			this.StartPosition = FormStartPosition.CenterParent;
 			this.FormBorderStyle = FormBorderStyle.Sizable;
-			this.MinimumSize = new Size(720, 560);
-			this.ClientSize = new Size(820, 620);
+			this.ApplyStudioWindowSize(owner);
 			this.Font = Theme.UiFont;
 			Theme.ApplyForkDialog(this);
 
@@ -201,6 +199,22 @@ namespace DMR
 					this.SetFolder(last, false);
 				}
 			}
+		}
+
+		private void ApplyStudioWindowSize(IWin32Window owner)
+		{
+			Control ownerControl = owner as Control;
+			Screen screen = ownerControl != null && ownerControl.IsHandleCreated
+				? Screen.FromControl(ownerControl)
+				: Screen.PrimaryScreen;
+			Rectangle area = screen.WorkingArea;
+			int width = Math.Max(720, (int)Math.Round(area.Width * 0.75));
+			int height = Math.Max(560, (int)Math.Round(area.Height * 0.75));
+			width = Math.Min(width, area.Width);
+			height = Math.Min(height, area.Height);
+			this.MinimumSize = new Size(720, 560);
+			this.Size = new Size(width, height);
+			this.StartPosition = FormStartPosition.CenterScreen;
 		}
 
 		private Panel CreateCsvTile(string fileName)
