@@ -63,7 +63,7 @@ namespace DMR
 			{
 				Dock = DockStyle.Top,
 				Height = 40,
-				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Review diff → Import all (Path B).  F5 refreshes report.  Post-import scrolls to health · click amber status or F7."
+				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Review diff → Import all (Path B).  F5 refreshes report.  " + ForkPostImportUi.F8StudioBannerHealthHint + "."
 			};
 
 			Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 200 };

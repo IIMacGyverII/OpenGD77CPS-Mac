@@ -265,7 +265,7 @@ namespace DMR
 
 			Label lblHint = new Label
 			{
-				Text = "F5 refresh · post-import scrolls to health · click amber status or F7 · drop folder, Recent, or double-click a CSV card",
+				Text = "F5 refresh · " + ForkPostImportUi.F8StudioBannerHealthHint + " · drop folder, Recent, or double-click a CSV card",
 				Font = Theme.UiFontSmall,
 				ForeColor = Theme.MutedForeground,
 				AutoSize = true,

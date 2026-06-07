@@ -335,9 +335,13 @@ namespace DMR
 			if (!snap.HasWarning)
 			{
 				html.Append("<p class=\"ok\">No codeplug health issues detected after import.</p>");
+				html.Append("<p class=\"foot\">").Append(ForkPostImportUi.PostImportReportFootOk).Append("</p>");
+				return;
 			}
 
-			html.Append("<p class=\"foot\">Click a name to open the editor. <b>F7</b> for the full health report.</p>");
+			html.Append("<p class=\"warn\">").Append(ForkReportHtml.HealthReportLink(ForkPostImportUi.PostImportReportHealthLink))
+				.Append(" — also amber status chip, Health ⚠ footer, or press F7.</p>");
+			html.Append("<p class=\"foot\">").Append(ForkPostImportUi.PostImportReportFootWarn).Append("</p>");
 		}
 
 		private static void AppendDrillList(StringBuilder html, string title, int total,

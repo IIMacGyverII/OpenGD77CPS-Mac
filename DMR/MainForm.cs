@@ -1638,6 +1638,10 @@ namespace DMR
 			{
 				return;
 			}
+			if (this.TryOpenHealthReportFromForkUri(uri))
+			{
+				return;
+			}
 			this.OnHealthReportNavigate(uri);
 #endif
 		}
@@ -1671,6 +1675,16 @@ namespace DMR
 			catch
 			{
 			}
+			return true;
+		}
+
+		private bool TryOpenHealthReportFromForkUri(string uri)
+		{
+			if (!string.Equals(uri, ForkReportHtml.HealthReportHref, StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+			this.OpenCodeplugHealthReport();
 			return true;
 		}
 

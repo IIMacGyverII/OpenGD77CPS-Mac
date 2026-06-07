@@ -61,6 +61,13 @@ namespace DMR
 			return "<a class=\"drill\" href=\"" + BackupCsvHref(fileName) + "\">" + Escape(fileName) + "</a>";
 		}
 
+		public const string HealthReportHref = "fork://health-report";
+
+		public static string HealthReportLink(string label)
+		{
+			return "<a class=\"drill\" href=\"" + HealthReportHref + "\">" + Escape(label) + "</a>";
+		}
+
 		public static string Escape(string text)
 		{
 			if (string.IsNullOrEmpty(text))
