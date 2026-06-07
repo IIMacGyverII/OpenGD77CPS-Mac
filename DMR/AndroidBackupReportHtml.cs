@@ -36,7 +36,7 @@ namespace DMR
 				if (string.Equals(operationResult.Operation, "Import", StringComparison.OrdinalIgnoreCase)
 					&& !operationResult.HasErrors)
 				{
-					AppendPostImportHealth(html);
+					CodeplugHealthReportHtml.AppendStudioPostImportSection(html);
 				}
 			}
 
@@ -209,46 +209,5 @@ namespace DMR
 			html.Append("<p class=\"foot\">").Append(ForkReportHtml.Escape(batch.StatsLine)).Append("</p>");
 		}
 
-		private static void AppendPostImportHealth(StringBuilder html)
-		{
-			CodeplugHealthSnapshot snap = CodeplugHealthSnapshot.Collect();
-			string badgeClass = snap.HasWarning ? "badge-warn" : "badge-ok";
-			string badgeText = snap.HasWarning ? "Review warnings" : "Healthy";
-			html.Append("<h2>Loaded codeplug health <span class=\"badge ").Append(badgeClass).Append("\">")
-				.Append(badgeText).Append("</span></h2>");
-
-			ForkReportHtml.AppendMetricCards(html,
-				new[] { snap.Channels.ToString(), "Channels", "" },
-				new[] { snap.Digital.ToString(), "Digital", "ok" },
-				new[] { snap.Analog.ToString(), "Analog", "warn" },
-				new[] { snap.Contacts.ToString(), "Contacts", "" },
-				new[] { snap.Zones.ToString(), "Zones", "" });
-
-			if (snap.HasWarning)
-			{
-				html.Append("<ul>");
-				AppendHealthWarningItem(html, snap.RelayZero > 0, "Relay = 0 channels: " + snap.RelayZero);
-				AppendHealthWarningItem(html, snap.OrphanCount > 0, "Missing TX contact: " + snap.OrphanCount);
-				AppendHealthWarningItem(html, snap.DuplicateNameGroups > 0, "Duplicate channel names: " + snap.DuplicateNameGroups);
-				AppendHealthWarningItem(html, snap.DuplicateDmrIdGroups > 0, "Duplicate contact DMR IDs: " + snap.DuplicateDmrIdGroups);
-				AppendHealthWarningItem(html, snap.DigitalNoContact > 0, "Digital without TX contact: " + snap.DigitalNoContact);
-				AppendHealthWarningItem(html, snap.EmptyZones > 0, "Empty zones: " + snap.EmptyZones);
-				AppendHealthWarningItem(html, snap.ChannelsNotInZone > 0, "Channels not in any zone: " + snap.ChannelsNotInZone);
-				AppendHealthWarningItem(html, snap.InvalidTgRefs > 0, "Invalid TG/Rx refs: " + snap.InvalidTgRefs);
-				AppendHealthWarningItem(html, snap.InvalidScanRefs > 0, "Invalid scan refs: " + snap.InvalidScanRefs);
-				html.Append("</ul>");
-			}
-
-			html.Append("<p class=\"foot\">Press <b>F7</b> for the full health report with links to open editors.</p>");
-		}
-
-		private static void AppendHealthWarningItem(StringBuilder html, bool include, string text)
-		{
-			if (!include)
-			{
-				return;
-			}
-			html.Append("<li class=\"warn\">").Append(ForkReportHtml.Escape(text)).Append("</li>");
-		}
 	}
 }

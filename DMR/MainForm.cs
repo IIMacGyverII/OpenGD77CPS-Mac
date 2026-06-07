@@ -1613,6 +1613,13 @@ namespace DMR
 #endif
 		}
 
+		public void HandleForkReportNavigation(string uri)
+		{
+#if OpenGD77
+			this.OnHealthReportNavigate(uri);
+#endif
+		}
+
 		/// <summary>
 		/// File actions must live under top-level File, not Setting (WinForms re-parents shared ToolStripItems).
 		/// </summary>
@@ -4511,9 +4518,20 @@ namespace DMR
 				AndroidBatchResult.ShowDialog(this, batch);
 			}
 			this.ShowForkStatusMessage(batch.Title + " — " + batch.StatsLine);
+			this.RefreshOpenEditorsAfterAndroidImport();
 			this.UpdateForkChrome();
 			this.InitTree();
 			return batch;
+		}
+
+		private void RefreshOpenEditorsAfterAndroidImport()
+		{
+#if OpenGD77
+			this.RefreshRelatedForm(typeof(ContactsForm));
+			this.RefreshRelatedForm(typeof(ChannelsForm));
+			this.RefreshRelatedForm(typeof(RxGroupListsForm));
+			this.RefreshRelatedForm(typeof(ZoneForm));
+#endif
 		}
 
 		private void tsmiExportCsv_Click(object sender, EventArgs e)

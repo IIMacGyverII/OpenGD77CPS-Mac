@@ -344,6 +344,7 @@ namespace DMR
 			};
 
 			this.webReport = new ForkWebViewPanel { Dock = DockStyle.Fill };
+			this.webReport.CustomNavigation += this.StudioWebReportNavigate;
 			this.txtValidation = new TextBox { Multiline = true, ReadOnly = true, Visible = false };
 			webHost.Controls.Add(this.webReport);
 
@@ -660,6 +661,11 @@ namespace DMR
 			this.mainForm.SetForkDialogOwner(this);
 			this.webReport.EnsureInitialized();
 			this.LayoutCsvTiles();
+		}
+
+		private void StudioWebReportNavigate(string uri)
+		{
+			this.mainForm.HandleForkReportNavigation(uri);
 		}
 
 		private void CodeplugStudioForm_Resize(object sender, EventArgs e)

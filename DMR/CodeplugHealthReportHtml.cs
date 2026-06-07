@@ -227,8 +227,64 @@ namespace DMR
 			return Build(snap);
 		}
 
+		/// <summary>Compact post-import health block for Codeplug Studio WebView2 report.</summary>
+		public static void AppendStudioPostImportSection(StringBuilder html)
+		{
+			CodeplugHealthSnapshot snap = CodeplugHealthSnapshot.Collect();
+			const int maxItems = 8;
+			string badgeClass = snap.HasWarning ? "badge-warn" : "badge-ok";
+			string badgeText = snap.HasWarning ? "Review warnings" : "Healthy";
+			html.Append("<h2>Loaded codeplug health <span class=\"badge ").Append(badgeClass).Append("\">")
+				.Append(badgeText).Append("</span></h2>");
+
+			ForkReportHtml.AppendMetricCards(html,
+				new[] { snap.Channels.ToString(), "Channels", "" },
+				new[] { snap.Digital.ToString(), "Digital", "ok" },
+				new[] { snap.Analog.ToString(), "Analog", "warn" },
+				new[] { snap.Contacts.ToString(), "Contacts", "" },
+				new[] { snap.Zones.ToString(), "Zones", "" });
+
+			if (snap.RelayZero > 0)
+			{
+				AppendDrillList(html, "Relay = 0", snap.RelayZero, snap.RelayZeroDrill, "channel",
+					"warn", "These channels may show operation failed on the phone.", maxItems);
+			}
+			if (snap.OrphanCount > 0)
+			{
+				AppendDrillList(html, "Missing TX contact", snap.OrphanCount, snap.OrphanDrill, "channel",
+					"err", "Digital channels reference a contact not in the codeplug.", maxItems);
+			}
+			if (snap.DuplicateNameGroups > 0)
+			{
+				AppendDuplicateGroupList(html, "Duplicate channel names", snap.DuplicateNameGroups,
+					snap.DuplicateChannelGroups, "channel", "warn",
+					"Duplicate names can confuse Android import and zone editing.", maxItems);
+			}
+			if (snap.DuplicateDmrIdGroups > 0)
+			{
+				AppendDrillList(html, "Duplicate contact DMR IDs", snap.DuplicateDmrIdGroups, snap.DuplicateDmrIdDrill, "contact",
+					"warn", "Multiple contacts share the same Call ID.", maxItems);
+			}
+			if (snap.DigitalNoContact > 0)
+			{
+				AppendDrillList(html, "Digital without TX contact", snap.DigitalNoContact, snap.DigitalNoContactDrill, "channel",
+					"warn", "Digital channels should reference a contact for TX routing.", maxItems);
+			}
+			if (snap.ChannelsNotInZone > 0)
+			{
+				AppendDrillList(html, "Channels not in any zone", snap.ChannelsNotInZone, snap.ChannelsNotInZoneDrill, "channel",
+					"warn", "These channels are not assigned to a zone.", maxItems);
+			}
+			if (!snap.HasWarning)
+			{
+				html.Append("<p class=\"ok\">No codeplug health issues detected after import.</p>");
+			}
+
+			html.Append("<p class=\"foot\">Click a name to open the editor. <b>F7</b> for the full health report.</p>");
+		}
+
 		private static void AppendDrillList(StringBuilder html, string title, int total,
-			List<CodeplugHealthDrillItem> items, string kind, string css, string hint)
+			List<CodeplugHealthDrillItem> items, string kind, string css, string hint, int maxItems = int.MaxValue)
 		{
 			string badge = css == "err" ? "badge-err" : "badge-warn";
 			html.Append("<h2>").Append(ForkReportHtml.Escape(title)).Append(" <span class=\"badge ").Append(badge).Append("\">")
@@ -238,23 +294,29 @@ namespace DMR
 				html.Append("<p class=\"").Append(css).Append("\">").Append(hint).Append("</p>");
 			}
 			html.Append("<ul>");
+			int shown = 0;
 			if (items != null)
 			{
 				foreach (CodeplugHealthDrillItem item in items)
 				{
+					if (shown >= maxItems)
+					{
+						break;
+					}
 					html.Append("<li class=\"").Append(css).Append("\">")
 						.Append(ForkReportHtml.DrillLink(kind, item.Index, item.Name)).Append("</li>");
+					shown++;
 				}
 			}
-			if (items == null || total > items.Count)
+			if (total > shown)
 			{
-				html.Append("<li>… and ").Append(total - (items == null ? 0 : items.Count)).Append(" more</li>");
+				html.Append("<li>… and ").Append(total - shown).Append(" more — press F7</li>");
 			}
 			html.Append("</ul>");
 		}
 
 		private static void AppendDuplicateGroupList(StringBuilder html, string title, int total,
-			List<CodeplugHealthDuplicateGroup> groups, string kind, string css, string hint)
+			List<CodeplugHealthDuplicateGroup> groups, string kind, string css, string hint, int maxGroups = int.MaxValue)
 		{
 			string badge = css == "err" ? "badge-err" : "badge-warn";
 			html.Append("<h2>").Append(ForkReportHtml.Escape(title)).Append(" <span class=\"badge ").Append(badge).Append("\">")
@@ -264,10 +326,15 @@ namespace DMR
 				html.Append("<p class=\"").Append(css).Append("\">").Append(hint).Append("</p>");
 			}
 			html.Append("<ul>");
+			int shown = 0;
 			if (groups != null)
 			{
 				foreach (CodeplugHealthDuplicateGroup group in groups)
 				{
+					if (shown >= maxGroups)
+					{
+						break;
+					}
 					html.Append("<li class=\"").Append(css).Append("\">")
 						.Append(ForkReportHtml.Escape(group.Name)).Append(" (×").Append(group.Indices.Count).Append("): ");
 					for (int i = 0; i < group.Indices.Count; i++)
@@ -280,11 +347,12 @@ namespace DMR
 						html.Append(ForkReportHtml.DrillLink(kind, group.Indices[i], label));
 					}
 					html.Append("</li>");
+					shown++;
 				}
 			}
-			if (groups == null || total > groups.Count)
+			if (total > shown)
 			{
-				html.Append("<li>… and ").Append(total - (groups == null ? 0 : groups.Count)).Append(" more</li>");
+				html.Append("<li>… and ").Append(total - shown).Append(" more — press F7</li>");
 			}
 			html.Append("</ul>");
 		}
