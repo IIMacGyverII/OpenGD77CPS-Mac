@@ -436,6 +436,7 @@ namespace DMR
 				this.txtContactFilter = new TextBox();
 				this.txtContactFilter.Size = new System.Drawing.Size(180, 23);
 				this.txtContactFilter.TextChanged += this.txtContactFilter_TextChanged;
+				ForkFilterEscape.WireEscapeClear(this.txtContactFilter);
 				this.pnlContact.Controls.Add(this.lblContactFilter);
 				this.pnlContact.Controls.Add(this.txtContactFilter);
 			}

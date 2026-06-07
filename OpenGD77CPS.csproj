@@ -231,6 +231,7 @@
     <Compile Include="DMR\ForkWebViewPanel.cs" />
     <Compile Include="DMR\ForkKeyboardShortcutsForm.cs" />
     <Compile Include="DMR\ForkDesktopShortcut.cs" />
+    <Compile Include="DMR\ForkFilterEscape.cs" />
     <Compile Include="DMR\DmrIdLookup.cs" />
     <Compile Include="DMR\Theme.cs" />
     <Compile Include="DMR\AboutForm.cs">

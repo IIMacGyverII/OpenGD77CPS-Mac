@@ -176,6 +176,7 @@ namespace DMR
 				this.txtScanListsFilter = new TextBox();
 				this.txtScanListsFilter.Size = new Size(180, 23);
 				this.txtScanListsFilter.TextChanged += this.txtScanListsFilter_TextChanged;
+				ForkFilterEscape.WireEscapeClear(this.txtScanListsFilter);
 				this.pnlScanLists.Controls.Add(this.lblScanListsFilter);
 				this.pnlScanLists.Controls.Add(this.txtScanListsFilter);
 			}

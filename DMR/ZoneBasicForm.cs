@@ -438,6 +438,7 @@ namespace DMR
 				this.txtZoneFilter = new TextBox();
 				this.txtZoneFilter.Size = new Size(180, 23);
 				this.txtZoneFilter.TextChanged += this.txtZoneFilter_TextChanged;
+				ForkFilterEscape.WireEscapeClear(this.txtZoneFilter);
 				this.pnlZoneBasic.Controls.Add(this.lblZoneFilter);
 				this.pnlZoneBasic.Controls.Add(this.txtZoneFilter);
 			}

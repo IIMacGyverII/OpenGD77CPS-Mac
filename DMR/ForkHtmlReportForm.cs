@@ -14,9 +14,12 @@ namespace DMR
 		public event Action<string> CustomNavigation;
 		public event Action RefreshRequested;
 
-		public ForkHtmlReportForm(string title, string html, int width, int height, bool showRefresh = false)
+		private readonly string initialScrollElementId;
+
+		public ForkHtmlReportForm(string title, string html, int width, int height, bool showRefresh = false, string scrollToElementId = null)
 		{
 			this.html = html ?? "";
+			this.initialScrollElementId = scrollToElementId;
 			this.Text = title;
 			this.StartPosition = FormStartPosition.CenterParent;
 			this.FormBorderStyle = FormBorderStyle.Sizable;
@@ -61,9 +64,9 @@ namespace DMR
 			this.Shown += this.ForkHtmlReportForm_Shown;
 		}
 
-		public void NavigateHtml(string html)
+		public void NavigateHtml(string html, string scrollToElementId = null)
 		{
-			this.webPanel.NavigateHtml(html ?? "");
+			this.webPanel.NavigateHtml(html ?? "", scrollToElementId);
 		}
 
 		private void btnRefresh_Click(object sender, EventArgs e)
@@ -101,7 +104,7 @@ namespace DMR
 		private void ForkHtmlReportForm_Shown(object sender, System.EventArgs e)
 		{
 			this.webPanel.EnsureInitialized();
-			this.webPanel.NavigateHtml(this.html);
+			this.webPanel.NavigateHtml(this.html, this.initialScrollElementId);
 		}
 	}
 }

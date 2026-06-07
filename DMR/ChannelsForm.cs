@@ -143,6 +143,7 @@ namespace DMR
 			this.txtChannelFilter = new TextBox();
 			this.txtChannelFilter.Size = new System.Drawing.Size(180, 23);
 			this.txtChannelFilter.TextChanged += this.txtChannelFilter_TextChanged;
+			ForkFilterEscape.WireEscapeClear(this.txtChannelFilter);
 			this.lblChannelsGridHint = new Label();
 			this.lblChannelsGridHint.Text = "D=blue digital · A=amber analog · G=green · P=orange · A(gray)=all-call · click row/F2 opens editor (blue row = active) · header sorts";
 			this.lblChannelsGridHint.AutoSize = false;

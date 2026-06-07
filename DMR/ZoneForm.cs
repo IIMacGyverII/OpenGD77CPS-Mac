@@ -1341,6 +1341,7 @@ namespace DMR
 				this.txtZoneListFilter = new TextBox();
 				this.txtZoneListFilter.Size = new Size(160, 23);
 				this.txtZoneListFilter.TextChanged += this.txtZoneListFilter_TextChanged;
+				ForkFilterEscape.WireEscapeClear(this.txtZoneListFilter);
 				this.grpUnselected.Controls.Add(this.lblZoneListFilter);
 				this.grpUnselected.Controls.Add(this.txtZoneListFilter);
 			}
@@ -1453,6 +1454,8 @@ namespace DMR
 		private void ApplyZoneListFilter()
 		{
 			string query = this.txtZoneListFilter == null ? "" : this.txtZoneListFilter.Text.Trim();
+			int visible = 0;
+			int total = this.forkUnselectedCache == null ? 0 : this.forkUnselectedCache.Count;
 			this.lstUnselected.Items.Clear();
 			foreach (SelectedItemUtils item in this.forkUnselectedCache)
 			{
@@ -1460,7 +1463,14 @@ namespace DMR
 					|| (item.Name != null && item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
 				{
 					this.lstUnselected.Items.Add(item);
+					visible++;
 				}
+			}
+			if (this.lblZoneListFilter != null)
+			{
+				this.lblZoneListFilter.Text = string.IsNullOrEmpty(query)
+					? "Filter:"
+					: "Filter (" + visible + "/" + total + "):";
 			}
 			if (this.lstUnselected.Items.Count > 0)
 			{

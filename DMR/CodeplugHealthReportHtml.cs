@@ -32,44 +32,44 @@ namespace DMR
 			if (snap.RelayZero > 0)
 			{
 				AppendDrillList(html, "Relay = 0", snap.RelayZero, snap.RelayZeroDrill, "channel",
-					"warn", "These channels may show &quot;operation failed&quot; on the phone.");
+					"warn", "These channels may show &quot;operation failed&quot; on the phone.", "health-relay-zero");
 			}
 
 			if (snap.OrphanCount > 0)
 			{
 				AppendDrillList(html, "Missing TX contact", snap.OrphanCount, snap.OrphanDrill, "channel",
-					"err", "Digital channels reference a contact that is not in the codeplug.");
+					"err", "Digital channels reference a contact that is not in the codeplug.", "health-orphan-contact");
 			}
 
 			if (snap.DuplicateNameGroups > 0)
 			{
 				AppendDuplicateGroupList(html, "Duplicate channel names", snap.DuplicateNameGroups,
 					snap.DuplicateChannelGroups, "channel",
-					"warn", "Duplicate names can confuse Android import and zone editing.");
+					"warn", "Duplicate names can confuse Android import and zone editing.", "health-dup-ch-names");
 			}
 
 			if (snap.DuplicateDmrIdGroups > 0)
 			{
 				AppendDrillList(html, "Duplicate contact DMR IDs", snap.DuplicateDmrIdGroups, snap.DuplicateDmrIdDrill, "contact",
-					"warn", "Multiple contacts share the same Call ID — phone lookup and TX routing may be ambiguous.");
+					"warn", "Multiple contacts share the same Call ID — phone lookup and TX routing may be ambiguous.", "health-dup-dmr-id");
 			}
 
 			if (snap.DuplicateContactNameGroups > 0)
 			{
 				AppendDuplicateGroupList(html, "Duplicate contact names", snap.DuplicateContactNameGroups,
 					snap.DuplicateContactGroups, "contact",
-					"warn", "Multiple contacts share the same name — grids and imports may be hard to distinguish.");
+					"warn", "Multiple contacts share the same name — grids and imports may be hard to distinguish.", "health-dup-ct-names");
 			}
 
 			if (snap.DigitalNoContact > 0)
 			{
 				AppendDrillList(html, "Digital channels without TX contact", snap.DigitalNoContact, snap.DigitalNoContactDrill, "channel",
-					"warn", "Digital channels should reference a contact for TX routing.");
+					"warn", "Digital channels should reference a contact for TX routing.", "health-dig-no-contact");
 			}
 
 			if (snap.EmptyZones > 0)
 			{
-				html.Append("<h2>Empty zones <span class=\"badge badge-warn\">").Append(snap.EmptyZones).Append("</span></h2>");
+				html.Append("<h2 id=\"health-empty-zones\">Empty zones <span class=\"badge badge-warn\">").Append(snap.EmptyZones).Append("</span></h2>");
 				html.Append("<p class=\"warn\">Zones with no member channels.</p><ul>");
 				int shown = 0;
 				foreach (CodeplugHealthZoneRow row in snap.ZoneRows)
@@ -95,19 +95,19 @@ namespace DMR
 			if (snap.ChannelsNotInZone > 0)
 			{
 				AppendDrillList(html, "Channels not in any zone", snap.ChannelsNotInZone, snap.ChannelsNotInZoneDrill, "channel",
-					"warn", "These channels exist but are not assigned to a zone.");
+					"warn", "These channels exist but are not assigned to a zone.", "health-no-zone");
 			}
 
 			if (snap.EmptyTgLists > 0)
 			{
 				AppendDrillList(html, "Empty TG/Rx lists", snap.EmptyTgLists, snap.EmptyTgDrill, "tglist",
-					"warn", "TG/Rx group lists with no member contacts.");
+					"warn", "TG/Rx group lists with no member contacts.", "health-empty-tg");
 			}
 
 			if (snap.InvalidTgRefs > 0)
 			{
 				AppendDrillList(html, "Invalid TG/Rx contact refs", snap.InvalidTgRefs, snap.InvalidTgRefDrill, "tglist",
-					"warn", "TG/Rx lists reference missing contacts or non-group (private/all-call) entries.");
+					"warn", "TG/Rx lists reference missing contacts or non-group (private/all-call) entries.", "health-bad-tg-ref");
 			}
 
 			if (snap.TgRows.Count > 0)
@@ -138,13 +138,13 @@ namespace DMR
 			if (snap.EmptyScanLists > 0)
 			{
 				AppendDrillList(html, "Empty scan lists", snap.EmptyScanLists, snap.EmptyScanDrill, "scanlist",
-					"warn", "Scan lists with no member channels.");
+					"warn", "Scan lists with no member channels.", "health-empty-scan");
 			}
 
 			if (snap.InvalidScanRefs > 0)
 			{
 				AppendDrillList(html, "Invalid scan channel refs", snap.InvalidScanRefs, snap.InvalidScanRefDrill, "scanlist",
-					"warn", "Scan lists reference channels that are missing or invalid in the codeplug.");
+					"warn", "Scan lists reference channels that are missing or invalid in the codeplug.", "health-bad-scan-ref");
 			}
 
 			if (snap.ScanRows.Count > 0)
@@ -205,6 +205,63 @@ namespace DMR
 			return html.ToString();
 		}
 
+		public static string GetScrollTarget(CodeplugHealthSnapshot snap)
+		{
+			if (snap == null || !snap.HasWarning)
+			{
+				return null;
+			}
+			if (snap.RelayZero > 0)
+			{
+				return "health-relay-zero";
+			}
+			if (snap.OrphanCount > 0)
+			{
+				return "health-orphan-contact";
+			}
+			if (snap.DuplicateNameGroups > 0)
+			{
+				return "health-dup-ch-names";
+			}
+			if (snap.DuplicateDmrIdGroups > 0)
+			{
+				return "health-dup-dmr-id";
+			}
+			if (snap.DuplicateContactNameGroups > 0)
+			{
+				return "health-dup-ct-names";
+			}
+			if (snap.DigitalNoContact > 0)
+			{
+				return "health-dig-no-contact";
+			}
+			if (snap.EmptyZones > 0)
+			{
+				return "health-empty-zones";
+			}
+			if (snap.ChannelsNotInZone > 0)
+			{
+				return "health-no-zone";
+			}
+			if (snap.EmptyTgLists > 0)
+			{
+				return "health-empty-tg";
+			}
+			if (snap.InvalidTgRefs > 0)
+			{
+				return "health-bad-tg-ref";
+			}
+			if (snap.EmptyScanLists > 0)
+			{
+				return "health-empty-scan";
+			}
+			if (snap.InvalidScanRefs > 0)
+			{
+				return "health-bad-scan-ref";
+			}
+			return null;
+		}
+
 		public static string Build(
 			int channels, int digital, int analog,
 			int contacts, int zones, int tgLists,
@@ -247,33 +304,33 @@ namespace DMR
 			if (snap.RelayZero > 0)
 			{
 				AppendDrillList(html, "Relay = 0", snap.RelayZero, snap.RelayZeroDrill, "channel",
-					"warn", "These channels may show operation failed on the phone.", maxItems);
+					"warn", "These channels may show operation failed on the phone.", maxItems: maxItems);
 			}
 			if (snap.OrphanCount > 0)
 			{
 				AppendDrillList(html, "Missing TX contact", snap.OrphanCount, snap.OrphanDrill, "channel",
-					"err", "Digital channels reference a contact not in the codeplug.", maxItems);
+					"err", "Digital channels reference a contact not in the codeplug.", maxItems: maxItems);
 			}
 			if (snap.DuplicateNameGroups > 0)
 			{
 				AppendDuplicateGroupList(html, "Duplicate channel names", snap.DuplicateNameGroups,
 					snap.DuplicateChannelGroups, "channel", "warn",
-					"Duplicate names can confuse Android import and zone editing.", maxItems);
+					"Duplicate names can confuse Android import and zone editing.", maxGroups: maxItems);
 			}
 			if (snap.DuplicateDmrIdGroups > 0)
 			{
 				AppendDrillList(html, "Duplicate contact DMR IDs", snap.DuplicateDmrIdGroups, snap.DuplicateDmrIdDrill, "contact",
-					"warn", "Multiple contacts share the same Call ID.", maxItems);
+					"warn", "Multiple contacts share the same Call ID.", maxItems: maxItems);
 			}
 			if (snap.DigitalNoContact > 0)
 			{
 				AppendDrillList(html, "Digital without TX contact", snap.DigitalNoContact, snap.DigitalNoContactDrill, "channel",
-					"warn", "Digital channels should reference a contact for TX routing.", maxItems);
+					"warn", "Digital channels should reference a contact for TX routing.", maxItems: maxItems);
 			}
 			if (snap.ChannelsNotInZone > 0)
 			{
 				AppendDrillList(html, "Channels not in any zone", snap.ChannelsNotInZone, snap.ChannelsNotInZoneDrill, "channel",
-					"warn", "These channels are not assigned to a zone.", maxItems);
+					"warn", "These channels are not assigned to a zone.", maxItems: maxItems);
 			}
 			if (!snap.HasWarning)
 			{
@@ -284,10 +341,16 @@ namespace DMR
 		}
 
 		private static void AppendDrillList(StringBuilder html, string title, int total,
-			List<CodeplugHealthDrillItem> items, string kind, string css, string hint, int maxItems = int.MaxValue)
+			List<CodeplugHealthDrillItem> items, string kind, string css, string hint,
+			string elementId = null, int maxItems = int.MaxValue)
 		{
 			string badge = css == "err" ? "badge-err" : "badge-warn";
-			html.Append("<h2>").Append(ForkReportHtml.Escape(title)).Append(" <span class=\"badge ").Append(badge).Append("\">")
+			html.Append("<h2");
+			if (!string.IsNullOrEmpty(elementId))
+			{
+				html.Append(" id=\"").Append(elementId).Append("\"");
+			}
+			html.Append(">").Append(ForkReportHtml.Escape(title)).Append(" <span class=\"badge ").Append(badge).Append("\">")
 				.Append(total).Append("</span></h2>");
 			if (!string.IsNullOrEmpty(hint))
 			{
@@ -316,10 +379,16 @@ namespace DMR
 		}
 
 		private static void AppendDuplicateGroupList(StringBuilder html, string title, int total,
-			List<CodeplugHealthDuplicateGroup> groups, string kind, string css, string hint, int maxGroups = int.MaxValue)
+			List<CodeplugHealthDuplicateGroup> groups, string kind, string css, string hint,
+			string elementId = null, int maxGroups = int.MaxValue)
 		{
 			string badge = css == "err" ? "badge-err" : "badge-warn";
-			html.Append("<h2>").Append(ForkReportHtml.Escape(title)).Append(" <span class=\"badge ").Append(badge).Append("\">")
+			html.Append("<h2");
+			if (!string.IsNullOrEmpty(elementId))
+			{
+				html.Append(" id=\"").Append(elementId).Append("\"");
+			}
+			html.Append(">").Append(ForkReportHtml.Escape(title)).Append(" <span class=\"badge ").Append(badge).Append("\">")
 				.Append(total).Append("</span></h2>");
 			if (!string.IsNullOrEmpty(hint))
 			{

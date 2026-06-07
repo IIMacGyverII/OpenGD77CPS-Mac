@@ -359,6 +359,7 @@ namespace DMR
 				this.txtRxListFilter = new TextBox();
 				this.txtRxListFilter.Size = new Size(160, 23);
 				this.txtRxListFilter.TextChanged += this.txtRxListFilter_TextChanged;
+				ForkFilterEscape.WireEscapeClear(this.txtRxListFilter);
 				this.grpUnselected.Controls.Add(this.lblRxListFilter);
 				this.grpUnselected.Controls.Add(this.txtRxListFilter);
 			}

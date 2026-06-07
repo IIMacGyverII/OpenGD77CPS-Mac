@@ -1973,6 +1973,7 @@ namespace DMR
 			this.txtTreeFilter.Location = new Point(48, 3);
 			this.txtTreeFilter.Size = new Size(170, 23);
 			this.txtTreeFilter.TextChanged += this.txtTreeFilter_TextChanged;
+			ForkFilterEscape.WireEscapeClear(this.txtTreeFilter);
 			this.pnlTreeFilter.Controls.Add(this.lblTreeFilter);
 			this.pnlTreeFilter.Controls.Add(this.txtTreeFilter);
 			this.pnlTvw.Controls.Add(this.pnlTreeFilter);
@@ -2244,15 +2245,17 @@ namespace DMR
 		private void ShowCodeplugHealthReport(object sender, EventArgs e)
 		{
 #if OpenGD77
-			string html = CodeplugHealthReportHtml.Build(CodeplugHealthSnapshot.Collect());
+			CodeplugHealthSnapshot snap = CodeplugHealthSnapshot.Collect();
+			string html = CodeplugHealthReportHtml.Build(snap);
+			string scrollId = CodeplugHealthReportHtml.GetScrollTarget(snap);
 			if (this.forkHealthReportForm != null && !this.forkHealthReportForm.IsDisposed)
 			{
-				this.forkHealthReportForm.NavigateHtml(html);
+				this.forkHealthReportForm.NavigateHtml(html, scrollId);
 				this.forkHealthReportForm.BringToFront();
 				this.forkHealthReportForm.Focus();
 				return;
 			}
-			this.forkHealthReportForm = new ForkHtmlReportForm("Codeplug health", html, 720, 560, true);
+			this.forkHealthReportForm = new ForkHtmlReportForm("Codeplug health", html, 720, 560, true, scrollId);
 			this.forkHealthReportForm.CustomNavigation += this.OnHealthReportNavigate;
 			this.forkHealthReportForm.RefreshRequested += this.RefreshCodeplugHealthReport;
 			this.forkHealthReportForm.FormClosed += this.ForkHealthReportForm_FormClosed;
@@ -2274,8 +2277,10 @@ namespace DMR
 			{
 				return;
 			}
-			string html = CodeplugHealthReportHtml.Build(CodeplugHealthSnapshot.Collect());
-			this.forkHealthReportForm.NavigateHtml(html);
+			CodeplugHealthSnapshot snap = CodeplugHealthSnapshot.Collect();
+			string html = CodeplugHealthReportHtml.Build(snap);
+			string scrollId = CodeplugHealthReportHtml.GetScrollTarget(snap);
+			this.forkHealthReportForm.NavigateHtml(html, scrollId);
 			this.UpdateCodeplugHealth();
 		}
 
