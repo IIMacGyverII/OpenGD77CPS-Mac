@@ -24,11 +24,16 @@ namespace DMR
 			this.Font = new Font("Segoe UI", 9.75f);
 			Theme.ApplyForkDialog(this);
 
+			string statsText = this.result.StatsLine;
+			if (ForkPostImportUi.ShouldOfferHealthLink(this.result))
+			{
+				statsText += ForkFilterEscape.PostImportHealthHint;
+			}
 			Label lblStats = new Label
 			{
 				Location = new Point(12, 12),
 				Size = new Size(496, 36),
-				Text = this.result.StatsLine,
+				Text = statsText,
 				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
 			};
 
@@ -71,8 +76,8 @@ namespace DMR
 			Button btnHealth = new Button
 			{
 				Location = new Point(12, showHealthFollowUp ? 392 : 364),
-				Size = new Size(120, 28),
-				Text = ForkPostImportUi.BatchDialogHealthButton,
+				Size = new Size(132, 28),
+				Text = ForkPostImportUi.PostImportHealthButtonWarn,
 				Visible = showHealthFollowUp,
 				ForeColor = ForkPostImportUi.WarnColor,
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
@@ -93,6 +98,10 @@ namespace DMR
 			if (this.result.HasErrors)
 			{
 				lblStats.ForeColor = Color.Khaki;
+			}
+			else if (showHealthFollowUp)
+			{
+				lblStats.ForeColor = ForkPostImportUi.WarnColor;
 			}
 			else
 			{

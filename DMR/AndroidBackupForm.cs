@@ -253,7 +253,7 @@ namespace DMR
 			this.footerTip.SetToolTip(this.btnReviewDiff, "Preview channel changes before import (Ctrl+D)");
 			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
 			this.footerTip.SetToolTip(this.lblReportCaption, "Re-validate CSVs in the loaded folder (F5)");
-			this.footerTip.SetToolTip(this.btnHealth, "Full codeplug health report (F7)");
+			this.footerTip.SetToolTip(this.btnHealth, ForkPostImportUi.HealthButtonDefaultTip);
 
 			this.KeyPreview = true;
 			this.KeyDown += this.AndroidBackupForm_KeyDown;
@@ -673,12 +673,12 @@ namespace DMR
 				ForkPostImportUi.ApplyBatchCaption(this.lblReportCaption, operationResult);
 				ForkPostImportUi.ConfigureHealthLink(
 					this.lblReportCaption, operationResult, () => this.mainForm.OpenCodeplugHealthReport(), this.footerTip);
-				ForkPostImportUi.ConfigureHealthButton(this.btnHealth, operationResult);
+				ForkPostImportUi.ConfigureHealthButton(this.btnHealth, operationResult, this.footerTip);
 			}
 			else
 			{
 				ForkPostImportUi.ClearHealthLink(this.lblReportCaption, this.footerTip, "Re-validate CSVs in the loaded folder (F5)");
-				ForkPostImportUi.ClearHealthButton(this.btnHealth);
+				ForkPostImportUi.ClearHealthButton(this.btnHealth, this.footerTip);
 				this.lblReportCaption.Text = AndroidBackupReportHtml.GetFolderStatusSummary(
 					this.lastValidation, integrity, diff, this.diffPreApproved, File.Exists(channelsPath));
 				this.lblReportCaption.ForeColor = Theme.MutedForeground;

@@ -439,7 +439,7 @@ namespace DMR
 			this.footerTip.SetToolTip(this.btnReviewDiff, "Preview channel changes before import (Ctrl+D)");
 			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
 			this.footerTip.SetToolTip(btnOpenFolder, "Open backup folder in Explorer");
-			this.footerTip.SetToolTip(this.btnHealth, "Full codeplug health report (F7)");
+			this.footerTip.SetToolTip(this.btnHealth, ForkPostImportUi.HealthButtonDefaultTip);
 			this.footerTip.SetToolTip(this.lblReportCaption, "Re-validate CSVs in the loaded folder (F5)");
 			this.footerTip.SetToolTip(btnRawLog, "Plain-text validation, diff, and integrity log");
 			this.footerTip.SetToolTip(btnShortcut, "Create PriInterPhone Codeplug Studio shortcut on Desktop (--studio)");
@@ -1183,7 +1183,7 @@ namespace DMR
 				return;
 			}
 			ForkPostImportUi.ClearHealthLink(this.lblReportStatus, this.footerTip);
-			ForkPostImportUi.ClearHealthButton(this.btnHealth);
+			ForkPostImportUi.ClearHealthButton(this.btnHealth, this.footerTip);
 			this.lblReportStatus.Text = text;
 			this.lblReportStatus.ForeColor = color;
 			Control parent = this.lblReportStatus.Parent;
@@ -1204,7 +1204,7 @@ namespace DMR
 			ForkPostImportUi.ApplyBatchCaption(this.lblReportStatus, batch);
 			ForkPostImportUi.ConfigureHealthLink(
 				this.lblReportStatus, batch, () => this.mainForm.OpenCodeplugHealthReport(), this.footerTip);
-			ForkPostImportUi.ConfigureHealthButton(this.btnHealth, batch);
+			ForkPostImportUi.ConfigureHealthButton(this.btnHealth, batch, this.footerTip);
 			Control parent = this.lblReportStatus == null ? null : this.lblReportStatus.Parent;
 			if (parent != null && this.lblReportStatus != null)
 			{
