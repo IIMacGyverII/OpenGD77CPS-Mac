@@ -1,12 +1,23 @@
 using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 namespace DMR
 {
+	internal sealed class ForkPendingDiffSnapshot
+	{
+		public string FolderPath;
+		public AndroidImportDiffResult Diff;
+		public bool HasPending;
+		public int ChangeCount;
+	}
+
 	/// <summary>Shared post-import/export caption styling for F8, Studio, and batch dialogs.</summary>
 	internal static class ForkPostImportUi
 	{
+		internal const string IniKeyDiffApprovedFolder = "ForkDiffApprovedFolder";
+		internal const string IniKeyDiffApprovedStamp = "ForkDiffApprovedChannelsStamp";
 		internal static readonly Color OkColor = Color.FromArgb(0x81, 0xC7, 0x84);
 		internal static readonly Color WarnColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
 		internal static readonly Color ErrColor = Color.FromArgb(0xEF, 0x53, 0x50);
@@ -22,7 +33,8 @@ namespace DMR
 		internal const string PostImportReportFootWarn = "Fix issues above or use amber status, Health ⚠ footer/toolbar/menu, or F7 for the full report.";
 		internal const string PostImportReportFootOk = "Click a highlighted name to open the editor.";
 		internal const string F8StudioBannerHealthHint = "Post-import scrolls to health · click names in health section, report link, amber status, Health ⚠ footer/toolbar, or F7";
-		internal const string F8StudioBannerDiffHint = "Pending diff: click amber status or Review diff ⚠ footer (Ctrl+D) · left status after pull";
+		internal const string F8StudioBannerDiffHint = "Pending diff: amber status, Review diff ⚠ footer/toolbar/menu (Ctrl+D in F8/Studio) · left status after pull";
+		internal const string MainToolbarDiffTipDefault = "Review channel changes before Path B import — open F8/Studio (Ctrl+D while open)";
 		internal const string PendingDiffLinkTip = "Click to review channel changes before import (Ctrl+D)";
 		internal const string PreImportDiffButtonDefault = "Review diff…";
 		internal const string PreImportDiffButtonWarn = "Review diff ⚠ (Ctrl+D)";
@@ -159,6 +171,123 @@ namespace DMR
 				return "";
 			}
 			return ForkFilterEscape.PreImportDiffHint + ForkPostImportUi.DiffChangeCountNote(diff);
+		}
+
+		public static string DiffChangeCountToolbarNote(int changeCount)
+		{
+			if (changeCount <= 1)
+			{
+				return "";
+			}
+			return " (" + changeCount + ")";
+		}
+
+		public static string DiffToolbarLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "Review diff";
+			}
+			return "Review diff ⚠" + ForkPostImportUi.DiffChangeCountToolbarNote(snap.ChangeCount);
+		}
+
+		public static string DiffMenuLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "Review channel diff…";
+			}
+			if (snap.ChangeCount > 1)
+			{
+				return "Review channel diff ⚠ (" + snap.ChangeCount + ")…";
+			}
+			return "Review channel diff ⚠…";
+		}
+
+		public static string DiffToolbarTooltip(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return ForkPostImportUi.MainToolbarDiffTipDefault;
+			}
+			if (snap.ChangeCount > 1)
+			{
+				return ForkPostImportUi.PendingDiffLinkTip + " — " + snap.ChangeCount + " channel changes";
+			}
+			return ForkPostImportUi.PendingDiffLinkTip;
+		}
+
+		public static void MarkPendingDiffReviewed(string folderPath)
+		{
+			if (string.IsNullOrEmpty(folderPath))
+			{
+				return;
+			}
+			string channelsPath = Path.Combine(folderPath, "Channels.csv");
+			IniFileUtils.WriteProfileString("Setup", ForkPostImportUi.IniKeyDiffApprovedFolder, folderPath);
+			IniFileUtils.WriteProfileString("Setup", ForkPostImportUi.IniKeyDiffApprovedStamp,
+				AndroidImportDiff.GetChannelsCsvStamp(channelsPath));
+		}
+
+		public static void ClearPendingDiffReviewed(string folderPath)
+		{
+			string approvedFolder = IniFileUtils.getProfileStringWithDefault("Setup", ForkPostImportUi.IniKeyDiffApprovedFolder, "");
+			if (string.IsNullOrEmpty(approvedFolder)
+				|| string.IsNullOrEmpty(folderPath)
+				|| string.Equals(approvedFolder, folderPath, StringComparison.OrdinalIgnoreCase))
+			{
+				IniFileUtils.WriteProfileString("Setup", ForkPostImportUi.IniKeyDiffApprovedFolder, "");
+				IniFileUtils.WriteProfileString("Setup", ForkPostImportUi.IniKeyDiffApprovedStamp, "");
+			}
+		}
+
+		public static bool TryRestoreDiffReviewState(string folderPath, out bool diffPreApproved, out string approvedStamp)
+		{
+			diffPreApproved = false;
+			approvedStamp = "";
+			if (string.IsNullOrEmpty(folderPath))
+			{
+				return false;
+			}
+			string channelsPath = Path.Combine(folderPath, "Channels.csv");
+			if (!File.Exists(channelsPath))
+			{
+				return false;
+			}
+			string approvedFolder = IniFileUtils.getProfileStringWithDefault("Setup", ForkPostImportUi.IniKeyDiffApprovedFolder, "");
+			approvedStamp = IniFileUtils.getProfileStringWithDefault("Setup", ForkPostImportUi.IniKeyDiffApprovedStamp, "");
+			diffPreApproved = string.Equals(folderPath, approvedFolder, StringComparison.OrdinalIgnoreCase)
+				&& AndroidImportDiff.IsDiffReviewCurrent(channelsPath, true, approvedStamp);
+			return diffPreApproved;
+		}
+
+		public static ForkPendingDiffSnapshot CollectPendingDiffSnapshot()
+		{
+			ForkPendingDiffSnapshot snap = new ForkPendingDiffSnapshot();
+			snap.FolderPath = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
+			if (string.IsNullOrEmpty(snap.FolderPath) || !Directory.Exists(snap.FolderPath))
+			{
+				return snap;
+			}
+			string channelsPath = Path.Combine(snap.FolderPath, "Channels.csv");
+			if (!File.Exists(channelsPath))
+			{
+				return snap;
+			}
+			bool diffPreApproved;
+			string approvedStamp;
+			ForkPostImportUi.TryRestoreDiffReviewState(snap.FolderPath, out diffPreApproved, out approvedStamp);
+			try
+			{
+				snap.Diff = AndroidImportDiff.Compute(channelsPath);
+			}
+			catch
+			{
+				return snap;
+			}
+			snap.HasPending = ForkPostImportUi.ShouldOfferDiffLink(snap.Diff, diffPreApproved, true);
+			snap.ChangeCount = ForkPostImportUi.PendingDiffChangeCount(snap.Diff);
+			return snap;
 		}
 
 		public static void ConfigureDiffButton(

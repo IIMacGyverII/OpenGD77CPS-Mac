@@ -972,6 +972,7 @@ namespace DMR
 				this.lastDiffFolder = folderPath;
 				this.diffPreApproved = false;
 				this.lastApprovedChannelsStamp = "";
+				ForkPostImportUi.TryRestoreDiffReviewState(folderPath, out this.diffPreApproved, out this.lastApprovedChannelsStamp);
 			}
 			else if (this.diffPreApproved)
 			{
@@ -979,6 +980,8 @@ namespace DMR
 				if (!string.Equals(stamp, this.lastApprovedChannelsStamp, StringComparison.Ordinal))
 				{
 					this.diffPreApproved = false;
+					this.lastApprovedChannelsStamp = "";
+					ForkPostImportUi.ClearPendingDiffReviewed(folderPath);
 				}
 			}
 			this.UpdateCsvTiles(folderPath);
@@ -1039,6 +1042,7 @@ namespace DMR
 			}
 
 			this.UpdateDiffImportButtons(channelsPath, diff);
+			this.mainForm.RefreshForkPendingDiff();
 			return true;
 		}
 
@@ -1075,9 +1079,11 @@ namespace DMR
 			this.lastDiffFolder = folderPath;
 			this.lastApprovedChannelsStamp = stamp;
 			this.diffPreApproved = true;
+			ForkPostImportUi.MarkPendingDiffReviewed(folderPath);
 			this.btnReviewDiff.Text = "Diff reviewed ✓";
 			this.SetReportStatusChip("Diff reviewed ✓ — ready to import", Color.FromArgb(0x81, 0xC7, 0x84));
 			this.UpdateDiffImportButtons(channelsPath, this.lastDiff);
+			this.mainForm.RefreshForkPendingDiff();
 			return true;
 		}
 

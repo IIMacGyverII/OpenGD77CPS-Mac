@@ -226,9 +226,15 @@ namespace DMR
 
 		private ToolStripMenuItem tsmiCodeplugHealth;
 
+		private ToolStripButton tsbtnReviewDiff;
+
+		private ToolStripMenuItem tsmiReviewDiff;
+
 		private bool forkAdvancedMenuBuilt;
 
 		private bool forkCodeplugHealthUiBuilt;
+
+		private bool forkReviewDiffUiBuilt;
 
 		private bool forkCodeplugStudioUiBuilt;
 
@@ -254,7 +260,7 @@ namespace DMR
 
 		private readonly List<ForkTreeFilterEntry> forkTreeFilterStash = new List<ForkTreeFilterEntry>();
 
-		private const string ForkStatusHintDefault = "CodeplugStudio.cmd | Ctrl+Shift+S Studio | F8 backup | F7 health | Ctrl+Shift+F tree | F1";
+		private const string ForkStatusHintDefault = "CodeplugStudio.cmd | Ctrl+Shift+S Studio | F8 backup | Review diff toolbar | F7 health | Ctrl+Shift+F tree | F1";
 
 		private bool forkStatusHealthLinkWired;
 		private bool forkStatusHealthLinkActive;
@@ -1831,12 +1837,14 @@ namespace DMR
 			{
 				return;
 			}
+			this.EnsureForkReviewDiffUi();
+
 			this.tsmiCodeplugHealth = new ToolStripMenuItem("Codeplug health report…");
 			this.tsmiCodeplugHealth.ShortcutKeys = Keys.F7;
 			this.tsmiCodeplugHealth.ShowShortcutKeys = true;
 			this.tsmiCodeplugHealth.Click += this.ShowCodeplugHealthReport;
-			this.tsmiView.DropDownItems.Insert(0, this.tsmiCodeplugHealth);
-			this.tsmiView.DropDownItems.Insert(1, new ToolStripSeparator());
+			this.tsmiView.DropDownItems.Insert(1, this.tsmiCodeplugHealth);
+			this.tsmiView.DropDownItems.Insert(2, new ToolStripSeparator());
 
 			this.tsbtnCodeplugHealth = new ToolStripButton();
 			this.tsbtnCodeplugHealth.DisplayStyle = ToolStripItemDisplayStyle.Text;
@@ -1844,14 +1852,22 @@ namespace DMR
 			this.tsbtnCodeplugHealth.Font = new Font(Theme.UiFont.FontFamily, 9.75f, FontStyle.Bold);
 			this.tsbtnCodeplugHealth.ToolTipText = ForkPostImportUi.MainToolbarHealthTipDefault;
 			this.tsbtnCodeplugHealth.Click += this.ShowCodeplugHealthReport;
-			int backupIndex = this.tsrMain.Items.IndexOf(this.tsbtnAndroidBackup);
-			if (backupIndex >= 0)
+			int healthIndex = this.tsrMain.Items.IndexOf(this.tsbtnReviewDiff);
+			if (healthIndex >= 0)
 			{
-				this.tsrMain.Items.Insert(backupIndex + 1, this.tsbtnCodeplugHealth);
+				this.tsrMain.Items.Insert(healthIndex + 1, this.tsbtnCodeplugHealth);
 			}
 			else
 			{
-				this.tsrMain.Items.Add(this.tsbtnCodeplugHealth);
+				int backupIndex = this.tsrMain.Items.IndexOf(this.tsbtnAndroidBackup);
+				if (backupIndex >= 0)
+				{
+					this.tsrMain.Items.Insert(backupIndex + 1, this.tsbtnCodeplugHealth);
+				}
+				else
+				{
+					this.tsrMain.Items.Add(this.tsbtnCodeplugHealth);
+				}
 			}
 			this.PolishForkAndroidBackupToolbar();
 			this.forkCodeplugHealthUiBuilt = true;
@@ -1888,6 +1904,36 @@ namespace DMR
 				this.tsrMain.Items.Add(this.tsbtnCodeplugStudio);
 			}
 			this.forkCodeplugStudioUiBuilt = true;
+#endif
+		}
+
+		private void EnsureForkReviewDiffUi()
+		{
+#if OpenGD77
+			if (this.forkReviewDiffUiBuilt)
+			{
+				return;
+			}
+			this.tsmiReviewDiff = new ToolStripMenuItem("Review channel diff…");
+			this.tsmiReviewDiff.Click += this.ShowReviewDiff_Click;
+			this.tsmiView.DropDownItems.Insert(0, this.tsmiReviewDiff);
+
+			this.tsbtnReviewDiff = new ToolStripButton();
+			this.tsbtnReviewDiff.DisplayStyle = ToolStripItemDisplayStyle.Text;
+			this.tsbtnReviewDiff.Text = "Review diff";
+			this.tsbtnReviewDiff.Font = new Font(Theme.UiFont.FontFamily, 9.75f, FontStyle.Bold);
+			this.tsbtnReviewDiff.ToolTipText = ForkPostImportUi.MainToolbarDiffTipDefault;
+			this.tsbtnReviewDiff.Click += this.ShowReviewDiff_Click;
+			int backupIndex = this.tsrMain.Items.IndexOf(this.tsbtnAndroidBackup);
+			if (backupIndex >= 0)
+			{
+				this.tsrMain.Items.Insert(backupIndex + 1, this.tsbtnReviewDiff);
+			}
+			else
+			{
+				this.tsrMain.Items.Add(this.tsbtnReviewDiff);
+			}
+			this.forkReviewDiffUiBuilt = true;
 #endif
 		}
 
@@ -2175,6 +2221,7 @@ namespace DMR
 			this.tvwMain.ForeColor = SystemColors.WindowText;
 			this.slblForkVersion.Text = AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION;
 			this.UpdateCodeplugHealth();
+			this.UpdateForkPendingDiff();
 			this.ApplyForkStatusHint();
 #endif
 		}
@@ -2375,6 +2422,46 @@ namespace DMR
 					CodeplugHealthReportHtml.Build(snap),
 					CodeplugHealthReportHtml.GetScrollTarget(snap));
 			}
+#endif
+		}
+
+		private void UpdateForkPendingDiff()
+		{
+#if OpenGD77
+			this.EnsureForkReviewDiffUi();
+			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectPendingDiffSnapshot();
+			bool hasPending = snap.HasPending;
+			if (this.tsbtnReviewDiff != null)
+			{
+				this.tsbtnReviewDiff.Text = ForkPostImportUi.DiffToolbarLabel(snap);
+				this.tsbtnReviewDiff.ForeColor = hasPending ? ForkPostImportUi.WarnColor : Theme.Foreground;
+				this.tsbtnReviewDiff.ToolTipText = ForkPostImportUi.DiffToolbarTooltip(snap);
+			}
+			if (this.tsmiReviewDiff != null)
+			{
+				this.tsmiReviewDiff.Text = ForkPostImportUi.DiffMenuLabel(snap);
+			}
+#endif
+		}
+
+		public void RefreshForkPendingDiff()
+		{
+#if OpenGD77
+			this.UpdateForkPendingDiff();
+#endif
+		}
+
+		private void ShowReviewDiff_Click(object sender, EventArgs e)
+		{
+#if OpenGD77
+			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectPendingDiffSnapshot();
+			if (snap.HasPending && !string.IsNullOrEmpty(snap.FolderPath))
+			{
+				this.OpenAndroidBackupForDiffReview(snap.FolderPath);
+				this.RefreshForkPendingDiff();
+				return;
+			}
+			this.tsmiAndroidBackup_Click(sender, e);
 #endif
 		}
 
@@ -4486,6 +4573,7 @@ namespace DMR
 				+ ForkPostImportUi.PreImportDiffStatusSuffix(diff);
 			this.forkPendingDiffReviewFolder = folderPath;
 			this.ShowForkStatusMessage(statusMsg, 12000);
+			this.RefreshForkPendingDiff();
 #endif
 		}
 
