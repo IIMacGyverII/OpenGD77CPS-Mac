@@ -3029,6 +3029,8 @@ namespace DMR
 #if OpenGD77
 				this.CreateForkAdvancedCollapse();
 				this.RepositionForkAndroidSection();
+				this.EnsureForkChannelUi();
+				this.pnlChannel.Resize += this.pnlChannel_Resize;
 #endif
 				Theme.ApplyStandardEditorColors(this);
 				this.RestoreAndroidSectionNoteColor();
@@ -3042,12 +3044,43 @@ namespace DMR
 				this.BbRiogasSx();
 				this.method_0();
 				this.DispData();
+#if OpenGD77
+				this.ApplyForkChannelLayout();
+#endif
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message);
 			}
 		}
+
+#if OpenGD77
+		private void EnsureForkChannelUi()
+		{
+			this.pnlChannel.AutoSize = false;
+			this.pnlChannel.AutoScroll = true;
+		}
+
+		private void pnlChannel_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkChannelLayout();
+		}
+
+		private void ApplyForkChannelLayout()
+		{
+			int minW = Theme.Dpi(1120);
+			int minH = Theme.Dpi(960);
+			if (this.grpAndroidFork != null && this.grpAndroidFork.Visible)
+			{
+				minH = Math.Max(minH, this.grpAndroidFork.Bottom + Theme.Dpi(24));
+			}
+			else if (this.chkShowAdvancedBinary != null && this.chkShowAdvancedBinary.Visible)
+			{
+				minH = Math.Max(minH, this.chkShowAdvancedBinary.Bottom + Theme.Dpi(24));
+			}
+			this.pnlChannel.AutoScrollMinSize = new Size(minW, minH);
+		}
+#endif
 		
 		private void RestoreAndroidSectionNoteColor()
 		{
@@ -3301,6 +3334,7 @@ namespace DMR
 			if (reposition)
 			{
 				this.RepositionForkAndroidSection();
+				this.ApplyForkChannelLayout();
 			}
 		}
 
@@ -3341,6 +3375,7 @@ namespace DMR
 				: this.grpDigit.Bottom;
 			this.chkShowAdvancedBinary.Location = new Point(10, sectionBottom + 8);
 			this.grpAndroidFork.Location = new Point(10, this.chkShowAdvancedBinary.Bottom + 6);
+			this.ApplyForkChannelLayout();
 		}
 #endif
 
