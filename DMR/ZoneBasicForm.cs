@@ -445,7 +445,7 @@ namespace DMR
 			if (this.lblZoneGridHint == null)
 			{
 				this.lblZoneGridHint = new Label();
-				this.lblZoneGridHint.Text = "F2 or click row opens zone editor · Ctrl+F filter · Up/Dn = main/sub zone";
+				this.lblZoneGridHint.Text = "F2 or click row opens zone editor · Ctrl+F filter · Ctrl+Shift+F tree · Up/Dn = main/sub zone";
 				this.lblZoneGridHint.AutoSize = false;
 				this.lblZoneGridHint.Height = 18;
 				this.lblZoneGridHint.ForeColor = System.Drawing.SystemColors.GrayText;

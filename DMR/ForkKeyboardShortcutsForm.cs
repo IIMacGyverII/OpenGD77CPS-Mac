@@ -58,17 +58,22 @@ namespace DMR
 						"Channels grid\n" +
 						"  F2         Open channel editor\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +
+						"  Ctrl+Shift+F  Focus navigation tree filter\n" +
 						"  Del        Delete selected channel(s)\n" +
 						"  Ctrl+D     Duplicate selected channel(s)\n" +
 						"  Click row  Open channel in editor\n\n" +
 						"Channel editor\n" +
-						"  Ctrl+Z     Revert to state when channel was opened\n\n" +
+						"  Ctrl+Z     Revert to state when channel was opened\n" +
+						"  Ctrl+Shift+F  Focus navigation tree filter\n\n" +
 						"Contacts grid\n" +
 						"  F2         Open contact editor\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +
+						"  Ctrl+Shift+F  Focus navigation tree filter\n" +
 						"  Del        Delete selected contact(s)\n" +
 						"  Click row  Open contact in editor\n" +
 						"  Double-click Call ID   Look up on RadioID.net\n\n" +
+						"Contact editor\n" +
+						"  Ctrl+Shift+F  Focus navigation tree filter\n\n" +
 						"Zones / TG lists / scan lists grids\n" +
 						"  F2         Open editor for selected row\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +

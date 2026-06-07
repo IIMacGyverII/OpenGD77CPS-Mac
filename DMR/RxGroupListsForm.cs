@@ -180,7 +180,7 @@ namespace DMR
 			if (this.lblRxListsHint == null)
 			{
 				this.lblRxListsHint = new Label();
-				this.lblRxListsHint.Text = "F2 or click row opens TG/Rx editor · Ctrl+F filter · Group contacts only";
+				this.lblRxListsHint.Text = "F2 or click row opens TG/Rx editor · Ctrl+F filter · Ctrl+Shift+F tree · Group contacts only";
 				this.lblRxListsHint.AutoSize = false;
 				this.lblRxListsHint.Height = 18;
 				this.lblRxListsHint.ForeColor = SystemColors.GrayText;

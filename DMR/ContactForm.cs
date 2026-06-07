@@ -1422,6 +1422,16 @@ namespace DMR
 			((MainForm)base.MdiParent).RefreshRelatedForm(base.GetType(), index);
 		}
 
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm != null && mainForm.TryFocusTreeFilterShortcut(ref keyData))
+			{
+				return true;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
+
 		static ContactForm()
 		{
 			
