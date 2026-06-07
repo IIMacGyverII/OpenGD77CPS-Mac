@@ -442,7 +442,8 @@ namespace DMR
 			{
 				return;
 			}
-			this.mainForm.ImportAndroidBackupFolder(folderPath, this.diffPreApproved);
+			this.mainForm.ImportAndroidBackupFolder(
+				folderPath, this.diffPreApproved, true, false, this.lastApprovedChannelsStamp);
 			this.SetFolder(folderPath, false);
 		}
 

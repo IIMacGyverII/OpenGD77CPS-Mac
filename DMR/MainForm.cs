@@ -4266,7 +4266,7 @@ namespace DMR
 			this.ImportAndroidBackupFolder(null);
 		}
 
-		public AndroidBatchResult ImportAndroidBackupFolder(string folderPath, bool diffPreApproved = false, bool showResultDialog = true, bool suppressValidationPrompts = false)
+		public AndroidBatchResult ImportAndroidBackupFolder(string folderPath, bool diffPreApproved = false, bool showResultDialog = true, bool suppressValidationPrompts = false, string diffApprovedChannelsStamp = null)
 		{
 			if (string.IsNullOrEmpty(folderPath))
 			{
@@ -4341,8 +4341,10 @@ namespace DMR
 			}
 
 			bool channelsWillImport = File.Exists(channelsFile);
-			bool diffApproved = diffPreApproved;
-			if (channelsWillImport && !diffPreApproved)
+			bool diffApproved = false;
+			bool skipDiffReview = channelsWillImport
+				&& AndroidImportDiff.IsDiffReviewCurrent(channelsFile, diffPreApproved, diffApprovedChannelsStamp);
+			if (channelsWillImport && !skipDiffReview)
 			{
 				if (!AndroidImportDiff.ShowPreviewDialog(this, channelsFile))
 				{
@@ -4350,7 +4352,7 @@ namespace DMR
 				}
 				diffApproved = true;
 			}
-			else if (channelsWillImport && diffPreApproved)
+			else if (channelsWillImport && skipDiffReview)
 			{
 				diffApproved = true;
 			}

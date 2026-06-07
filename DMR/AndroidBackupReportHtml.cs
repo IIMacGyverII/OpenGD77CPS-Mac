@@ -79,6 +79,20 @@ namespace DMR
 				AppendMetricRow(html, "Relay=0 rows", validation.RelayZeroCount.ToString(), validation.RelayZeroCount > 0);
 				AppendMetricRow(html, "Duplicate names", validation.DuplicateChannelNames.ToString(), validation.DuplicateChannelNames > 0);
 				html.Append("</table>");
+				if (validation.DuplicateChannelNameList != null && validation.DuplicateChannelNameList.Count > 0)
+				{
+					html.Append("<p class=\"warn\">Duplicate channel names in CSV (").Append(validation.DuplicateChannelNames)
+						.Append(" duplicate row(s)):</p><ul>");
+					foreach (string name in validation.DuplicateChannelNameList)
+					{
+						int channelIndex = AndroidImportDiff.FindLoadedChannelIndexByName(name);
+						string nameCell = channelIndex >= 0
+							? ForkReportHtml.DrillLink("channel", channelIndex, name)
+							: ForkReportHtml.Escape(name);
+						html.Append("<li class=\"warn\">").Append(nameCell).Append("</li>");
+					}
+					html.Append("</ul>");
+				}
 				if (!string.IsNullOrEmpty(validation.Summary))
 				{
 					html.Append("<pre>").Append(ForkReportHtml.Escape(validation.Summary)).Append("</pre>");

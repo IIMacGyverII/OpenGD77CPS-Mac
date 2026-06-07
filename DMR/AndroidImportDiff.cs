@@ -196,6 +196,15 @@ namespace DMR
 		}
 
 		/// <summary>File stamp used to invalidate diff review when Channels.csv changes on disk (re-pull, edit).</summary>
+		public static bool IsDiffReviewCurrent(string channelsCsvPath, bool preApproved, string approvedStamp)
+		{
+			if (!preApproved || string.IsNullOrEmpty(channelsCsvPath) || !File.Exists(channelsCsvPath))
+			{
+				return false;
+			}
+			return string.Equals(approvedStamp, GetChannelsCsvStamp(channelsCsvPath), StringComparison.Ordinal);
+		}
+
 		public static string GetChannelsCsvStamp(string channelsCsvPath)
 		{
 			if (string.IsNullOrEmpty(channelsCsvPath) || !File.Exists(channelsCsvPath))

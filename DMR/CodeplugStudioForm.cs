@@ -50,6 +50,7 @@ namespace DMR
 		private Button btnOpenFullCps;
 		private TextBox txtValidation;
 		private readonly ToolTip csvTileTip = new ToolTip();
+		private readonly ToolTip footerTip = new ToolTip();
 		private AndroidBackupValidationResult lastValidation;
 		private string lastDiffFolder = "";
 		private string lastApprovedChannelsStamp = "";
@@ -401,6 +402,12 @@ namespace DMR
 
 			this.btnReviewDiff.Enabled = false;
 			this.btnReviewDiff.Margin = new Padding(0, 0, Theme.Dpi(8), 0);
+			this.footerTip.SetToolTip(this.btnImportAll, "Path B import all CSVs (Ctrl+I)");
+			this.footerTip.SetToolTip(this.btnReviewDiff, "Preview channel changes before import (Ctrl+D)");
+			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
+			this.footerTip.SetToolTip(btnOpenFolder, "Open backup folder in Explorer");
+			this.footerTip.SetToolTip(btnHealth, "Full codeplug health report (F7)");
+			this.footerTip.SetToolTip(this.btnOpenFullCps, "Show dock, tree, and full CPS editors");
 			foreach (Control c in new Control[] { this.btnImportAll, this.btnReviewDiff, this.btnExportAll, btnOpenFolder, btnHealth, this.btnOpenFullCps, btnClose })
 			{
 				if (c != this.btnReviewDiff)
@@ -926,6 +933,11 @@ namespace DMR
 				this.lblReportStatus.Text = pending + " channel change(s) — Review diff…";
 				this.lblReportStatus.ForeColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
 			}
+			else if (this.diffPreApproved && File.Exists(channelsPath))
+			{
+				this.lblReportStatus.Text = "Diff reviewed ✓ — ready to import";
+				this.lblReportStatus.ForeColor = Color.FromArgb(0x81, 0xC7, 0x84);
+			}
 			else
 			{
 				this.lblReportStatus.Text = "Ready to import";
@@ -1003,7 +1015,8 @@ namespace DMR
 			{
 				return;
 			}
-			AndroidBatchResult batch = this.mainForm.ImportAndroidBackupFolder(folderPath, this.diffPreApproved, false, true);
+			AndroidBatchResult batch = this.mainForm.ImportAndroidBackupFolder(
+				folderPath, this.diffPreApproved, false, true, this.lastApprovedChannelsStamp);
 			if (batch == null)
 			{
 				return;

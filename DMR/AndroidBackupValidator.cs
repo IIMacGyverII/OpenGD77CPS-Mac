@@ -11,6 +11,7 @@ namespace DMR
 		public bool HasBlockingErrors;
 		public int RelayZeroCount;
 		public int DuplicateChannelNames;
+		public List<string> DuplicateChannelNameList = new List<string>();
 		public int CsvChannelRows;
 		public int LoadedChannelCount;
 		public string Summary = "";
@@ -140,6 +141,7 @@ namespace DMR
 					int relayCol = hasId ? 31 : 30;
 					int nameCol = hasId ? 2 : 1;
 					HashSet<string> names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+					HashSet<string> duplicateExamples = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 					int rowNum = 1;
 
 					CsvRow row = new CsvRow();
@@ -157,6 +159,10 @@ namespace DMR
 							if (!names.Add(name))
 							{
 								result.DuplicateChannelNames++;
+								if (duplicateExamples.Count < 20)
+								{
+									duplicateExamples.Add(name);
+								}
 							}
 						}
 						if (cols.Count > relayCol)
@@ -169,6 +175,7 @@ namespace DMR
 						}
 					}
 					result.CsvChannelRows = rowNum - 1;
+					result.DuplicateChannelNameList = new List<string>(duplicateExamples);
 					log.AppendLine("OK: " + result.CsvChannelRows + " channel data row(s) scanned.");
 				}
 			}
