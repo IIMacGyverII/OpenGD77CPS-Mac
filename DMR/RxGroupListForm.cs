@@ -246,6 +246,14 @@ namespace DMR
 				}
 				value.ContactList = array;
 				RxGroupListForm.data[num3] = value;
+#if OpenGD77
+				MainForm mainForm = base.MdiParent as MainForm;
+				if (mainForm != null)
+				{
+					mainForm.RefreshRelatedForm(typeof(RxGroupListForm), num3);
+					mainForm.RefreshCodeplugHealth();
+				}
+#endif
 			}
 			catch (Exception ex)
 			{

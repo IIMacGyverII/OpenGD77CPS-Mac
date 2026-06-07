@@ -308,6 +308,7 @@
     <Compile Include="DMR\PowerPwdForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="DMR\RxGroupListsForm.cs" />
     <Compile Include="DMR\RxGroupListForm.cs">
       <SubType>Form</SubType>
     </Compile>

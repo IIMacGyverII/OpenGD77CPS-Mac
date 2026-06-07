@@ -2076,6 +2076,10 @@ namespace DMR
 			case "zone":
 				this.OpenZoneEditorByDataIndex(dataIndex);
 				break;
+			case "tglist":
+			case "rxgroup":
+				this.OpenRxGroupListEditorByDataIndex(dataIndex);
+				break;
 			}
 #endif
 		}
@@ -2518,6 +2522,14 @@ namespace DMR
 					zonesGrid.RefreshSingleRow(index);
 				}
 			}
+			else if (type == typeof(RxGroupListForm))
+			{
+				ISingleRow rxListsGrid = this.GetForm(typeof(RxGroupListsForm));
+				if (rxListsGrid != null)
+				{
+					rxListsGrid.RefreshSingleRow(index);
+				}
+			}
 #endif
 		}
 
@@ -2549,6 +2561,7 @@ namespace DMR
 				this.RefreshForm(typeof(ButtonForm));
 				this.RefreshForm(typeof(ChannelForm));
 				this.RefreshForm(typeof(RxGroupListForm));
+				this.RefreshForm(typeof(RxGroupListsForm));
 				this.RefreshForm(typeof(DigitalKeyContactForm));
 				ISingleRow contactsGrid = this.GetForm(typeof(ContactsForm));
 				if (contactsGrid != null && contactIndex >= 0)
@@ -2565,6 +2578,7 @@ namespace DMR
 				this.RefreshForm(typeof(ButtonForm));
 				this.RefreshForm(typeof(ChannelForm));
 				this.RefreshForm(typeof(RxGroupListForm));
+				this.RefreshForm(typeof(RxGroupListsForm));
 				this.RefreshForm(typeof(DigitalKeyContactForm));
 				this.RefreshForm(typeof(ContactForm));
 			}
@@ -2609,8 +2623,26 @@ namespace DMR
 			}
 			else if (type == typeof(RxGroupListForm))
 			{
+#if OpenGD77
+				int rxListIndex = this.GetOpenRxGroupListEditorDataIndex();
+				ISingleRow rxListsGrid = this.GetForm(typeof(RxGroupListsForm));
+				if (rxListsGrid != null && rxListIndex >= 0)
+				{
+					rxListsGrid.RefreshSingleRow(rxListIndex);
+				}
+				else
+				{
+					this.RefreshForm(typeof(RxGroupListsForm));
+				}
+#endif
 				this.RefreshForm(typeof(ChannelForm));
 			}
+#if OpenGD77
+			else if (type == typeof(RxGroupListsForm))
+			{
+				this.RefreshForm(typeof(RxGroupListForm));
+			}
+#endif
 			else if (type == typeof(ZoneForm))
 			{
 #if OpenGD77
@@ -2968,7 +3000,8 @@ namespace DMR
 					{
 						value = 16;
 					}
-					else if (treeNodeItem.Type == typeof(RxGroupListForm))
+					else if (treeNodeItem.Type == typeof(RxGroupListForm)
+						|| treeNodeItem.Type == typeof(RxGroupListsForm))
 					{
 						value = 16;
 					}
@@ -3904,7 +3937,11 @@ namespace DMR
 
 		private void tsmiGrpRxList_Click(object sender, EventArgs e)
 		{
+#if OpenGD77
+			TreeNode treeNode = this.method_9(typeof(RxGroupListsForm), this.tvwMain.Nodes);
+#else
 			TreeNode treeNode = this.method_9(typeof(RxGroupListForm), this.tvwMain.Nodes);
+#endif
 			if (treeNode != null)
 			{
 				this.method_7(treeNode, true);
@@ -5343,6 +5380,42 @@ namespace DMR
 			return -1;
 		}
 
+		public int GetOpenRxGroupListEditorDataIndex()
+		{
+			foreach (Form form in base.MdiChildren)
+			{
+				if (form.GetType() == typeof(RxGroupListForm) && form.Visible && form.Tag != null)
+				{
+					return Convert.ToInt32(form.Tag);
+				}
+			}
+			return -1;
+		}
+
+		public void OpenRxGroupListEditorByDataIndex(int dataIndex)
+		{
+			if (dataIndex < 0 || !RxGroupListForm.data.DataIsValid(dataIndex))
+			{
+				return;
+			}
+			TreeNode rxNode = this.GetTreeNodeByTypeAndIndex(typeof(RxGroupListForm), dataIndex, this.tvwMain.Nodes);
+			if (rxNode == null)
+			{
+#if OpenGD77
+				TreeNode rxRoot = this.ForkLayoutFindNode(typeof(RxGroupListsForm));
+				if (rxRoot != null)
+				{
+					this.InitRxGroupLists(rxRoot);
+					rxNode = this.GetTreeNodeByTypeAndIndex(typeof(RxGroupListForm), dataIndex, this.tvwMain.Nodes);
+				}
+#endif
+			}
+			if (rxNode != null)
+			{
+				this.method_7(rxNode, true);
+			}
+		}
+
 		public void OpenZoneEditorByDataIndex(int dataIndex)
 		{
 			if (dataIndex < 0 || !ZoneForm.data.DataIsValid(dataIndex))
@@ -5479,7 +5552,11 @@ namespace DMR
 			this.lstTreeNodeItem.Add(new TreeNodeItem(null, null, null, 0, -1, 17, null));
 			this.lstTreeNodeItem.Add(new TreeNodeItem(null, typeof(DtmfContactForm), null, 0, -1, 49, null));
 			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroupContact, typeof(ContactsForm), typeof(ContactForm), 1024, -1, 17, ContactForm.data));
+#if OpenGD77
+			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroup, typeof(RxGroupListsForm), typeof(RxGroupListForm), RxListData.CNT_RX_LIST, -1, 17, RxGroupListForm.data));
+#else
 			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroup, null, typeof(RxGroupListForm), RxListData.CNT_RX_LIST, -1, 17, RxGroupListForm.data));
+#endif
 			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroup, typeof(ZoneBasicForm), typeof(ZoneForm), ZoneForm.NUM_ZONES, -1, 16, ZoneForm.data));
 			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroup, typeof(ChannelsForm), typeof(ChannelForm), ChannelForm.CurCntCh, -1, 17, ChannelForm.data));
 			this.lstTreeNodeItem.Add(new TreeNodeItem(this.cmsGroup, typeof(ScanBasicForm), typeof(NormalScanForm), 64, -1, 16, NormalScanForm.data));
@@ -5578,7 +5655,11 @@ namespace DMR
 			this.InitEmergencySystems(parentNode);
 			parentNode = this.method_9(typeof(ContactsForm), this.tvwMain.Nodes);
 			this.InitDigitContacts(parentNode);
+#if OpenGD77
+			parentNode = this.method_9(typeof(RxGroupListsForm), this.tvwMain.Nodes);
+#else
 			parentNode = this.method_8(typeof(RxGroupListForm), this.tvwMain.Nodes);
+#endif
 			this.InitRxGroupLists(parentNode);
 			parentNode = this.method_9(typeof(ZoneBasicForm), this.tvwMain.Nodes);
 			this.InitZones(parentNode);
@@ -5592,7 +5673,11 @@ namespace DMR
 		{
 			TreeNode parentNode = this.method_9(typeof(ContactsForm), this.tvwMain.Nodes);
 			this.InitDigitContacts(parentNode);
+#if OpenGD77
+			parentNode = this.method_9(typeof(RxGroupListsForm), this.tvwMain.Nodes);
+#else
 			parentNode = this.method_8(typeof(RxGroupListForm), this.tvwMain.Nodes);
+#endif
 			this.InitRxGroupLists(parentNode);
 			parentNode = this.method_9(typeof(ChannelsForm), this.tvwMain.Nodes);
 			this.InitChannels(parentNode);
