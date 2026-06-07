@@ -54,8 +54,7 @@ namespace DMR
 						"  Drop folder  Load backup folder from Explorer\n\n" +
 						"Navigation tree\n" +
 						"  Filter box Search zones, channels, contacts, etc.\n" +
-						"  Ctrl+F     Focus tree filter (tree or main window)   Esc  Clear\n" +
-						"  Ctrl+Shift+F  Focus tree filter from any editor/grid\n\n" +
+						"  Ctrl+F / Ctrl+Shift+F  Focus tree filter   Esc  Clear\n\n" +
 						"Channels grid\n" +
 						"  F2         Open channel editor\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +

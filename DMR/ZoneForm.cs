@@ -1348,7 +1348,7 @@ namespace DMR
 			if (this.lblZoneHint == null)
 			{
 				this.lblZoneHint = new Label();
-				this.lblZoneHint.Text = "Filter searches Available only · Add/Delete move channels · Up/Down reorders Member";
+				this.lblZoneHint.Text = "Ctrl+F filter Available · Esc clear · Add/Delete move channels · Up/Down reorders Member";
 				this.lblZoneHint.AutoSize = false;
 				this.lblZoneHint.Height = 18;
 				this.lblZoneHint.ForeColor = System.Drawing.SystemColors.GrayText;

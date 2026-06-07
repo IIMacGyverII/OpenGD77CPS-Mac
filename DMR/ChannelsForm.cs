@@ -1989,6 +1989,11 @@ namespace DMR
 
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
 		{
+			MainForm mainForm = base.MdiParent as MainForm;
+			if (mainForm != null && mainForm.TryFocusTreeFilterShortcut(ref keyData))
+			{
+				return true;
+			}
 			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtChannelFilter))
 			{
 				return true;

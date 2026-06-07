@@ -1001,6 +1001,11 @@ namespace DMR
 
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
 		{
+			MainForm mainForm = this.GetMainForm();
+			if (mainForm != null && mainForm.TryFocusTreeFilterShortcut(ref keyData))
+			{
+				return true;
+			}
 			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtZoneFilter))
 			{
 				return true;

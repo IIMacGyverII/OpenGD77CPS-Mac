@@ -250,6 +250,7 @@ namespace DMR
 		private TextBox txtTreeFilter;
 
 		private bool forkTreeFilterUiBuilt;
+		private ToolTip forkTreeToolTip;
 
 		private readonly List<ForkTreeFilterEntry> forkTreeFilterStash = new List<ForkTreeFilterEntry>();
 
@@ -1975,6 +1976,12 @@ namespace DMR
 			this.txtTreeFilter.TextChanged += this.txtTreeFilter_TextChanged;
 			ForkFilterEscape.WireEscapeClear(this.txtTreeFilter);
 			ForkFilterEscape.WireTreeFocusFilter(this.tvwMain, this.txtTreeFilter);
+			if (this.forkTreeToolTip == null)
+			{
+				this.forkTreeToolTip = new ToolTip();
+			}
+			this.forkTreeToolTip.SetToolTip(this.txtTreeFilter, "Search tree (Ctrl+F or Ctrl+Shift+F) · Esc clears");
+			this.forkTreeToolTip.SetToolTip(this.lblTreeFilter, "Filter (visible/total) while typing");
 			this.pnlTreeFilter.Controls.Add(this.lblTreeFilter);
 			this.pnlTreeFilter.Controls.Add(this.txtTreeFilter);
 			this.pnlTvw.Controls.Add(this.pnlTreeFilter);
@@ -1999,6 +2006,16 @@ namespace DMR
 				return;
 			}
 			this.txtTreeFilter.Width = Math.Max(80, this.pnlTvw.ClientSize.Width - 52);
+#endif
+		}
+
+		public bool TryFocusTreeFilterShortcut(ref Keys keyData)
+		{
+#if OpenGD77
+			this.EnsureForkTreeFilterUi();
+			return ForkFilterEscape.TryFocusTreeFilterGlobal(ref keyData, this.txtTreeFilter);
+#else
+			return false;
 #endif
 		}
 
@@ -2499,8 +2516,7 @@ namespace DMR
 				this.tsmiAndroidBackup_Click(this, EventArgs.Empty);
 				return true;
 			}
-			this.EnsureForkTreeFilterUi();
-			if (ForkFilterEscape.TryFocusTreeFilterGlobal(ref keyData, this.txtTreeFilter))
+			if (this.TryFocusTreeFilterShortcut(ref keyData))
 			{
 				return true;
 			}

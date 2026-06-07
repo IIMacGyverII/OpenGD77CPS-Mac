@@ -366,7 +366,7 @@ namespace DMR
 			if (this.lblRxListHint == null)
 			{
 				this.lblRxListHint = new Label();
-				this.lblRxListHint.Text = "Group contacts only · Filter searches Available · Add/Delete move contacts · Up/Down reorders Member";
+				this.lblRxListHint.Text = "Group contacts only · Ctrl+F filter Available · Esc clear · Add/Delete · Up/Down reorders Member";
 				this.lblRxListHint.AutoSize = false;
 				this.lblRxListHint.Height = 18;
 				this.lblRxListHint.ForeColor = System.Drawing.SystemColors.GrayText;
