@@ -1117,7 +1117,7 @@ namespace DMR
 			if (this.lblScanHint == null)
 			{
 				this.lblScanHint = new Label();
-				this.lblScanHint.Text = "Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete move channels · Up/Down reorders Member";
+				this.lblScanHint.Text = ForkFilterEscape.ScanEditorHintText;
 				this.lblScanHint.AutoSize = false;
 				this.lblScanHint.Height = 18;
 				this.lblScanHint.ForeColor = System.Drawing.SystemColors.GrayText;

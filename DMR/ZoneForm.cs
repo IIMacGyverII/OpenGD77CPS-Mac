@@ -1349,7 +1349,7 @@ namespace DMR
 			if (this.lblZoneHint == null)
 			{
 				this.lblZoneHint = new Label();
-				this.lblZoneHint.Text = "Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete move channels · Up/Down reorders Member";
+				this.lblZoneHint.Text = ForkFilterEscape.ZoneEditorHintText;
 				this.lblZoneHint.AutoSize = false;
 				this.lblZoneHint.Height = 18;
 				this.lblZoneHint.ForeColor = System.Drawing.SystemColors.GrayText;

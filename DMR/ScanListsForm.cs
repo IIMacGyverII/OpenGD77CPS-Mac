@@ -184,7 +184,7 @@ namespace DMR
 			if (this.lblScanListsHint == null)
 			{
 				this.lblScanListsHint = new Label();
-				this.lblScanListsHint.Text = "F2 or click row opens scan editor · Ctrl+F filter · Ctrl+Shift+F tree · TB = Talkback";
+				this.lblScanListsHint.Text = ForkFilterEscape.ScanListsGridHintText;
 				this.lblScanListsHint.AutoSize = false;
 				this.lblScanListsHint.Height = 18;
 				this.lblScanListsHint.ForeColor = SystemColors.GrayText;

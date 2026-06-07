@@ -11,6 +11,14 @@ namespace DMR
 		internal const string FilterCountLabelTip = "Filter count (visible/total) while typing";
 		internal const string ChannelEditorHintText = "Ctrl+Z revert · Ctrl+Shift+F tree";
 		internal const string ContactEditorHintText = "Ctrl+Shift+F tree";
+		internal const string ChannelsGridHintText = "D=blue digital · A=amber analog · G=green · P=orange · A(gray)=all-call · F2/click opens editor · Ctrl+F filter · Ctrl+Shift+F tree · Del delete · blue = active · sorts · hover filter box";
+		internal const string ContactsGridHintText = "G=green · P=orange · A(gray)=all-call · F2/click opens editor · Ctrl+F filter · Ctrl+Shift+F tree · Del delete · dbl-click Call ID = RadioID.net · sorts · hover filter box";
+		internal const string ZonesGridHintText = "F2 or click row opens zone editor · Ctrl+F filter · Ctrl+Shift+F tree · Up/Dn = main/sub zone · hover filter box";
+		internal const string RxListsGridHintText = "F2 or click row opens TG/Rx editor · Ctrl+F filter · Ctrl+Shift+F tree · Group contacts only · hover filter box";
+		internal const string ScanListsGridHintText = "F2 or click row opens scan editor · Ctrl+F filter · Ctrl+Shift+F tree · TB = Talkback · hover filter box";
+		internal const string ZoneEditorHintText = "Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete move channels · Up/Down reorders Member · hover filter box";
+		internal const string RxListEditorHintText = "Group contacts only · Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete · Up/Down reorders Member · hover filter box";
+		internal const string ScanEditorHintText = "Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete move channels · Up/Down reorders Member · hover filter box";
 
 		public static ToolTip EnsureFilterToolTips(ToolTip existing, TextBox box, Label label, string boxTip)
 		{

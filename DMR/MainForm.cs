@@ -1981,7 +1981,7 @@ namespace DMR
 				this.forkTreeToolTip = new ToolTip();
 			}
 			this.forkTreeToolTip.SetToolTip(this.txtTreeFilter, ForkFilterEscape.TreeFilterBoxTip);
-			this.forkTreeToolTip.SetToolTip(this.lblTreeFilter, "Filter (visible/total) while typing");
+			this.forkTreeToolTip.SetToolTip(this.lblTreeFilter, ForkFilterEscape.FilterCountLabelTip);
 			this.pnlTreeFilter.Controls.Add(this.lblTreeFilter);
 			this.pnlTreeFilter.Controls.Add(this.txtTreeFilter);
 			this.pnlTvw.Controls.Add(this.pnlTreeFilter);

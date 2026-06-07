@@ -679,7 +679,7 @@ namespace DMR
 			this.lnkLookupDmrId = DmrIdLookup.CreateLookupLink(() => this.GetSelectedCallId(), this);
 			this.lnkLookupDmrId.Enabled = false;
 			this.lblLookupHint = new Label();
-			this.lblLookupHint.Text = "G=green · P=orange · A(gray)=all-call · F2/click opens editor · Ctrl+F filter · Ctrl+Shift+F tree · Del delete · dbl-click Call ID = RadioID.net · sorts";
+			this.lblLookupHint.Text = ForkFilterEscape.ContactsGridHintText;
 			this.lblLookupHint.AutoSize = false;
 			this.lblLookupHint.Size = new System.Drawing.Size(1100, 18);
 			this.lblLookupHint.ForeColor = System.Drawing.SystemColors.GrayText;
