@@ -30,6 +30,7 @@ namespace DMR
 		private readonly Label lblReportCaption;
 		private AndroidBackupValidationResult lastValidation;
 		private string lastDiffFolder = "";
+		private string lastApprovedChannelsStamp = "";
 		private bool diffPreApproved;
 
 		private static readonly string[] BackupFiles = new string[]
@@ -325,10 +326,20 @@ namespace DMR
 
 			this.txtFolder.Text = folderPath;
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
+			string channelsPath = Path.Combine(folderPath, "Channels.csv");
 			if (!string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
 			{
 				this.lastDiffFolder = folderPath;
 				this.diffPreApproved = false;
+				this.lastApprovedChannelsStamp = "";
+			}
+			else if (this.diffPreApproved)
+			{
+				string stamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
+				if (!string.Equals(stamp, this.lastApprovedChannelsStamp, StringComparison.Ordinal))
+				{
+					this.diffPreApproved = false;
+				}
 			}
 			this.lstFiles.Items.Clear();
 			foreach (string file in BackupFiles)
@@ -343,7 +354,6 @@ namespace DMR
 
 			this.lastValidation = AndroidBackupValidator.ValidateFolder(folderPath);
 			StringBuilder log = new StringBuilder(this.lastValidation.Summary);
-			string channelsPath = Path.Combine(folderPath, "Channels.csv");
 			AndroidImportDiffResult diff = null;
 			if (File.Exists(channelsPath))
 			{
@@ -376,7 +386,10 @@ namespace DMR
 			{
 				return true;
 			}
-			if (this.diffPreApproved && string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
+			string stamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
+			if (this.diffPreApproved
+				&& string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase)
+				&& string.Equals(stamp, this.lastApprovedChannelsStamp, StringComparison.Ordinal))
 			{
 				return true;
 			}
@@ -385,6 +398,7 @@ namespace DMR
 				return false;
 			}
 			this.lastDiffFolder = folderPath;
+			this.lastApprovedChannelsStamp = stamp;
 			this.diffPreApproved = true;
 			this.btnReviewDiff.Text = "Diff reviewed ✓";
 			return true;

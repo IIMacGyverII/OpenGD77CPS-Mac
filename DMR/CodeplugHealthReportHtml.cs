@@ -234,7 +234,7 @@ namespace DMR
 			const int maxItems = 8;
 			string badgeClass = snap.HasWarning ? "badge-warn" : "badge-ok";
 			string badgeText = snap.HasWarning ? "Review warnings" : "Healthy";
-			html.Append("<h2>Loaded codeplug health <span class=\"badge ").Append(badgeClass).Append("\">")
+			html.Append("<h2 id=\"studio-post-import-health\">Loaded codeplug health <span class=\"badge ").Append(badgeClass).Append("\">")
 				.Append(badgeText).Append("</span></h2>");
 
 			ForkReportHtml.AppendMetricCards(html,

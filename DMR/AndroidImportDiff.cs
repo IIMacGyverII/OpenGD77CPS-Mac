@@ -195,6 +195,17 @@ namespace DMR
 			return result;
 		}
 
+		/// <summary>File stamp used to invalidate diff review when Channels.csv changes on disk (re-pull, edit).</summary>
+		public static string GetChannelsCsvStamp(string channelsCsvPath)
+		{
+			if (string.IsNullOrEmpty(channelsCsvPath) || !File.Exists(channelsCsvPath))
+			{
+				return "";
+			}
+			FileInfo info = new FileInfo(channelsCsvPath);
+			return info.LastWriteTimeUtc.Ticks.ToString() + ":" + info.Length.ToString();
+		}
+
 		public static int FindLoadedChannelIndexByName(string channelName)
 		{
 			if (string.IsNullOrEmpty(channelName))

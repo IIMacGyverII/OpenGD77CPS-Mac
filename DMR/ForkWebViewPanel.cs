@@ -15,6 +15,7 @@ namespace DMR
 		private WebView2 webView;
 		private Panel fallbackPanel;
 		private string pendingHtml;
+		private string pendingScrollElementId;
 		private bool initStarted;
 		private Label statusLabel;
 
@@ -89,9 +90,10 @@ namespace DMR
 			}
 		}
 
-		public void NavigateHtml(string html)
+		public void NavigateHtml(string html, string scrollToElementId = null)
 		{
 			this.pendingHtml = html ?? "";
+			this.pendingScrollElementId = scrollToElementId;
 			if (this.IsWebViewAvailable && this.webView != null && this.webView.CoreWebView2 != null)
 			{
 				this.webView.NavigateToString(this.pendingHtml);
@@ -111,6 +113,7 @@ namespace DMR
 				this.webView.BringToFront();
 				await this.webView.EnsureCoreWebView2Async(null);
 				this.webView.CoreWebView2.NavigationStarting += this.CoreWebView2_NavigationStarting;
+				this.webView.CoreWebView2.NavigationCompleted += this.CoreWebView2_NavigationCompleted;
 				this.IsWebViewAvailable = true;
 				this.statusLabel.Visible = false;
 				this.fallbackPanel.Visible = false;
@@ -131,6 +134,33 @@ namespace DMR
 				this.statusLabel.Visible = false;
 				this.fallbackPanel.Visible = true;
 				this.fallbackPanel.BringToFront();
+			}
+		}
+
+		private void CoreWebView2_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs e)
+		{
+			this.TryScrollPending();
+		}
+
+		private void TryScrollPending()
+		{
+			if (string.IsNullOrEmpty(this.pendingScrollElementId) || this.webView == null || this.webView.CoreWebView2 == null)
+			{
+				return;
+			}
+			string id = this.pendingScrollElementId;
+			this.pendingScrollElementId = null;
+			if (id.IndexOf('\'') >= 0 || id.IndexOf('\\') >= 0)
+			{
+				return;
+			}
+			string script = "(()=>{var e=document.getElementById('" + id + "');if(e)e.scrollIntoView({block:'start'});})();";
+			try
+			{
+				this.webView.ExecuteScriptAsync(script);
+			}
+			catch
+			{
 			}
 		}
 

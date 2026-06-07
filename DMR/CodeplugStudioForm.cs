@@ -52,6 +52,7 @@ namespace DMR
 		private readonly ToolTip csvTileTip = new ToolTip();
 		private AndroidBackupValidationResult lastValidation;
 		private string lastDiffFolder = "";
+		private string lastApprovedChannelsStamp = "";
 		private bool diffPreApproved;
 
 		public bool UserOpenedFullCps { get; private set; }
@@ -850,16 +851,25 @@ namespace DMR
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			StudioRecentFolders.Record(folderPath);
 			this.RefreshRecentMenu();
+			string channelsPath = Path.Combine(folderPath, "Channels.csv");
 			if (!string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
 			{
 				this.lastDiffFolder = folderPath;
 				this.diffPreApproved = false;
+				this.lastApprovedChannelsStamp = "";
+			}
+			else if (this.diffPreApproved)
+			{
+				string stamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
+				if (!string.Equals(stamp, this.lastApprovedChannelsStamp, StringComparison.Ordinal))
+				{
+					this.diffPreApproved = false;
+				}
 			}
 			this.UpdateCsvTiles(folderPath);
 
 			this.lastValidation = AndroidBackupValidator.ValidateFolder(folderPath);
 			StringBuilder log = new StringBuilder(this.lastValidation.Summary);
-			string channelsPath = Path.Combine(folderPath, "Channels.csv");
 			AndroidImportDiffResult diff = null;
 			if (File.Exists(channelsPath))
 			{
@@ -874,7 +884,16 @@ namespace DMR
 			}
 			this.txtValidation.Text = log.ToString();
 			this.webReport.EnsureInitialized();
-			this.webReport.NavigateHtml(AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult));
+			string scrollId = null;
+			if (operationResult != null
+				&& string.Equals(operationResult.Operation, "Import", StringComparison.OrdinalIgnoreCase)
+				&& !operationResult.HasErrors)
+			{
+				scrollId = "studio-post-import-health";
+			}
+			this.webReport.NavigateHtml(
+				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
+				scrollId);
 
 			if (this.lastValidation.HasBlockingErrors)
 			{
@@ -906,7 +925,10 @@ namespace DMR
 			{
 				return true;
 			}
-			if (this.diffPreApproved && string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
+			string stamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
+			if (this.diffPreApproved
+				&& string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase)
+				&& string.Equals(stamp, this.lastApprovedChannelsStamp, StringComparison.Ordinal))
 			{
 				return true;
 			}
@@ -915,6 +937,7 @@ namespace DMR
 				return false;
 			}
 			this.lastDiffFolder = folderPath;
+			this.lastApprovedChannelsStamp = stamp;
 			this.diffPreApproved = true;
 			this.btnReviewDiff.Text = "Diff reviewed ✓";
 			return true;
