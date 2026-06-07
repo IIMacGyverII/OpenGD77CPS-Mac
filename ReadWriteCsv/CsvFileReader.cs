@@ -8,11 +8,11 @@ namespace ReadWriteCsv
 	{
 		private bool _firstRow = true;
 
-        public CsvFileReader(Stream stream) : base(stream)
+        public CsvFileReader(Stream stream) : base(stream, CsvEncoding.Utf8NoBom)
 		{
 		}
 
-        public CsvFileReader(string filename) : base(filename)
+        public CsvFileReader(string filename) : base(filename, CsvEncoding.Utf8NoBom)
 		{
 		}
 

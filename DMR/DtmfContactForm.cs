@@ -286,8 +286,30 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkDtmfContactUi();
+			this.pnlDtmfContact.Resize += this.pnlDtmfContact_Resize;
 			this.method_0();
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkDtmfContactLayout();
+		}
+
+		private void EnsureForkDtmfContactUi()
+		{
+			this.pnlDtmfContact.AutoSize = false;
+			this.pnlDtmfContact.AutoScroll = true;
+		}
+
+		private void pnlDtmfContact_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkDtmfContactLayout();
+		}
+
+		private void ApplyForkDtmfContactLayout()
+		{
+			int minW = Theme.Dpi(480);
+			int minH = Theme.Dpi(520);
+			this.pnlDtmfContact.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void DtmfContactForm_FormClosing(object sender, FormClosingEventArgs e)

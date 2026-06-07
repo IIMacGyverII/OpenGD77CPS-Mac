@@ -59,8 +59,7 @@ namespace DMR
 
 			foreach (string optional in new string[] { "TG_Lists.csv", "Zones.csv", "DTMF.csv" })
 			{
-				string path = Path.Combine(folderPath, optional);
-				log.AppendLine(File.Exists(path) ? ("OK: " + optional) : ("—: " + optional + " not present"));
+				AppendCsvPresenceLog(folderPath, optional, log);
 			}
 
 			if (result.RelayZeroCount > 0)
@@ -124,6 +123,11 @@ namespace DMR
 						return;
 					}
 
+					if (CsvEncoding.FileStartsWithUtf8Bom(path))
+					{
+						log.AppendLine("WARN: Channels.csv has UTF-8 BOM — import strips it; re-export as UTF-8 (no BOM) to avoid tools corrupting the file.");
+					}
+
 					if (hasId && header.Count < MinAndroidChannelColumns)
 					{
 						log.AppendLine("WARN: Channels.csv has " + header.Count + " columns; expected ~37 for Android Path B.");
@@ -175,10 +179,29 @@ namespace DMR
 			}
 		}
 
+		private static void AppendCsvPresenceLog(string folderPath, string fileName, StringBuilder log)
+		{
+			string path = Path.Combine(folderPath, fileName);
+			if (!File.Exists(path))
+			{
+				log.AppendLine("—: " + fileName + " not present");
+				return;
+			}
+			log.AppendLine("OK: " + fileName);
+			if (CsvEncoding.FileStartsWithUtf8Bom(path))
+			{
+				log.AppendLine("WARN: " + fileName + " has UTF-8 BOM — import strips it; re-export as UTF-8 (no BOM) to avoid tools corrupting the file.");
+			}
+		}
+
 		private static void ValidateContactsHeader(string path, StringBuilder log)
 		{
 			try
 			{
+				if (CsvEncoding.FileStartsWithUtf8Bom(path))
+				{
+					log.AppendLine("WARN: Contacts.csv has UTF-8 BOM — import strips it; re-export as UTF-8 (no BOM) to avoid tools corrupting the file.");
+				}
 				using (CsvFileReader reader = new CsvFileReader(path, CsvEncoding.Utf8NoBom))
 				{
 					CsvRow header = new CsvRow();

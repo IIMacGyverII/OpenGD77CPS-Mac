@@ -6,14 +6,12 @@ namespace ReadWriteCsv
 	public class CsvFileWriter : StreamWriter
 	{
 
-		public CsvFileWriter(Stream stream) : base(stream)
+		public CsvFileWriter(Stream stream) : base(stream, CsvEncoding.Utf8NoBom)
 		{
-			
 		}
 
-		public CsvFileWriter(string filename):base (filename)
+		public CsvFileWriter(string filename) : base(filename, false, CsvEncoding.Utf8NoBom)
 		{
-			
 		}
 
 		public CsvFileWriter(Stream stream, Encoding encoding):base(stream, encoding)

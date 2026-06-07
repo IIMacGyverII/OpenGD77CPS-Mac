@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 
 namespace ReadWriteCsv
@@ -20,6 +21,24 @@ namespace ReadWriteCsv
 				return line.Substring(1);
 			}
 			return line;
+		}
+
+		public static bool FileStartsWithUtf8Bom(string path)
+		{
+			if (string.IsNullOrEmpty(path) || !File.Exists(path))
+			{
+				return false;
+			}
+			using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+			{
+				if (stream.Length < 3)
+				{
+					return false;
+				}
+				byte[] header = new byte[3];
+				stream.Read(header, 0, 3);
+				return header[0] == 0xEF && header[1] == 0xBB && header[2] == 0xBF;
+			}
 		}
 	}
 }

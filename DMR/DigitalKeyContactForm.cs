@@ -189,7 +189,28 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkDigitalKeyUi();
+			this.Resize += this.DigitalKeyContactForm_Resize;
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkDigitalKeyLayout();
+		}
+
+		private void EnsureForkDigitalKeyUi()
+		{
+			base.AutoScroll = true;
+		}
+
+		private void DigitalKeyContactForm_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkDigitalKeyLayout();
+		}
+
+		private void ApplyForkDigitalKeyLayout()
+		{
+			int minW = Theme.Dpi(620);
+			int minH = Theme.Dpi(360);
+			base.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void DigitalKeyContactForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -266,6 +287,8 @@ namespace DMR
 			this.dgvContact.RowTemplate.Height = 23;
 			this.dgvContact.Size = new System.Drawing.Size(456, 289);
 			this.dgvContact.TabIndex = 16;
+			this.dgvContact.DataError += this.dgvContact_DataError;
+			this.dgvContact.RowPostPaint += this.method_1;
 			// 
 			// cmbContact
 			// 
@@ -281,6 +304,8 @@ namespace DMR
 			this.Font = new System.Drawing.Font("Arial", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Name = "DigitalKeyContactForm";
 			this.Text = "Number Key Quick Contact Access";
+			base.Load += this.DigitalKeyContactForm_Load;
+			base.FormClosing += this.DigitalKeyContactForm_FormClosing;
 			((System.ComponentModel.ISupportInitialize)(this.dgvContact)).EndInit();
 			this.ResumeLayout(false);
 
