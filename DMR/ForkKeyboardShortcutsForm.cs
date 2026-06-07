@@ -14,13 +14,13 @@ namespace DMR
 				dlg.MaximizeBox = false;
 				dlg.MinimizeBox = false;
 				dlg.StartPosition = FormStartPosition.CenterParent;
-				dlg.ClientSize = new Size(460, 320);
+				dlg.ClientSize = new Size(460, 360);
 				dlg.Font = new Font("Segoe UI", 9.75f);
 				Theme.ApplyForkDialog(dlg);
 				Label body = new Label
 				{
 					Location = new Point(16, 16),
-					Size = new Size(428, 260),
+					Size = new Size(428, 300),
 					Text =
 						"Global (main window)\n" +
 						"  Ctrl+I     Import Android backup folder (Path B)\n" +
@@ -31,6 +31,11 @@ namespace DMR
 						"  F7         Codeplug health report — click names to open editors\n" +
 						"  F8         Android backup manager (diff + import)\n" +
 						"  Ctrl+Shift+S  Codeplug Studio — CSV-only backup workflow\n\n" +
+						"Codeplug Studio\n" +
+						"  Ctrl+I     Import all (Path B)\n" +
+						"  Ctrl+E     Export all\n" +
+						"  F7         Codeplug health report\n" +
+						"  Drop folder  Load backup folder from Explorer\n\n" +
 						"Navigation tree\n" +
 						"  Filter box Search zones, channels, contacts, etc.\n\n" +
 						"Channels grid\n" +
@@ -47,7 +52,7 @@ namespace DMR
 				};
 				Button ok = new Button
 				{
-					Location = new Point(360, 282),
+					Location = new Point(360, 322),
 					Size = new Size(84, 28),
 					Text = "OK",
 					DialogResult = DialogResult.OK

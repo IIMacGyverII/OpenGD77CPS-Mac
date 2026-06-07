@@ -33,6 +33,7 @@ namespace DMR
 
 		private const int TileHeight = 78;
 		private const int TileGap = 10;
+		private const string IniKeyStudioBounds = "CodeplugStudioBounds";
 
 		private readonly MainForm mainForm;
 		private TextBox txtFolder;
@@ -94,6 +95,15 @@ namespace DMR
 
 			this.Shown += this.CodeplugStudioForm_Shown;
 			this.Resize += this.CodeplugStudioForm_Resize;
+			this.FormClosing += this.CodeplugStudioForm_FormClosing;
+			this.KeyPreview = true;
+			this.KeyDown += this.CodeplugStudioForm_KeyDown;
+			this.EnableFolderDragDrop(this);
+			this.EnableFolderDragDrop(pnlBody);
+			this.EnableFolderDragDrop(pnlHeader);
+			this.EnableFolderDragDrop(pnlFooter);
+			this.EnableFolderDragDrop(pnlFolderCard);
+			this.EnableFolderDragDrop(pnlReportCard);
 
 			string last = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
 			if (!string.IsNullOrEmpty(last))
@@ -199,7 +209,7 @@ namespace DMR
 
 			Label lblHint = new Label
 			{
-				Text = "Double-click a CSV card below to open that file",
+				Text = "Drop a backup folder here, or double-click a CSV card to open that file",
 				Font = Theme.UiFontSmall,
 				ForeColor = Theme.MutedForeground,
 				AutoSize = true,
@@ -388,6 +398,11 @@ namespace DMR
 
 		private void ApplyStudioWindowSize(IWin32Window owner)
 		{
+			this.MinimumSize = new Size(720, 560);
+			if (this.TryRestoreStudioBounds())
+			{
+				return;
+			}
 			Control ownerControl = owner as Control;
 			Screen screen = ownerControl != null && ownerControl.IsHandleCreated
 				? Screen.FromControl(ownerControl)
@@ -397,9 +412,131 @@ namespace DMR
 			int height = Math.Max(560, (int)Math.Round(area.Height * 0.75));
 			width = Math.Min(width, area.Width);
 			height = Math.Min(height, area.Height);
-			this.MinimumSize = new Size(720, 560);
 			this.Size = new Size(width, height);
 			this.StartPosition = FormStartPosition.CenterScreen;
+		}
+
+		private bool TryRestoreStudioBounds()
+		{
+			string raw = IniFileUtils.getProfileStringWithDefault("Setup", IniKeyStudioBounds, "");
+			if (string.IsNullOrEmpty(raw))
+			{
+				return false;
+			}
+			string[] parts = raw.Split(',');
+			if (parts.Length != 4)
+			{
+				return false;
+			}
+			int x;
+			int y;
+			int w;
+			int h;
+			if (!int.TryParse(parts[0], out x) || !int.TryParse(parts[1], out y)
+				|| !int.TryParse(parts[2], out w) || !int.TryParse(parts[3], out h))
+			{
+				return false;
+			}
+			if (w < this.MinimumSize.Width || h < this.MinimumSize.Height)
+			{
+				return false;
+			}
+			Rectangle bounds = new Rectangle(x, y, w, h);
+			Rectangle area = Screen.FromRectangle(bounds).WorkingArea;
+			if (!bounds.IntersectsWith(area))
+			{
+				return false;
+			}
+			this.StartPosition = FormStartPosition.Manual;
+			this.Bounds = bounds;
+			return true;
+		}
+
+		private void SaveStudioBounds()
+		{
+			Rectangle bounds = this.WindowState == FormWindowState.Normal ? this.Bounds : this.RestoreBounds;
+			if (bounds.Width < this.MinimumSize.Width || bounds.Height < this.MinimumSize.Height)
+			{
+				return;
+			}
+			string value = bounds.X + "," + bounds.Y + "," + bounds.Width + "," + bounds.Height;
+			IniFileUtils.WriteProfileString("Setup", IniKeyStudioBounds, value);
+		}
+
+		private void CodeplugStudioForm_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			this.SaveStudioBounds();
+		}
+
+		private void CodeplugStudioForm_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.Control && e.KeyCode == Keys.I)
+			{
+				this.btnImportAll_Click(this.btnImportAll, EventArgs.Empty);
+				e.Handled = true;
+				return;
+			}
+			if (e.Control && e.KeyCode == Keys.E)
+			{
+				this.btnExportAll_Click(this.btnExportAll, EventArgs.Empty);
+				e.Handled = true;
+				return;
+			}
+			if (e.KeyCode == Keys.F7)
+			{
+				this.btnHealth_Click(this, EventArgs.Empty);
+				e.Handled = true;
+			}
+		}
+
+		private void EnableFolderDragDrop(Control target)
+		{
+			if (target == null)
+			{
+				return;
+			}
+			target.AllowDrop = true;
+			target.DragEnter += this.FolderDragEnter;
+			target.DragDrop += this.FolderDragDrop;
+		}
+
+		private void FolderDragEnter(object sender, DragEventArgs e)
+		{
+			string path = this.GetFirstDroppedFolder(e);
+			if (path != null)
+			{
+				e.Effect = DragDropEffects.Copy;
+			}
+		}
+
+		private void FolderDragDrop(object sender, DragEventArgs e)
+		{
+			string path = this.GetFirstDroppedFolder(e);
+			if (!string.IsNullOrEmpty(path))
+			{
+				this.SetFolder(path, true);
+			}
+		}
+
+		private string GetFirstDroppedFolder(DragEventArgs e)
+		{
+			if (e == null || e.Data == null || !e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				return null;
+			}
+			string[] paths = e.Data.GetData(DataFormats.FileDrop) as string[];
+			if (paths == null)
+			{
+				return null;
+			}
+			foreach (string path in paths)
+			{
+				if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+				{
+					return path;
+				}
+			}
+			return null;
 		}
 
 		private Panel CreateCsvTile(CsvTileMeta meta)
