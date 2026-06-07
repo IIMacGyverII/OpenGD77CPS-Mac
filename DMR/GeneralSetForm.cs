@@ -2162,7 +2162,29 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkGeneralSetUi();
+			this.pnlFill.Resize += this.pnlFill_Resize;
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkGeneralSetLayout();
+		}
+
+		private void EnsureForkGeneralSetUi()
+		{
+			this.pnlFill.AutoSize = false;
+			this.pnlFill.AutoScroll = true;
+		}
+
+		private void pnlFill_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkGeneralSetLayout();
+		}
+
+		private void ApplyForkGeneralSetLayout()
+		{
+			int minW = Theme.Dpi(980);
+			int minH = Theme.Dpi(640);
+			this.pnlFill.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void GeneralSetForm_FormClosing(object sender, FormClosingEventArgs e)

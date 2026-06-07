@@ -839,13 +839,35 @@ namespace DMR
 			{
 				Settings.smethod_59(base.Controls);
 				Settings.smethod_68(this);
+				this.EnsureForkButtonUi();
+				this.pnlButton.Resize += this.pnlButton_Resize;
 				this.method_1();
 				this.DispData();
+				Theme.ApplyStandardEditorColors(this);
+				this.ApplyForkButtonLayout();
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message);
 			}
+		}
+
+		private void EnsureForkButtonUi()
+		{
+			this.pnlButton.AutoSize = false;
+			this.pnlButton.AutoScroll = true;
+		}
+
+		private void pnlButton_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkButtonLayout();
+		}
+
+		private void ApplyForkButtonLayout()
+		{
+			int minW = Theme.Dpi(650);
+			int minH = Theme.Dpi(520);
+			this.pnlButton.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void ButtonForm_FormClosing(object sender, FormClosingEventArgs e)

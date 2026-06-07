@@ -1142,8 +1142,29 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkMenuUi();
+			base.Resize += this.MenuForm_Resize;
 			this.method_0();
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkMenuLayout();
+		}
+
+		private void EnsureForkMenuUi()
+		{
+			base.AutoScroll = true;
+		}
+
+		private void MenuForm_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkMenuLayout();
+		}
+
+		private void ApplyForkMenuLayout()
+		{
+			int minW = Theme.Dpi(1000);
+			int minH = Theme.Dpi(540);
+			base.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void MenuForm_FormClosing(object sender, FormClosingEventArgs e)
