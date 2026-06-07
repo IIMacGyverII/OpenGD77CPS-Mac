@@ -72,9 +72,11 @@ namespace DMR
 						"Zones / TG lists / scan lists grids\n" +
 						"  F2         Open editor for selected row\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +
+						"  Ctrl+Shift+F  Focus navigation tree filter\n" +
 						"  Click row  Open in editor\n\n" +
 						"Zone / TG / scan list editors (Available list)\n" +
-						"  Ctrl+F     Focus Available filter   Esc  Clear filter"
+						"  Ctrl+F     Focus Available filter   Esc  Clear filter\n" +
+						"  Ctrl+Shift+F  Focus navigation tree filter"
 				};
 				Button ok = new Button
 				{
