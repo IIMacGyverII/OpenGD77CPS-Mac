@@ -10,13 +10,15 @@ namespace DMR
 	public class AndroidImportDiffForm : Form
 	{
 		private readonly AndroidImportDiffResult diffResult;
+		private readonly MainForm mainForm;
 		private readonly DataGridView grid;
 		private readonly Label lblSummary;
 		private readonly CheckBox chkShowUnchanged;
 
-		public AndroidImportDiffForm(string channelsCsvPath)
+		public AndroidImportDiffForm(string channelsCsvPath, MainForm mainForm = null)
 		{
 			this.diffResult = AndroidImportDiff.Compute(channelsCsvPath);
+			this.mainForm = mainForm;
 			this.Text = "Channel import preview";
 			this.StartPosition = FormStartPosition.CenterParent;
 			this.FormBorderStyle = FormBorderStyle.Sizable;
@@ -28,14 +30,16 @@ namespace DMR
 			this.lblSummary = new Label
 			{
 				Location = new Point(12, 12),
-				Size = new Size(696, 40),
-				Text = this.diffResult.Summary + "\r\nReview changes before applying Path B import.",
+				Size = new Size(696, 52),
+				Text = this.diffResult.Summary
+					+ "\r\nReview changes before applying Path B import."
+					+ (this.mainForm != null ? "\r\nDouble-click a row to open the channel in the editor (if already in codeplug)." : ""),
 				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
 			};
 
 			this.chkShowUnchanged = new CheckBox
 			{
-				Location = new Point(12, 56),
+				Location = new Point(12, 68),
 				AutoSize = true,
 				Text = "Show unchanged channels",
 				ForeColor = Theme.Foreground
@@ -44,7 +48,7 @@ namespace DMR
 
 			this.grid = new DataGridView
 			{
-				Location = new Point(12, 82),
+				Location = new Point(12, 94),
 				Size = new Size(696, 340),
 				ReadOnly = true,
 				AllowUserToAddRows = false,
@@ -70,10 +74,13 @@ namespace DMR
 			};
 			this.grid.Columns.Add("Status", "Status");
 			this.grid.Columns.Add("Channel", "Channel");
+			this.grid.Columns.Add("Number", "#");
 			this.grid.Columns.Add("Details", "Changed fields");
 			this.grid.Columns[0].FillWeight = 12;
 			this.grid.Columns[1].FillWeight = 22;
-			this.grid.Columns[2].FillWeight = 66;
+			this.grid.Columns[2].FillWeight = 8;
+			this.grid.Columns[3].FillWeight = 58;
+			this.grid.CellDoubleClick += this.grid_CellDoubleClick;
 
 			Button btnApply = new Button
 			{
@@ -119,8 +126,9 @@ namespace DMR
 				{
 					continue;
 				}
-				int idx = this.grid.Rows.Add(row.Status, row.ChannelName, row.Details);
+				int idx = this.grid.Rows.Add(row.Status, row.ChannelName, row.ChannelNumber, row.Details);
 				DataGridViewRow gridRow = this.grid.Rows[idx];
+				gridRow.Tag = row;
 				if (row.Status == "Added")
 				{
 					gridRow.DefaultCellStyle.ForeColor = Color.LightGreen;
@@ -134,6 +142,26 @@ namespace DMR
 					gridRow.DefaultCellStyle.ForeColor = Color.Khaki;
 				}
 			}
+		}
+
+		private void grid_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+		{
+			if (this.mainForm == null || e.RowIndex < 0)
+			{
+				return;
+			}
+			DataGridViewRow gridRow = this.grid.Rows[e.RowIndex];
+			AndroidImportDiffRow row = gridRow.Tag as AndroidImportDiffRow;
+			if (row == null)
+			{
+				return;
+			}
+			int dataIndex = AndroidImportDiff.FindLoadedChannelIndexByName(row.ChannelName);
+			if (dataIndex < 0)
+			{
+				return;
+			}
+			this.mainForm.HandleForkReportNavigation(ForkReportHtml.DrillHref("channel", dataIndex));
 		}
 	}
 

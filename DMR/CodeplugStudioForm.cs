@@ -910,7 +910,7 @@ namespace DMR
 			{
 				return true;
 			}
-			if (!AndroidImportDiff.ShowPreviewDialog(this, channelsPath))
+			if (!AndroidImportDiff.ShowPreviewDialog(this, channelsPath, this.mainForm))
 			{
 				return false;
 			}

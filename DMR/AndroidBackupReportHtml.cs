@@ -96,8 +96,18 @@ namespace DMR
 
 				if (diff.Rows != null && diff.Rows.Count > 0)
 				{
+					html.Append("<p class=\"foot\">Click a channel name (blue link) to open it in the editor. New channels appear only after import.</p>");
 					html.Append("<table><tr><th>Status</th><th>Channel</th><th>#</th><th>Details</th></tr>");
 					int shown = 0;
+					int changedRowCount = 0;
+					foreach (AndroidImportDiffRow row in diff.Rows)
+					{
+						if (row.Status != "Unchanged")
+						{
+							changedRowCount++;
+						}
+					}
+					const int maxRows = 120;
 					foreach (AndroidImportDiffRow row in diff.Rows)
 					{
 						if (row.Status == "Unchanged")
@@ -105,19 +115,24 @@ namespace DMR
 							continue;
 						}
 						string rowClass = row.Status == "Added" ? "ok" : (row.Status == "Deleted" ? "err" : "warn");
+						int channelIndex = AndroidImportDiff.FindLoadedChannelIndexByName(row.ChannelName);
+						string channelCell = channelIndex >= 0
+							? ForkReportHtml.DrillLink("channel", channelIndex, row.ChannelName)
+							: ForkReportHtml.Escape(row.ChannelName);
 						html.Append("<tr><td class=\"").Append(rowClass).Append("\">").Append(ForkReportHtml.Escape(row.Status))
-							.Append("</td><td>").Append(ForkReportHtml.Escape(row.ChannelName))
+							.Append("</td><td>").Append(channelCell)
 							.Append("</td><td>").Append(ForkReportHtml.Escape(row.ChannelNumber))
 							.Append("</td><td>").Append(ForkReportHtml.Escape(row.Details)).Append("</td></tr>");
-						if (++shown >= 40)
+						if (++shown >= maxRows)
 						{
 							break;
 						}
 					}
 					html.Append("</table>");
-					if (diff.Rows.Count > shown)
+					if (changedRowCount > shown)
 					{
-						html.Append("<p class=\"warn\">Showing first ").Append(shown).Append(" changed rows only.</p>");
+						html.Append("<p class=\"warn\">Showing first ").Append(shown).Append(" of ")
+							.Append(changedRowCount).Append(" changed rows. Use <b>Review diff…</b> for the full list.</p>");
 					}
 				}
 				else if (!string.IsNullOrEmpty(diff.Summary))

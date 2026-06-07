@@ -195,9 +195,33 @@ namespace DMR
 			return result;
 		}
 
-		public static bool ShowPreviewDialog(IWin32Window owner, string channelsCsvPath)
+		public static int FindLoadedChannelIndexByName(string channelName)
 		{
-			using (AndroidImportDiffForm form = new AndroidImportDiffForm(channelsCsvPath))
+			if (string.IsNullOrEmpty(channelName))
+			{
+				return -1;
+			}
+			for (int i = 0; i < ChannelForm.data.Count; i++)
+			{
+				if (!ChannelForm.data.DataIsValid(i))
+				{
+					continue;
+				}
+				if (string.Equals(ChannelForm.data[i].Name, channelName, StringComparison.OrdinalIgnoreCase))
+				{
+					return i;
+				}
+			}
+			return -1;
+		}
+
+		public static bool ShowPreviewDialog(IWin32Window owner, string channelsCsvPath, MainForm mainForm = null)
+		{
+			if (mainForm == null)
+			{
+				mainForm = owner as MainForm;
+			}
+			using (AndroidImportDiffForm form = new AndroidImportDiffForm(channelsCsvPath, mainForm))
 			{
 				return form.ShowDialog(owner) == DialogResult.OK;
 			}
