@@ -22,7 +22,10 @@ namespace DMR
 		internal const string PostImportReportFootWarn = "Fix issues above or use amber status, Health ⚠ footer/toolbar/menu, or F7 for the full report.";
 		internal const string PostImportReportFootOk = "Click a highlighted name to open the editor.";
 		internal const string F8StudioBannerHealthHint = "Post-import scrolls to health · click names in health section, report link, amber status, Health ⚠ footer/toolbar, or F7";
+		internal const string F8StudioBannerDiffHint = "Pending diff: click amber status or Review diff ⚠ footer (Ctrl+D) · left status after pull";
 		internal const string PendingDiffLinkTip = "Click to review channel changes before import (Ctrl+D)";
+		internal const string PreImportDiffButtonDefault = "Review diff…";
+		internal const string PreImportDiffButtonWarn = "Review diff ⚠ (Ctrl+D)";
 		internal const string FolderCaptionDefaultTip = "Re-validate CSVs in the loaded folder (F5)";
 
 		public static bool ImportHasHealthWarnings()
@@ -100,6 +103,86 @@ namespace DMR
 				return "";
 			}
 			return ForkFilterEscape.PostImportHealthHint + ForkPostImportUi.HealthCategoryStatusNote(snap);
+		}
+
+		public static int PendingDiffChangeCount(AndroidImportDiffResult diff)
+		{
+			if (diff == null)
+			{
+				return 0;
+			}
+			return diff.Added + diff.Changed + diff.Deleted;
+		}
+
+		public static string DiffChangeCountNote(AndroidImportDiffResult diff)
+		{
+			int count = ForkPostImportUi.PendingDiffChangeCount(diff);
+			if (count <= 1)
+			{
+				return "";
+			}
+			return " (" + count + " ch)";
+		}
+
+		public static string DiffButtonLabel(AndroidImportDiffResult diff)
+		{
+			string note = ForkPostImportUi.DiffChangeCountNote(diff);
+			if (!string.IsNullOrEmpty(note))
+			{
+				return "Review diff ⚠" + note + " · Ctrl+D";
+			}
+			return ForkPostImportUi.PreImportDiffButtonWarn;
+		}
+
+		public static string DiffButtonTooltip(
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv,
+			bool highlight)
+		{
+			if (!highlight)
+			{
+				return "Preview channel changes before import (Ctrl+D)";
+			}
+			int count = ForkPostImportUi.PendingDiffChangeCount(diff);
+			if (count > 1)
+			{
+				return ForkPostImportUi.PendingDiffLinkTip + " — " + count + " channel changes";
+			}
+			return ForkPostImportUi.PendingDiffLinkTip;
+		}
+
+		public static string PreImportDiffStatusSuffix(AndroidImportDiffResult diff)
+		{
+			if (diff == null || !AndroidImportDiff.HasPendingDiffChanges(diff))
+			{
+				return "";
+			}
+			return ForkFilterEscape.PreImportDiffHint + ForkPostImportUi.DiffChangeCountNote(diff);
+		}
+
+		public static void ConfigureDiffButton(
+			Button button,
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv,
+			ToolTip toolTip = null)
+		{
+			bool highlight = ForkPostImportUi.ShouldOfferDiffLink(diff, diffPreApproved, hasChannelsCsv);
+			ForkPostImportUi.ApplyDiffButtonState(button, highlight, diff, diffPreApproved, hasChannelsCsv);
+			if (toolTip != null)
+			{
+				toolTip.SetToolTip(button, ForkPostImportUi.DiffButtonTooltip(diff, diffPreApproved, hasChannelsCsv, highlight));
+			}
+		}
+
+		public static void ClearDiffButton(Button button, ToolTip toolTip = null)
+		{
+			ForkPostImportUi.ApplyDiffButtonState(button, false, null, false, false);
+			if (toolTip != null)
+			{
+				toolTip.SetToolTip(button, "Preview channel changes before import (Ctrl+D)");
+			}
 		}
 
 		public static void ApplyBatchCaption(Label label, AndroidBatchResult batch)
@@ -305,6 +388,35 @@ namespace DMR
 				: ForkPostImportUi.BatchDialogHealthButton;
 			button.ForeColor = highlight ? ForkPostImportUi.WarnColor : Theme.Foreground;
 			button.FlatAppearance.BorderColor = highlight ? ForkPostImportUi.WarnColor : Theme.StudioCardBorder;
+		}
+
+		private static void ApplyDiffButtonState(
+			Button button,
+			bool highlight,
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv)
+		{
+			if (button == null)
+			{
+				return;
+			}
+			Theme.ApplyStudioButton(button, false, false);
+			if (diffPreApproved && hasChannelsCsv)
+			{
+				button.Text = "Diff reviewed ✓";
+			}
+			else
+			{
+				button.Text = highlight
+					? ForkPostImportUi.DiffButtonLabel(diff)
+					: ForkPostImportUi.PreImportDiffButtonDefault;
+			}
+			if (highlight)
+			{
+				button.ForeColor = ForkPostImportUi.WarnColor;
+				button.FlatAppearance.BorderColor = ForkPostImportUi.WarnColor;
+			}
 		}
 	}
 }

@@ -30,8 +30,10 @@ namespace DMR
 						"  F1         PriInterPhone workflow help\n" +
 						"  F7         Codeplug health report — scrolls to first warning\n" +
 						"  F5         Refresh health report (F7 open) or backup report (F8/Studio)\n" +
+						"             After pull: left status bar link opens Review diff (Ctrl+D)\n" +
 						"             After Path B import: click names in F8/Studio health section, report link, amber status, toolbar/menu, batch, status bar\n" +
 						"  F8         Android backup manager (diff + import)\n" +
+						"             Pending diff: click amber status or Review diff ⚠ footer (Ctrl+D)\n" +
 						"             Ctrl+D / Ctrl+I / Ctrl+E / F7 same as Studio while F8 is open\n" +
 						"             Recent / drop folder — same recent list as Studio\n" +
 						"             Double-click a file row to open that CSV\n" +

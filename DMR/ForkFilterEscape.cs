@@ -20,6 +20,7 @@ namespace DMR
 		internal const string RxListEditorHintText = "Group contacts only · Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete · Up/Down reorders Member · hover filter box";
 		internal const string ScanEditorHintText = "Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete move channels · Up/Down reorders Member · hover filter box";
 		internal const string PostImportHealthHint = " · F7 health report";
+		internal const string PreImportDiffHint = " · Ctrl+D review diff";
 
 		public static ToolTip EnsureFilterToolTips(ToolTip existing, TextBox box, Label label, string boxTip)
 		{

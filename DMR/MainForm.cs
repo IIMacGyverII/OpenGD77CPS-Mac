@@ -258,6 +258,8 @@ namespace DMR
 
 		private bool forkStatusHealthLinkWired;
 		private bool forkStatusHealthLinkActive;
+		private bool forkStatusDiffLinkActive;
+		private string forkPendingDiffReviewFolder;
 
 		private sealed class ForkTreeFilterEntry
 		{
@@ -2211,7 +2213,9 @@ namespace DMR
 			this.forkStatusHintTimer.Stop();
 			this.slblComapny.Text = message;
 			bool healthLink = message.IndexOf(ForkFilterEscape.PostImportHealthHint, StringComparison.Ordinal) >= 0;
+			bool diffLink = message.IndexOf(ForkFilterEscape.PreImportDiffHint, StringComparison.Ordinal) >= 0;
 			this.ConfigureForkStatusHealthLink(healthLink);
+			this.ConfigureForkStatusDiffLink(diffLink);
 			this.forkStatusHintTimer.Interval = revertMs;
 			this.forkStatusHintTimer.Start();
 #endif
@@ -2233,9 +2237,15 @@ namespace DMR
 		{
 #if OpenGD77
 			this.EnsureForkStatusHealthLink();
+			if (active)
+			{
+				this.forkStatusDiffLinkActive = false;
+			}
 			this.forkStatusHealthLinkActive = active;
-			this.slblComapny.IsLink = active;
-			this.slblComapny.LinkBehavior = active ? LinkBehavior.AlwaysUnderline : LinkBehavior.SystemDefault;
+			this.slblComapny.IsLink = active || this.forkStatusDiffLinkActive;
+			this.slblComapny.LinkBehavior = (active || this.forkStatusDiffLinkActive)
+				? LinkBehavior.AlwaysUnderline
+				: LinkBehavior.SystemDefault;
 			if (active)
 			{
 				this.slblComapny.LinkColor = ForkPostImportUi.WarnColor;
@@ -2244,8 +2254,38 @@ namespace DMR
 				this.slblComapny.ForeColor = ForkPostImportUi.WarnColor;
 				this.slblComapny.ToolTipText = ForkPostImportUi.HealthCategoryTooltip(ForkPostImportUi.CurrentHealthSnapshot());
 			}
-			else
+			else if (!this.forkStatusDiffLinkActive)
 			{
+				this.slblComapny.ForeColor = Theme.Foreground;
+				this.slblComapny.ToolTipText = "";
+			}
+#endif
+		}
+
+		private void ConfigureForkStatusDiffLink(bool active)
+		{
+#if OpenGD77
+			this.EnsureForkStatusHealthLink();
+			if (active)
+			{
+				this.forkStatusHealthLinkActive = false;
+			}
+			this.forkStatusDiffLinkActive = active;
+			this.slblComapny.IsLink = active || this.forkStatusHealthLinkActive;
+			this.slblComapny.LinkBehavior = (active || this.forkStatusHealthLinkActive)
+				? LinkBehavior.AlwaysUnderline
+				: LinkBehavior.SystemDefault;
+			if (active)
+			{
+				this.slblComapny.LinkColor = ForkPostImportUi.WarnColor;
+				this.slblComapny.ActiveLinkColor = Color.White;
+				this.slblComapny.VisitedLinkColor = ForkPostImportUi.WarnColor;
+				this.slblComapny.ForeColor = ForkPostImportUi.WarnColor;
+				this.slblComapny.ToolTipText = ForkPostImportUi.PendingDiffLinkTip;
+			}
+			else if (!this.forkStatusHealthLinkActive)
+			{
+				this.forkPendingDiffReviewFolder = null;
 				this.slblComapny.ForeColor = Theme.Foreground;
 				this.slblComapny.ToolTipText = "";
 			}
@@ -2255,7 +2295,11 @@ namespace DMR
 		private void ForkStatusLabel_Click(object sender, EventArgs e)
 		{
 #if OpenGD77
-			if (this.forkStatusHealthLinkActive)
+			if (this.forkStatusDiffLinkActive && !string.IsNullOrEmpty(this.forkPendingDiffReviewFolder))
+			{
+				this.OpenAndroidBackupForDiffReview(this.forkPendingDiffReviewFolder);
+			}
+			else if (this.forkStatusHealthLinkActive)
 			{
 				this.ShowCodeplugHealthReport(this, EventArgs.Empty);
 			}
@@ -2267,6 +2311,7 @@ namespace DMR
 #if OpenGD77
 			this.forkStatusHintTimer.Stop();
 			this.ConfigureForkStatusHealthLink(false);
+			this.ConfigureForkStatusDiffLink(false);
 			this.ApplyForkStatusHint();
 #endif
 		}
@@ -4426,6 +4471,36 @@ namespace DMR
 		{
 #if OpenGD77
 			this.ShowCodeplugHealthReport(this, EventArgs.Empty);
+#endif
+		}
+
+		public void ShowForkPendingDiffStatus(string folderPath, AndroidImportDiffResult diff)
+		{
+#if OpenGD77
+			if (string.IsNullOrEmpty(folderPath) || diff == null || !AndroidImportDiff.HasPendingDiffChanges(diff))
+			{
+				return;
+			}
+			int pending = ForkPostImportUi.PendingDiffChangeCount(diff);
+			string statusMsg = "Phone backup — " + pending + " channel change(s) need review"
+				+ ForkPostImportUi.PreImportDiffStatusSuffix(diff);
+			this.forkPendingDiffReviewFolder = folderPath;
+			this.ShowForkStatusMessage(statusMsg, 12000);
+#endif
+		}
+
+		public void OpenAndroidBackupForDiffReview(string folderPath)
+		{
+#if OpenGD77
+			if (string.IsNullOrEmpty(folderPath))
+			{
+				return;
+			}
+			using (AndroidBackupForm form = new AndroidBackupForm(this))
+			{
+				form.PrepareDiffReviewOnShow(folderPath);
+				form.ShowDialog(this);
+			}
 #endif
 		}
 

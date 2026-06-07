@@ -265,7 +265,7 @@ namespace DMR
 
 			Label lblHint = new Label
 			{
-				Text = "F5 refresh · " + ForkPostImportUi.F8StudioBannerHealthHint + " · drop folder, Recent, or double-click a CSV card",
+				Text = "F5 refresh · " + ForkPostImportUi.F8StudioBannerDiffHint + " · " + ForkPostImportUi.F8StudioBannerHealthHint + " · drop folder, Recent, or double-click a CSV card",
 				Font = Theme.UiFontSmall,
 				ForeColor = Theme.MutedForeground,
 				AutoSize = true,
@@ -843,6 +843,7 @@ namespace DMR
 			{
 				if (this.SetFolder(pulled, true))
 				{
+					this.mainForm.ShowForkPendingDiffStatus(pulled, this.lastDiff);
 					AndroidImportDiff.OfferReviewAfterPullIfNeeded(
 						this,
 						this.lastDiff,
@@ -1046,8 +1047,7 @@ namespace DMR
 			bool hasChannels = File.Exists(channelsPath);
 			bool pendingDiff = hasChannels && diff != null && AndroidImportDiff.HasPendingDiffChanges(diff) && !this.diffPreApproved;
 			this.btnReviewDiff.Enabled = hasChannels;
-			this.btnReviewDiff.Text = this.diffPreApproved && hasChannels ? "Diff reviewed ✓" : "Review diff…";
-			Theme.ApplyStudioButton(this.btnReviewDiff, false, pendingDiff);
+			ForkPostImportUi.ConfigureDiffButton(this.btnReviewDiff, diff, this.diffPreApproved, hasChannels, this.footerTip);
 			bool canImport = this.lastValidation != null && !this.lastValidation.HasBlockingErrors && !pendingDiff;
 			this.btnImportAll.Enabled = canImport;
 			Theme.ApplyStudioButton(this.btnImportAll, canImport, false);

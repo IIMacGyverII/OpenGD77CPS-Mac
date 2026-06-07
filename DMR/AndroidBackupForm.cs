@@ -37,6 +37,8 @@ namespace DMR
 		private string lastDiffFolder = "";
 		private string lastApprovedChannelsStamp = "";
 		private bool diffPreApproved;
+		private bool openReviewDiffOnShown;
+		private string openReviewDiffFolder;
 		private readonly ToolTip footerTip = new ToolTip();
 
 		private static readonly string[] BackupFiles = new string[]
@@ -63,7 +65,7 @@ namespace DMR
 			{
 				Dock = DockStyle.Top,
 				Height = 40,
-				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Review diff → Import all (Path B).  F5 refreshes report.  " + ForkPostImportUi.F8StudioBannerHealthHint + "."
+				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Review diff → Import all (Path B).  F5 refreshes report.  " + ForkPostImportUi.F8StudioBannerDiffHint + "  " + ForkPostImportUi.F8StudioBannerHealthHint + "."
 			};
 
 			Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 200 };
@@ -290,10 +292,29 @@ namespace DMR
 			this.txtFolder.Width = Math.Max(120, this.btnRecent.Left - gap - this.txtFolder.Left);
 		}
 
+		public void PrepareDiffReviewOnShow(string folderPath)
+		{
+			this.openReviewDiffOnShown = true;
+			this.openReviewDiffFolder = folderPath;
+			if (!string.IsNullOrEmpty(folderPath))
+			{
+				this.txtFolder.Text = folderPath;
+			}
+		}
+
 		private void AndroidBackupForm_Shown(object sender, EventArgs e)
 		{
 			this.mainForm.SetForkDialogOwner(this);
 			this.webReport.EnsureInitialized();
+			if (this.openReviewDiffOnShown && !string.IsNullOrEmpty(this.openReviewDiffFolder))
+			{
+				string folderPath = this.openReviewDiffFolder;
+				this.openReviewDiffOnShown = false;
+				if (this.SetFolder(folderPath, true))
+				{
+					this.TryApproveChannelDiff(folderPath);
+				}
+			}
 		}
 
 		private void AndroidBackupForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -543,6 +564,7 @@ namespace DMR
 			{
 				if (this.SetFolder(pulled, true))
 				{
+					this.mainForm.ShowForkPendingDiffStatus(pulled, this.lastDiff);
 					AndroidImportDiff.OfferReviewAfterPullIfNeeded(
 						this,
 						this.lastDiff,
@@ -701,8 +723,7 @@ namespace DMR
 			bool hasChannels = File.Exists(channelsPath);
 			bool pendingDiff = hasChannels && diff != null && AndroidImportDiff.HasPendingDiffChanges(diff) && !this.diffPreApproved;
 			this.btnReviewDiff.Enabled = hasChannels;
-			this.btnReviewDiff.Text = this.diffPreApproved && hasChannels ? "Diff reviewed ✓" : "Review diff…";
-			Theme.ApplyStudioButton(this.btnReviewDiff, false, pendingDiff);
+			ForkPostImportUi.ConfigureDiffButton(this.btnReviewDiff, diff, this.diffPreApproved, hasChannels, this.footerTip);
 			bool canImport = this.lastValidation != null && !this.lastValidation.HasBlockingErrors && !pendingDiff;
 			this.btnImportAll.Enabled = canImport;
 			Theme.ApplyStudioButton(this.btnImportAll, canImport, false);
