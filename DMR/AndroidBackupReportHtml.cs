@@ -71,7 +71,7 @@ namespace DMR
 			{
 				string badgeClass = validation.HasBlockingErrors ? "badge-err" : "badge-ok";
 				string badgeText = validation.HasBlockingErrors ? "Blocking errors" : "Ready";
-				html.Append("<h2>Validation <span class=\"badge ").Append(badgeClass).Append("\">")
+				html.Append("<h2 id=\"studio-validation\">Validation <span class=\"badge ").Append(badgeClass).Append("\">")
 					.Append(badgeText).Append("</span></h2>");
 				html.Append("<table><tr><th>Metric</th><th>Value</th></tr>");
 				AppendMetricRow(html, "CSV channel rows", validation.CsvChannelRows.ToString());
@@ -234,7 +234,7 @@ namespace DMR
 		private static void AppendOperationResult(StringBuilder html, AndroidBatchResult batch)
 		{
 			string badgeClass = batch.HasErrors ? "badge-err" : (batch.Warnings.Count > 0 ? "badge-warn" : "badge-ok");
-			html.Append("<h2>Last operation <span class=\"badge ").Append(badgeClass).Append("\">")
+			html.Append("<h2 id=\"studio-last-operation\">Last operation <span class=\"badge ").Append(badgeClass).Append("\">")
 				.Append(ForkReportHtml.Escape(batch.Title)).Append("</span></h2>");
 
 			ForkReportHtml.AppendMetricCards(html,

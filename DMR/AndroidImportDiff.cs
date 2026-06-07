@@ -196,6 +196,34 @@ namespace DMR
 		}
 
 		/// <summary>File stamp used to invalidate diff review when Channels.csv changes on disk (re-pull, edit).</summary>
+		public static bool HasPendingDiffChanges(AndroidImportDiffResult diff)
+		{
+			return diff != null && (diff.Added > 0 || diff.Changed > 0 || diff.Deleted > 0);
+		}
+
+		public static void OfferReviewAfterPullIfNeeded(
+			IWin32Window owner,
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasBlockingErrors,
+			Action reviewAction)
+		{
+			if (hasBlockingErrors || diffPreApproved || !HasPendingDiffChanges(diff))
+			{
+				return;
+			}
+			int pending = diff.Added + diff.Changed + diff.Deleted;
+			DialogResult offer = MessageBox.Show(owner,
+				"Phone backup pulled.\n\n" + pending + " channel change(s) detected vs your loaded codeplug.\n\nOpen Review diff now?",
+				"Review import changes",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Question);
+			if (offer == DialogResult.Yes && reviewAction != null)
+			{
+				reviewAction();
+			}
+		}
+
 		public static bool IsDiffReviewCurrent(string channelsCsvPath, bool preApproved, string approvedStamp)
 		{
 			if (!preApproved || string.IsNullOrEmpty(channelsCsvPath) || !File.Exists(channelsCsvPath))

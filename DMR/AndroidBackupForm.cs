@@ -29,6 +29,7 @@ namespace DMR
 		private readonly Label lblHint;
 		private readonly Label lblReportCaption;
 		private AndroidBackupValidationResult lastValidation;
+		private AndroidImportDiffResult lastDiff;
 		private string lastDiffFolder = "";
 		private string lastApprovedChannelsStamp = "";
 		private bool diffPreApproved;
@@ -267,7 +268,15 @@ namespace DMR
 			string pulled = AndroidAdbBackup.TryPickPulledFolder(this);
 			if (!string.IsNullOrEmpty(pulled))
 			{
-				this.SetFolder(pulled, true);
+				if (this.SetFolder(pulled, true))
+				{
+					AndroidImportDiff.OfferReviewAfterPullIfNeeded(
+						this,
+						this.lastDiff,
+						this.diffPreApproved,
+						this.lastValidation != null && this.lastValidation.HasBlockingErrors,
+						() => this.TryApproveChannelDiff(pulled));
+				}
 			}
 			else if (!AndroidAdbBackup.IsAdbAvailable())
 			{
@@ -358,7 +367,18 @@ namespace DMR
 			if (File.Exists(channelsPath))
 			{
 				diff = AndroidImportDiff.Compute(channelsPath);
+				this.lastDiff = diff;
 				log.Append("\n\n").Append(diff.Summary);
+				if (!AndroidImportDiff.HasPendingDiffChanges(diff))
+				{
+					this.diffPreApproved = true;
+					this.lastApprovedChannelsStamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
+					this.lastDiffFolder = folderPath;
+				}
+			}
+			else
+			{
+				this.lastDiff = null;
 			}
 			AndroidContactIntegrityResult integrity = AndroidContactIntegrityChecker.CheckFolder(folderPath);
 			log.Append("\n\n").Append(integrity.Summary);

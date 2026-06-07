@@ -541,33 +541,6 @@ namespace DMR
 			}
 		}
 
-		private static bool HasPendingDiffChanges(AndroidImportDiffResult diff)
-		{
-			return diff != null && (diff.Added > 0 || diff.Changed > 0 || diff.Deleted > 0);
-		}
-
-		private void OfferReviewDiffAfterPull(string folderPath)
-		{
-			if (this.lastValidation != null && this.lastValidation.HasBlockingErrors)
-			{
-				return;
-			}
-			if (this.diffPreApproved || !HasPendingDiffChanges(this.lastDiff))
-			{
-				return;
-			}
-			int pending = this.lastDiff.Added + this.lastDiff.Changed + this.lastDiff.Deleted;
-			DialogResult offer = MessageBox.Show(this,
-				"Phone backup pulled.\n\n" + pending + " channel change(s) detected vs your loaded codeplug.\n\nOpen Review diff now?",
-				"Review import changes",
-				MessageBoxButtons.YesNo,
-				MessageBoxIcon.Question);
-			if (offer == DialogResult.Yes)
-			{
-				this.TryApproveChannelDiff(folderPath);
-			}
-		}
-
 		private void btnRecent_Click(object sender, EventArgs e)
 		{
 			this.RefreshRecentMenu();
@@ -780,7 +753,12 @@ namespace DMR
 			{
 				if (this.SetFolder(pulled, true))
 				{
-					this.OfferReviewDiffAfterPull(pulled);
+					AndroidImportDiff.OfferReviewAfterPullIfNeeded(
+						this,
+						this.lastDiff,
+						this.diffPreApproved,
+						this.lastValidation != null && this.lastValidation.HasBlockingErrors,
+						() => this.TryApproveChannelDiff(pulled));
 				}
 			}
 			else if (!AndroidAdbBackup.IsAdbAvailable())
@@ -925,6 +903,12 @@ namespace DMR
 			{
 				this.lastDiff = null;
 			}
+			if (diff != null && File.Exists(channelsPath) && !AndroidImportDiff.HasPendingDiffChanges(diff))
+			{
+				this.diffPreApproved = true;
+				this.lastApprovedChannelsStamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
+				this.lastDiffFolder = folderPath;
+			}
 			AndroidContactIntegrityResult integrity = AndroidContactIntegrityChecker.CheckFolder(folderPath);
 			log.Append("\n\n").Append(integrity.Summary);
 			if (integrity.HasWarnings && !string.IsNullOrEmpty(integrity.DetailText))
@@ -940,13 +924,24 @@ namespace DMR
 			{
 				scrollId = "studio-post-import-health";
 			}
-			else if (diff != null && !this.diffPreApproved && HasPendingDiffChanges(diff))
+			else if (operationResult != null
+				&& string.Equals(operationResult.Operation, "Export", StringComparison.OrdinalIgnoreCase)
+				&& !operationResult.HasErrors)
+			{
+				scrollId = "studio-last-operation";
+			}
+			else if (diff != null && !this.diffPreApproved && AndroidImportDiff.HasPendingDiffChanges(diff))
 			{
 				scrollId = "studio-import-diff";
 			}
 			else if (integrity != null && integrity.HasWarnings)
 			{
 				scrollId = "studio-integrity";
+			}
+			else if (this.lastValidation != null
+				&& (this.lastValidation.RelayZeroCount > 0 || this.lastValidation.DuplicateChannelNames > 0))
+			{
+				scrollId = "studio-validation";
 			}
 			this.webReport.NavigateHtml(
 				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
@@ -962,11 +957,16 @@ namespace DMR
 				this.lblReportStatus.Text = "Warnings — review before import";
 				this.lblReportStatus.ForeColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
 			}
-			else if (diff != null && !this.diffPreApproved && HasPendingDiffChanges(diff))
+			else if (diff != null && !this.diffPreApproved && AndroidImportDiff.HasPendingDiffChanges(diff))
 			{
 				int pending = diff.Added + diff.Changed + diff.Deleted;
 				this.lblReportStatus.Text = pending + " channel change(s) — Review diff…";
 				this.lblReportStatus.ForeColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
+			}
+			else if (this.diffPreApproved && File.Exists(channelsPath) && diff != null && !AndroidImportDiff.HasPendingDiffChanges(diff))
+			{
+				this.lblReportStatus.Text = "No channel changes — ready to import";
+				this.lblReportStatus.ForeColor = Color.FromArgb(0x81, 0xC7, 0x84);
 			}
 			else if (this.diffPreApproved && File.Exists(channelsPath))
 			{
