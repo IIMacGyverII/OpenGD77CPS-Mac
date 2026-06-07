@@ -421,8 +421,29 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkBootItemUi();
+			base.Resize += this.BootItemForm_Resize;
 			this.method_1();
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkBootItemLayout();
+		}
+
+		private void EnsureForkBootItemUi()
+		{
+			base.AutoScroll = true;
+		}
+
+		private void BootItemForm_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkBootItemLayout();
+		}
+
+		private void ApplyForkBootItemLayout()
+		{
+			int minW = Theme.Dpi(370);
+			int minH = Theme.Dpi(360);
+			base.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void BootItemForm_FormClosing(object sender, FormClosingEventArgs e)

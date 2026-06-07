@@ -703,7 +703,29 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkAttachmentUi();
+			this.pnlAttachment.Resize += this.pnlAttachment_Resize;
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkAttachmentLayout();
+		}
+
+		private void EnsureForkAttachmentUi()
+		{
+			this.pnlAttachment.AutoSize = false;
+			this.pnlAttachment.AutoScroll = true;
+		}
+
+		private void pnlAttachment_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkAttachmentLayout();
+		}
+
+		private void ApplyForkAttachmentLayout()
+		{
+			int minW = Theme.Dpi(780);
+			int minH = Theme.Dpi(580);
+			this.pnlAttachment.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void AttachmentForm_FormClosing(object sender, FormClosingEventArgs e)

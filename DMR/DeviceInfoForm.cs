@@ -640,8 +640,30 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkDeviceInfoUi();
+			this.pnlDeviceInfo.Resize += this.pnlDeviceInfo_Resize;
 			this.method_1();
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkDeviceInfoLayout();
+		}
+
+		private void EnsureForkDeviceInfoUi()
+		{
+			this.pnlDeviceInfo.AutoSize = false;
+			this.pnlDeviceInfo.AutoScroll = true;
+		}
+
+		private void pnlDeviceInfo_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkDeviceInfoLayout();
+		}
+
+		private void ApplyForkDeviceInfoLayout()
+		{
+			int minW = Theme.Dpi(700);
+			int minH = Theme.Dpi(460);
+			this.pnlDeviceInfo.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void DeviceInfoForm_FormClosing(object sender, FormClosingEventArgs e)

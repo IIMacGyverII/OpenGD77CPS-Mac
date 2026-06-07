@@ -180,8 +180,29 @@ namespace DMR
 			}
 
 
+			this.EnsureForkCommPrgUi();
+			base.Resize += this.CommPrgForm_Resize;
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkCommPrgLayout();
 			this.hidComm.SetProgressCallback(this.progressCallback);
             this.hidComm.startCodeplugReadOrWriteInNewThread();
+		}
+
+		private void EnsureForkCommPrgUi()
+		{
+			base.AutoScroll = true;
+		}
+
+		private void CommPrgForm_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkCommPrgLayout();
+		}
+
+		private void ApplyForkCommPrgLayout()
+		{
+			int minW = Theme.Dpi(490);
+			int minH = Theme.Dpi(240);
+			base.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void CommPrgForm_FormClosing(object sender, FormClosingEventArgs e)
