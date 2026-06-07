@@ -302,6 +302,12 @@ namespace DMR
 				new[] { snap.Zones.ToString(), "Zones", "" },
 				new[] { snap.TgLists.ToString(), "TG lists", "" },
 				new[] { snap.ScanLists.ToString(), "Scan lists", "" });
+			html.Append("<p class=\"path\">").Append(ForkPostImportUi.PostImportReportPathHint);
+			if (snap.HasWarning)
+			{
+				html.Append(" Lists show up to ").Append(maxItems).Append(" items per category.");
+			}
+			html.Append("</p>");
 
 			if (snap.RelayZero > 0)
 			{
@@ -355,7 +361,7 @@ namespace DMR
 				}
 				if (snap.EmptyZones > emptyZoneShown)
 				{
-					html.Append("<li>… and ").Append(snap.EmptyZones - emptyZoneShown).Append(" more</li>");
+					html.Append("<li>… and ").Append(snap.EmptyZones - emptyZoneShown).Append(" more — press F7</li>");
 				}
 				html.Append("</ul>");
 			}

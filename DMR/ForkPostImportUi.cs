@@ -18,9 +18,10 @@ namespace DMR
 		internal const string PostImportHealthLinkTip = "Click to open codeplug health report (F7)";
 		internal const string PostImportHealthButtonWarn = "Health ⚠ (F7)";
 		internal const string PostImportReportHealthLink = "Open full health report (F7)";
-		internal const string PostImportReportFootWarn = "Click a channel/contact name to open the editor. Amber status, Health ⚠ footer/toolbar/menu, or F7 for the full report.";
-		internal const string PostImportReportFootOk = "Click a name to open the editor.";
-		internal const string F8StudioBannerHealthHint = "Post-import scrolls to health · report link, amber status, Health ⚠ footer/toolbar, or F7";
+		internal const string PostImportReportPathHint = "Click a highlighted name to open that channel, contact, zone, TG/Rx list, or scan list in the editor.";
+		internal const string PostImportReportFootWarn = "Fix issues above or use amber status, Health ⚠ footer/toolbar/menu, or F7 for the full report.";
+		internal const string PostImportReportFootOk = "Click a highlighted name to open the editor.";
+		internal const string F8StudioBannerHealthHint = "Post-import scrolls to health · click names in health section, report link, amber status, Health ⚠ footer/toolbar, or F7";
 
 		public static bool ImportHasHealthWarnings()
 		{
