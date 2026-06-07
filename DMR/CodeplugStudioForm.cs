@@ -821,7 +821,7 @@ namespace DMR
 			}
 		}
 
-		private bool SetFolder(string folderPath, bool showErrors)
+		private bool SetFolder(string folderPath, bool showErrors, AndroidBatchResult operationResult = null)
 		{
 			folderPath = folderPath == null ? "" : folderPath.Trim();
 			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
@@ -865,7 +865,7 @@ namespace DMR
 			}
 			this.txtValidation.Text = log.ToString();
 			this.webReport.EnsureInitialized();
-			this.webReport.NavigateHtml(AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity));
+			this.webReport.NavigateHtml(AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult));
 
 			if (this.lastValidation.HasBlockingErrors)
 			{
@@ -950,9 +950,13 @@ namespace DMR
 			{
 				return;
 			}
-			this.mainForm.ImportAndroidBackupFolder(folderPath, this.diffPreApproved);
-			this.SetFolder(folderPath, false);
-			this.SetReportStatusChip("Import complete ✓", Color.FromArgb(0x81, 0xC7, 0x84));
+			AndroidBatchResult batch = this.mainForm.ImportAndroidBackupFolder(folderPath, this.diffPreApproved, false);
+			if (batch == null)
+			{
+				return;
+			}
+			this.SetFolder(folderPath, false, batch);
+			this.ApplyBatchStatusChip(batch);
 		}
 
 		private void btnExportAll_Click(object sender, EventArgs e)
@@ -985,7 +989,7 @@ namespace DMR
 			{
 				return;
 			}
-			this.SetFolder(folderPath, false);
+			this.SetFolder(folderPath, false, batch);
 			this.ApplyBatchStatusChip(batch);
 		}
 
@@ -1014,11 +1018,11 @@ namespace DMR
 			}
 			if (batch.HasErrors)
 			{
-				this.SetReportStatusChip("Export failed — see details", Color.FromArgb(0xEF, 0x53, 0x50));
-				MessageBox.Show(this, batch.DetailText, batch.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				this.SetReportStatusChip(batch.Operation + " failed — see report", Color.FromArgb(0xEF, 0x53, 0x50));
 				return;
 			}
-			this.SetReportStatusChip("Exported ✓ — " + batch.StatsLine, Color.FromArgb(0x81, 0xC7, 0x84));
+			string prefix = string.Equals(batch.Operation, "Export", StringComparison.OrdinalIgnoreCase) ? "Exported" : "Import";
+			this.SetReportStatusChip(prefix + " complete ✓ — " + batch.StatsLine, Color.FromArgb(0x81, 0xC7, 0x84));
 		}
 
 		private void btnOpenFolder_Click(object sender, EventArgs e)

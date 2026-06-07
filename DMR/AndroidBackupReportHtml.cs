@@ -23,11 +23,17 @@ namespace DMR
 			string folderPath,
 			AndroidBackupValidationResult validation,
 			AndroidImportDiffResult diff,
-			AndroidContactIntegrityResult integrity)
+			AndroidContactIntegrityResult integrity,
+			AndroidBatchResult operationResult = null)
 		{
 			StringBuilder html = new StringBuilder();
 			html.Append(ForkReportHtml.DocumentStart("Android backup report"));
 			html.Append("<div class=\"path\">").Append(ForkReportHtml.Escape(folderPath ?? "")).Append("</div>");
+
+			if (operationResult != null)
+			{
+				AppendOperationResult(html, operationResult);
+			}
 
 			int csvRows = validation != null ? validation.CsvChannelRows : 0;
 			int added = diff != null ? diff.Added : 0;
@@ -150,6 +156,52 @@ namespace DMR
 		{
 			html.Append("<tr><td>").Append(ForkReportHtml.Escape(label)).Append("</td><td class=\"")
 				.Append(warn ? "warn" : "").Append("\">").Append(ForkReportHtml.Escape(value)).Append("</td></tr>");
+		}
+
+		private static void AppendOperationResult(StringBuilder html, AndroidBatchResult batch)
+		{
+			string badgeClass = batch.HasErrors ? "badge-err" : (batch.Warnings.Count > 0 ? "badge-warn" : "badge-ok");
+			html.Append("<h2>Last operation <span class=\"badge ").Append(badgeClass).Append("\">")
+				.Append(ForkReportHtml.Escape(batch.Title)).Append("</span></h2>");
+
+			ForkReportHtml.AppendMetricCards(html,
+				new[] { batch.FilesSucceeded.ToString(), "Files OK", batch.HasErrors ? "err" : "ok" },
+				new[] { batch.ChannelsCount.ToString(), "Channels", batch.ChannelsCount > 0 ? "ok" : "" },
+				new[] { batch.ContactsCount.ToString(), "Contacts", batch.ContactsCount > 0 ? "ok" : "" },
+				new[] { batch.ZonesCount.ToString(), "Zones", batch.ZonesCount > 0 ? "ok" : "" });
+
+			if (batch.LogLines.Count > 0)
+			{
+				html.Append("<table><tr><th>Step</th><th>Result</th></tr>");
+				foreach (string line in batch.LogLines)
+				{
+					if (string.IsNullOrEmpty(line))
+					{
+						continue;
+					}
+					string css = line.StartsWith("✗") ? "err" : (line.StartsWith("✓") ? "ok" : "");
+					html.Append("<tr><td colspan=\"2\" class=\"").Append(css).Append("\">")
+						.Append(ForkReportHtml.Escape(line)).Append("</td></tr>");
+				}
+				html.Append("</table>");
+			}
+
+			if (batch.Warnings.Count > 0)
+			{
+				html.Append("<h2>Operation warnings</h2><ul>");
+				int shown = 0;
+				foreach (string warning in batch.Warnings)
+				{
+					html.Append("<li class=\"warn\">").Append(ForkReportHtml.Escape(warning)).Append("</li>");
+					if (++shown >= 20)
+					{
+						break;
+					}
+				}
+				html.Append("</ul>");
+			}
+
+			html.Append("<p class=\"foot\">").Append(ForkReportHtml.Escape(batch.StatsLine)).Append("</p>");
 		}
 	}
 }

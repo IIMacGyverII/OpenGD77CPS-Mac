@@ -4207,12 +4207,7 @@ namespace DMR
 			this.ImportAndroidBackupFolder(null);
 		}
 
-		public void ImportAndroidBackupFolder(string folderPath)
-		{
-			this.ImportAndroidBackupFolder(folderPath, false);
-		}
-
-		public void ImportAndroidBackupFolder(string folderPath, bool diffPreApproved)
+		public AndroidBatchResult ImportAndroidBackupFolder(string folderPath, bool diffPreApproved = false, bool showResultDialog = true)
 		{
 			if (string.IsNullOrEmpty(folderPath))
 			{
@@ -4228,7 +4223,7 @@ namespace DMR
 						MessageBoxIcon.Question);
 					if (source == DialogResult.Cancel)
 					{
-						return;
+						return null;
 					}
 					if (source == DialogResult.Yes)
 					{
@@ -4241,14 +4236,14 @@ namespace DMR
 					folderPath = AndroidBackupFolderPicker.PickFolder(this, lastFolder, false);
 					if (string.IsNullOrEmpty(folderPath))
 					{
-						return;
+						return null;
 					}
 				}
 			}
 			else if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
 			{
 				AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, folderPath);
-				return;
+				return null;
 			}
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			AndroidBatchResult batch = new AndroidBatchResult
@@ -4276,14 +4271,14 @@ namespace DMR
 			{
 				MessageBox.Show("No CSV files found in the selected folder.", "No Files Found", 
 					MessageBoxButtons.OK, MessageBoxIcon.Warning);
-				return;
+				return null;
 			}
 			
 			AndroidBackupValidationResult validation = AndroidBackupValidator.ValidateFolder(folderPath);
 			if (validation.HasBlockingErrors)
 			{
 				MessageBox.Show(validation.Summary, "Import blocked", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				return;
+				return null;
 			}
 
 			bool channelsWillImport = File.Exists(channelsFile);
@@ -4292,7 +4287,7 @@ namespace DMR
 			{
 				if (!AndroidImportDiff.ShowPreviewDialog(this, channelsFile))
 				{
-					return;
+					return null;
 				}
 				diffApproved = true;
 			}
@@ -4312,7 +4307,7 @@ namespace DMR
 					MessageBoxButtons.YesNo, confirmIcon);
 				if (confirmResult != DialogResult.Yes)
 				{
-					return;
+					return null;
 				}
 			}
 			else if (validation.RelayZeroCount > 0 || validation.DuplicateChannelNames > 0)
@@ -4321,7 +4316,7 @@ namespace DMR
 					"Validation warnings", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 				if (warn != DialogResult.Yes)
 				{
-					return;
+					return null;
 				}
 			}
 			
@@ -4459,10 +4454,14 @@ namespace DMR
 				}
 			}
 
-			AndroidBatchResult.ShowDialog(this, batch);
+			if (showResultDialog)
+			{
+				AndroidBatchResult.ShowDialog(this, batch);
+			}
 			this.ShowForkStatusMessage(batch.Title + " — " + batch.StatsLine);
 			this.UpdateForkChrome();
 			this.InitTree();
+			return batch;
 		}
 
 		private void tsmiExportCsv_Click(object sender, EventArgs e)
