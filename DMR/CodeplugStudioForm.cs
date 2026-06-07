@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
@@ -9,30 +10,41 @@ using ReadWriteCsv;
 namespace DMR
 {
 	/// <summary>
-	/// Tier 3.2 spike — thin CSV-only workflow (5 backup files, validation, diff, Path B).
-	/// Full OpenGD77 CPS remains available via "Open full editor".
+	/// Tier 3.2 — thin CSV-only workflow (5 backup files, validation, diff, Path B).
 	/// </summary>
 	public class CodeplugStudioForm : Form
 	{
-		private static readonly string[] BackupFiles = new string[]
+		private sealed class CsvTileMeta
 		{
-			"Channels.csv",
-			"Contacts.csv",
-			"TG_Lists.csv",
-			"Zones.csv",
-			"DTMF.csv"
+			public string FileName;
+			public string Title;
+			public string Glyph;
+			public Color Accent;
+		}
+
+		private static readonly CsvTileMeta[] BackupTiles = new CsvTileMeta[]
+		{
+			new CsvTileMeta { FileName = "Channels.csv", Title = "Channels", Glyph = "CH", Accent = Color.FromArgb(0x42, 0xA5, 0xF5) },
+			new CsvTileMeta { FileName = "Contacts.csv", Title = "Contacts", Glyph = "CT", Accent = Color.FromArgb(0xAB, 0x47, 0xBC) },
+			new CsvTileMeta { FileName = "TG_Lists.csv", Title = "TG Lists", Glyph = "TG", Accent = Color.FromArgb(0xFF, 0xA7, 0x26) },
+			new CsvTileMeta { FileName = "Zones.csv", Title = "Zones", Glyph = "ZN", Accent = Color.FromArgb(0x26, 0xA6, 0x96) },
+			new CsvTileMeta { FileName = "DTMF.csv", Title = "DTMF", Glyph = "DT", Accent = Color.FromArgb(0x90, 0xA4, 0xAE) }
 		};
 
+		private const int TileHeight = 78;
+		private const int TileGap = 10;
+
 		private readonly MainForm mainForm;
-		private readonly TextBox txtFolder;
-		private readonly FlowLayoutPanel pnlCsvTiles;
-		private readonly ForkWebViewPanel webReport;
-		private readonly Label lblReportCaption;
-		private readonly Button btnImportAll;
-		private readonly Button btnReviewDiff;
-		private readonly Button btnExportAll;
-		private readonly Button btnOpenFullCps;
-		private readonly TextBox txtValidation;
+		private TextBox txtFolder;
+		private FlowLayoutPanel pnlCsvTiles;
+		private ForkWebViewPanel webReport;
+		private Label lblReportCaption;
+		private Label lblReportStatus;
+		private Button btnImportAll;
+		private Button btnReviewDiff;
+		private Button btnExportAll;
+		private Button btnOpenFullCps;
+		private TextBox txtValidation;
 		private readonly ToolTip csvTileTip = new ToolTip();
 		private AndroidBackupValidationResult lastValidation;
 		private string lastDiffFolder = "";
@@ -48,165 +60,37 @@ namespace DMR
 			this.ApplyStudioWindowSize(owner);
 			this.Font = Theme.UiFont;
 			Theme.ApplyForkDialog(this);
+			this.Padding = new Padding(0);
 
-			Label lblIntro = new Label
-			{
-				Dock = DockStyle.Top,
-				Height = 36,
-				Text = "CSV-only workflow — load the 5-file phone backup, validate, review diff, then import or export (Path B). Double-click a CSV tile to open that file."
-			};
+			Panel pnlHeader = this.BuildHeaderPanel();
+			Button btnBrowse;
+			Button btnPullAdb;
+			Button btnPushAdb;
+			LinkLabel lnkHelp;
+			Panel pnlFolderCard = this.BuildFolderCard(out btnBrowse, out btnPullAdb, out btnPushAdb, out lnkHelp);
+			this.pnlCsvTiles = this.BuildCsvTileRow();
+			Panel pnlReportCard = this.BuildReportCard();
+			Panel pnlFooter = this.BuildFooterPanel();
 
-			Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 118 };
-			this.txtFolder = new TextBox
+			Panel pnlBody = new Panel
 			{
-				Location = new Point(12, 10),
-				Size = new Size(560, 23),
-				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+				Dock = DockStyle.Fill,
+				Padding = new Padding(16, 12, 16, 8),
+				BackColor = Theme.Background
 			};
-			this.txtFolder.Leave += this.txtFolder_Leave;
+			pnlBody.Controls.Add(pnlReportCard);
+			pnlBody.Controls.Add(this.pnlCsvTiles);
+			pnlBody.Controls.Add(pnlFolderCard);
 
-			Button btnBrowse = new Button
-			{
-				Location = new Point(578, 8),
-				Size = new Size(94, 27),
-				Text = "Browse…",
-				Anchor = AnchorStyles.Top | AnchorStyles.Right
-			};
+			this.Controls.Add(pnlBody);
+			this.Controls.Add(pnlFooter);
+			this.Controls.Add(pnlHeader);
+
 			btnBrowse.Click += this.btnBrowse_Click;
-
-			Button btnPullAdb = new Button
-			{
-				Location = new Point(12, 42),
-				Size = new Size(140, 27),
-				Text = "Pull (ADB)…"
-			};
 			btnPullAdb.Click += this.btnPullAdb_Click;
-
-			Button btnPushAdb = new Button
-			{
-				Location = new Point(158, 42),
-				Size = new Size(140, 27),
-				Text = "Export && push…"
-			};
 			btnPushAdb.Click += this.btnPushAdb_Click;
-
-			LinkLabel lnkHelp = new LinkLabel
-			{
-				Location = new Point(306, 47),
-				AutoSize = true,
-				Text = "MTP/USB help"
-			};
 			lnkHelp.LinkClicked += this.lnkHelp_LinkClicked;
-
-			this.pnlCsvTiles = new FlowLayoutPanel
-			{
-				Location = new Point(12, 74),
-				Size = new Size(660, 38),
-				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
-				WrapContents = false,
-				AutoScroll = true
-			};
-			foreach (string file in BackupFiles)
-			{
-				Panel tile = this.CreateCsvTile(file);
-				this.pnlCsvTiles.Controls.Add(tile);
-			}
-
-			topPanel.Controls.Add(this.txtFolder);
-			topPanel.Controls.Add(btnBrowse);
-			topPanel.Controls.Add(btnPullAdb);
-			topPanel.Controls.Add(btnPushAdb);
-			topPanel.Controls.Add(lnkHelp);
-			topPanel.Controls.Add(this.pnlCsvTiles);
-
-			this.lblReportCaption = new Label
-			{
-				Text = "Validation report",
-				Dock = DockStyle.Top,
-				Height = 22,
-				ForeColor = Theme.MutedForeground,
-				Padding = new Padding(4, 4, 0, 0)
-			};
-			this.webReport = new ForkWebViewPanel { Dock = DockStyle.Fill };
-			this.txtValidation = new TextBox { Multiline = true, ReadOnly = true, Visible = false };
-
-			Panel reportPanel = new Panel { Dock = DockStyle.Fill };
-			reportPanel.Controls.Add(this.webReport);
-			reportPanel.Controls.Add(this.lblReportCaption);
-
-			this.btnImportAll = new Button
-			{
-				Location = new Point(12, 8),
-				Size = new Size(118, 28),
-				Text = "Import all"
-			};
-			this.btnImportAll.Click += this.btnImportAll_Click;
-
-			this.btnReviewDiff = new Button
-			{
-				Location = new Point(136, 8),
-				Size = new Size(118, 28),
-				Text = "Review diff…",
-				Enabled = false
-			};
-			this.btnReviewDiff.Click += this.btnReviewDiff_Click;
-
-			this.btnExportAll = new Button
-			{
-				Location = new Point(260, 8),
-				Size = new Size(90, 28),
-				Text = "Export all"
-			};
-			this.btnExportAll.Click += this.btnExportAll_Click;
-
-			Button btnOpenFolder = new Button
-			{
-				Location = new Point(356, 8),
-				Size = new Size(90, 28),
-				Text = "Open folder"
-			};
-			btnOpenFolder.Click += this.btnOpenFolder_Click;
-
-			Button btnHealth = new Button
-			{
-				Location = new Point(452, 8),
-				Size = new Size(90, 28),
-				Text = "Health (F7)"
-			};
-			btnHealth.Click += this.btnHealth_Click;
-
-			this.btnOpenFullCps = new Button
-			{
-				Location = new Point(548, 8),
-				Size = new Size(130, 28),
-				Text = "Open full editor…"
-			};
-			this.btnOpenFullCps.Click += this.btnOpenFullCps_Click;
-
-			Button btnClose = new Button
-			{
-				Location = new Point(688, 8),
-				Size = new Size(100, 28),
-				Text = "Close",
-				DialogResult = DialogResult.OK,
-				Anchor = AnchorStyles.Top | AnchorStyles.Right
-			};
-			this.AcceptButton = btnClose;
-			this.CancelButton = btnClose;
-
-			Panel bottomPanel = new Panel { Dock = DockStyle.Bottom, Height = 44 };
-			bottomPanel.Controls.Add(this.btnImportAll);
-			bottomPanel.Controls.Add(this.btnReviewDiff);
-			bottomPanel.Controls.Add(this.btnExportAll);
-			bottomPanel.Controls.Add(btnOpenFolder);
-			bottomPanel.Controls.Add(btnHealth);
-			bottomPanel.Controls.Add(this.btnOpenFullCps);
-			bottomPanel.Controls.Add(btnClose);
-
-			this.Controls.Add(reportPanel);
-			this.Controls.Add(topPanel);
-			this.Controls.Add(bottomPanel);
-			this.Controls.Add(lblIntro);
+			this.txtFolder.Leave += this.txtFolder_Leave;
 
 			this.Shown += this.CodeplugStudioForm_Shown;
 			this.Resize += this.CodeplugStudioForm_Resize;
@@ -220,6 +104,286 @@ namespace DMR
 					this.SetFolder(last, false);
 				}
 			}
+		}
+
+		private Panel BuildHeaderPanel()
+		{
+			Panel header = new Panel
+			{
+				Dock = DockStyle.Top,
+				Height = Theme.Dpi(72),
+				BackColor = Theme.Chrome,
+				Padding = new Padding(Theme.Dpi(20), Theme.Dpi(14), Theme.Dpi(20), Theme.Dpi(10))
+			};
+			header.Paint += this.PaintHeaderAccent;
+
+			Label lblTitle = new Label
+			{
+				Text = "Codeplug Studio",
+				Font = new Font("Segoe UI", 18f, FontStyle.Bold),
+				ForeColor = Theme.Foreground,
+				AutoSize = true,
+				Location = new Point(Theme.Dpi(20), Theme.Dpi(12))
+			};
+			Label lblSub = new Label
+			{
+				Text = "PriInterPhone Android CSV workflow  ·  Path B import/export  ·  " + AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION,
+				Font = Theme.UiFontSmall,
+				ForeColor = Theme.MutedForeground,
+				AutoSize = true,
+				Location = new Point(Theme.Dpi(20), Theme.Dpi(42))
+			};
+			header.Controls.Add(lblTitle);
+			header.Controls.Add(lblSub);
+			return header;
+		}
+
+		private Panel BuildFolderCard(out Button btnBrowse, out Button btnPullAdb, out Button btnPushAdb, out LinkLabel lnkHelp)
+		{
+			Panel card = new StudioCardPanel
+			{
+				Dock = DockStyle.Top,
+				Height = Theme.Dpi(108),
+				Margin = new Padding(0, 0, 0, Theme.Dpi(10)),
+				Padding = new Padding(Theme.Dpi(14), Theme.Dpi(12), Theme.Dpi(14), Theme.Dpi(10))
+			};
+
+			Label lblFolder = new Label
+			{
+				Text = "BACKUP FOLDER",
+				Font = new Font("Segoe UI", 8.25f, FontStyle.Bold),
+				ForeColor = Theme.MutedForeground,
+				AutoSize = true,
+				Location = new Point(Theme.Dpi(14), Theme.Dpi(10))
+			};
+
+			this.txtFolder = new TextBox
+			{
+				Location = new Point(Theme.Dpi(14), Theme.Dpi(30)),
+				Height = Theme.Dpi(28),
+				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+			};
+			Theme.ApplyStudioTextBox(this.txtFolder);
+
+			btnBrowse = new Button
+			{
+				Text = "Browse…",
+				Size = new Size(Theme.Dpi(96), Theme.Dpi(28)),
+				Anchor = AnchorStyles.Top | AnchorStyles.Right
+			};
+			Theme.ApplyStudioButton(btnBrowse, false, true);
+
+			btnPullAdb = new Button
+			{
+				Text = "Pull (ADB)",
+				Size = new Size(Theme.Dpi(108), Theme.Dpi(28)),
+				Location = new Point(Theme.Dpi(14), Theme.Dpi(66))
+			};
+			Theme.ApplyStudioButton(btnPullAdb, false, false);
+
+			btnPushAdb = new Button
+			{
+				Text = "Export && push",
+				Size = new Size(Theme.Dpi(108), Theme.Dpi(28)),
+				Location = new Point(Theme.Dpi(128), Theme.Dpi(66))
+			};
+			Theme.ApplyStudioButton(btnPushAdb, false, false);
+
+			lnkHelp = new LinkLabel
+			{
+				Text = "MTP / USB help",
+				AutoSize = true,
+				Location = new Point(Theme.Dpi(248), Theme.Dpi(72))
+			};
+			Theme.ApplyStudioLink(lnkHelp);
+
+			Label lblHint = new Label
+			{
+				Text = "Double-click a CSV card below to open that file",
+				Font = Theme.UiFontSmall,
+				ForeColor = Theme.MutedForeground,
+				AutoSize = true,
+				Anchor = AnchorStyles.Top | AnchorStyles.Right
+			};
+
+			card.Controls.Add(lblFolder);
+			card.Controls.Add(this.txtFolder);
+			card.Controls.Add(btnBrowse);
+			card.Controls.Add(btnPullAdb);
+			card.Controls.Add(btnPushAdb);
+			card.Controls.Add(lnkHelp);
+			card.Controls.Add(lblHint);
+			Button browseForLayout = btnBrowse;
+			Label hintForLayout = lblHint;
+			card.Resize += (s, e) => this.LayoutFolderCard(card, browseForLayout, hintForLayout);
+			return card;
+		}
+
+		private void LayoutFolderCard(Panel card, Button browse, Label hint)
+		{
+			int pad = Theme.Dpi(14);
+			int right = card.ClientSize.Width - pad;
+			this.txtFolder.Width = right - pad - browse.Width - Theme.Dpi(8);
+			this.txtFolder.Location = new Point(pad, Theme.Dpi(30));
+			browse.Location = new Point(right - browse.Width, Theme.Dpi(28));
+			hint.Location = new Point(right - hint.PreferredWidth, Theme.Dpi(72));
+		}
+
+		private FlowLayoutPanel BuildCsvTileRow()
+		{
+			FlowLayoutPanel row = new FlowLayoutPanel
+			{
+				Dock = DockStyle.Top,
+				Height = Theme.Dpi(TileHeight + 8),
+				Margin = new Padding(0, 0, 0, Theme.Dpi(10)),
+				WrapContents = false,
+				AutoScroll = false,
+				Padding = new Padding(0),
+				BackColor = Color.Transparent
+			};
+			foreach (CsvTileMeta meta in BackupTiles)
+			{
+				row.Controls.Add(this.CreateCsvTile(meta));
+			}
+			return row;
+		}
+
+		private Panel BuildReportCard()
+		{
+			StudioCardPanel card = new StudioCardPanel
+			{
+				Dock = DockStyle.Fill,
+				Padding = new Padding(Theme.Dpi(12), Theme.Dpi(10), Theme.Dpi(12), Theme.Dpi(12))
+			};
+
+			Panel captionBar = new Panel
+			{
+				Dock = DockStyle.Top,
+				Height = Theme.Dpi(28),
+				BackColor = Color.Transparent
+			};
+			this.lblReportCaption = new Label
+			{
+				Text = "VALIDATION REPORT",
+				Font = new Font("Segoe UI", 8.25f, FontStyle.Bold),
+				ForeColor = Theme.MutedForeground,
+				AutoSize = true,
+				Location = new Point(0, Theme.Dpi(4))
+			};
+			this.lblReportStatus = new Label
+			{
+				Text = "No folder loaded",
+				Font = Theme.UiFontSmall,
+				ForeColor = Theme.MutedForeground,
+				AutoSize = true,
+				Anchor = AnchorStyles.Top | AnchorStyles.Right
+			};
+			captionBar.Controls.Add(this.lblReportCaption);
+			captionBar.Controls.Add(this.lblReportStatus);
+			captionBar.Resize += (s, e) =>
+			{
+				this.lblReportStatus.Location = new Point(
+					Math.Max(0, captionBar.ClientSize.Width - this.lblReportStatus.PreferredWidth),
+					Theme.Dpi(4));
+			};
+
+			Panel webHost = new Panel
+			{
+				Dock = DockStyle.Fill,
+				BackColor = Theme.StudioTextField,
+				Padding = new Padding(1)
+			};
+			webHost.Paint += (s, e) =>
+			{
+				Rectangle r = webHost.ClientRectangle;
+				r.Width--;
+				r.Height--;
+				using (Pen pen = new Pen(Theme.StudioCardBorder))
+				{
+					e.Graphics.DrawRectangle(pen, r);
+				}
+			};
+
+			this.webReport = new ForkWebViewPanel { Dock = DockStyle.Fill };
+			this.txtValidation = new TextBox { Multiline = true, ReadOnly = true, Visible = false };
+			webHost.Controls.Add(this.webReport);
+
+			card.Controls.Add(webHost);
+			card.Controls.Add(captionBar);
+			return card;
+		}
+
+		private Panel BuildFooterPanel()
+		{
+			Panel footer = new Panel
+			{
+				Dock = DockStyle.Bottom,
+				Height = Theme.Dpi(56),
+				BackColor = Theme.Chrome,
+				Padding = new Padding(Theme.Dpi(16), Theme.Dpi(10), Theme.Dpi(16), Theme.Dpi(10))
+			};
+			footer.Paint += (s, e) =>
+			{
+				using (Pen pen = new Pen(Theme.StudioCardBorder))
+				{
+					e.Graphics.DrawLine(pen, 0, 0, footer.Width, 0);
+				}
+			};
+
+			FlowLayoutPanel actions = new FlowLayoutPanel
+			{
+				Dock = DockStyle.Fill,
+				FlowDirection = FlowDirection.LeftToRight,
+				WrapContents = false,
+				AutoSize = false,
+				Padding = new Padding(0),
+				BackColor = Color.Transparent
+			};
+
+			this.btnImportAll = this.MakeFooterButton("Import all", true, false);
+			this.btnReviewDiff = this.MakeFooterButton("Review diff…", false, false);
+			this.btnExportAll = this.MakeFooterButton("Export all", false, false);
+			Button btnOpenFolder = this.MakeFooterButton("Open folder", false, false);
+			Button btnHealth = this.MakeFooterButton("Health (F7)", false, false);
+			this.btnOpenFullCps = this.MakeFooterButton("Open full editor…", false, true);
+			Button btnClose = this.MakeFooterButton("Close", false, false);
+			btnClose.DialogResult = DialogResult.OK;
+			this.AcceptButton = btnClose;
+			this.CancelButton = btnClose;
+
+			this.btnImportAll.Click += this.btnImportAll_Click;
+			this.btnReviewDiff.Click += this.btnReviewDiff_Click;
+			this.btnExportAll.Click += this.btnExportAll_Click;
+			btnOpenFolder.Click += this.btnOpenFolder_Click;
+			btnHealth.Click += this.btnHealth_Click;
+			this.btnOpenFullCps.Click += this.btnOpenFullCps_Click;
+
+			this.btnReviewDiff.Enabled = false;
+			this.btnReviewDiff.Margin = new Padding(0, 0, Theme.Dpi(8), 0);
+			foreach (Control c in new Control[] { this.btnImportAll, this.btnReviewDiff, this.btnExportAll, btnOpenFolder, btnHealth, this.btnOpenFullCps, btnClose })
+			{
+				if (c != this.btnReviewDiff)
+				{
+					c.Margin = new Padding(0, 0, Theme.Dpi(8), 0);
+				}
+				actions.Controls.Add(c);
+			}
+
+			footer.Controls.Add(actions);
+			return footer;
+		}
+
+		private Button MakeFooterButton(string text, bool primary, bool accent)
+		{
+			Button btn = new Button
+			{
+				Text = text,
+				AutoSize = true,
+				MinimumSize = new Size(Theme.Dpi(88), Theme.Dpi(32)),
+				Padding = new Padding(Theme.Dpi(12), Theme.Dpi(4), Theme.Dpi(12), Theme.Dpi(4))
+			};
+			Theme.ApplyStudioButton(btn, primary, accent);
+			return btn;
 		}
 
 		private void ApplyStudioWindowSize(IWin32Window owner)
@@ -238,39 +402,36 @@ namespace DMR
 			this.StartPosition = FormStartPosition.CenterScreen;
 		}
 
-		private Panel CreateCsvTile(string fileName)
+		private Panel CreateCsvTile(CsvTileMeta meta)
 		{
-			Panel tile = new Panel
+			StudioCsvTile tile = new StudioCsvTile(meta)
 			{
-				Size = new Size(124, 34),
-				Margin = new Padding(0, 0, 6, 0),
-				BackColor = Color.FromArgb(0x12, 0x1E, 0x2C),
-				BorderStyle = BorderStyle.FixedSingle,
-				Tag = fileName
+				Height = Theme.Dpi(TileHeight),
+				Width = Theme.Dpi(140),
+				Margin = new Padding(0, 0, Theme.Dpi(TileGap), 0),
+				Tag = meta.FileName,
+				Cursor = Cursors.Hand
 			};
-			Label lblName = new Label
-			{
-				Text = fileName.Replace(".csv", ""),
-				Location = new Point(6, 2),
-				AutoSize = true,
-				Font = Theme.UiFontBold,
-				ForeColor = Theme.Foreground
-			};
-			Label lblStatus = new Label
-			{
-				Name = "status",
-				Text = "—",
-				Location = new Point(6, 18),
-				AutoSize = true,
-				Font = Theme.UiFontSmall,
-				ForeColor = Theme.MutedForeground
-			};
-			tile.Controls.Add(lblName);
-			tile.Controls.Add(lblStatus);
-			tile.Cursor = Cursors.Hand;
 			tile.DoubleClick += this.csvTile_DoubleClick;
-			this.csvTileTip.SetToolTip(tile, "Double-click to open " + fileName);
+			this.csvTileTip.SetToolTip(tile, "Double-click to open " + meta.FileName);
 			return tile;
+		}
+
+		private void PaintHeaderAccent(object sender, PaintEventArgs e)
+		{
+			Panel header = sender as Panel;
+			if (header == null)
+			{
+				return;
+			}
+			Rectangle bar = new Rectangle(0, header.Height - Theme.Dpi(3), header.Width, Theme.Dpi(3));
+			using (LinearGradientBrush brush = new LinearGradientBrush(bar,
+				Color.FromArgb(0x43, 0xA0, 0x47),
+				Color.FromArgb(0x1E, 0x88, 0xE5),
+				LinearGradientMode.Horizontal))
+			{
+				e.Graphics.FillRectangle(brush, bar);
+			}
 		}
 
 		private void CodeplugStudioForm_Shown(object sender, EventArgs e)
@@ -291,9 +452,9 @@ namespace DMR
 				return;
 			}
 			int count = this.pnlCsvTiles.Controls.Count;
-			int gap = 6;
-			int available = Math.Max(124 * count, this.pnlCsvTiles.ClientSize.Width - gap);
-			int tileWidth = Math.Max(124, (available - gap * (count - 1)) / count);
+			int gap = Theme.Dpi(TileGap);
+			int available = Math.Max(Theme.Dpi(140) * count, this.pnlCsvTiles.ClientSize.Width);
+			int tileWidth = Math.Max(Theme.Dpi(120), (available - gap * (count - 1)) / count);
 			foreach (Control control in this.pnlCsvTiles.Controls)
 			{
 				control.Width = tileWidth;
@@ -392,38 +553,24 @@ namespace DMR
 		{
 			foreach (Control control in this.pnlCsvTiles.Controls)
 			{
-				Panel tile = control as Panel;
+				StudioCsvTile tile = control as StudioCsvTile;
 				if (tile == null)
 				{
 					continue;
 				}
 				string fileName = tile.Tag as string;
-				Label lblStatus = null;
-				foreach (Control child in tile.Controls)
-				{
-					Label label = child as Label;
-					if (label != null && label.Name == "status")
-					{
-						lblStatus = label;
-						break;
-					}
-				}
-				if (lblStatus == null || string.IsNullOrEmpty(fileName))
+				if (string.IsNullOrEmpty(fileName))
 				{
 					continue;
 				}
 				string path = Path.Combine(folderPath ?? "", fileName);
 				if (!File.Exists(path))
 				{
-					lblStatus.Text = "Missing";
-					lblStatus.ForeColor = Color.Salmon;
-					tile.BackColor = Color.FromArgb(0x2A, 0x14, 0x14);
+					tile.SetTileState(false, 0, "Missing");
 					continue;
 				}
 				int rows = CountCsvDataRows(path);
-				lblStatus.Text = rows >= 0 ? rows + " row(s)" : "Found";
-				lblStatus.ForeColor = Color.LightGreen;
-				tile.BackColor = Color.FromArgb(0x12, 0x28, 0x1C);
+				tile.SetTileState(true, rows, rows >= 0 ? rows + " rows" : "Found");
 			}
 		}
 
@@ -466,6 +613,8 @@ namespace DMR
 				}
 				this.btnImportAll.Enabled = false;
 				this.UpdateCsvTiles("");
+				this.lblReportStatus.Text = "No folder loaded";
+				this.lblReportStatus.ForeColor = Theme.MutedForeground;
 				return false;
 			}
 
@@ -496,9 +645,23 @@ namespace DMR
 			this.txtValidation.Text = log.ToString();
 			this.webReport.EnsureInitialized();
 			this.webReport.NavigateHtml(AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity));
-			this.lblReportCaption.Text = integrity.HasWarnings || this.lastValidation.HasBlockingErrors
-				? "Validation report — review warnings"
-				: "Validation report — ready";
+
+			if (this.lastValidation.HasBlockingErrors)
+			{
+				this.lblReportStatus.Text = "Blocking errors — fix before import";
+				this.lblReportStatus.ForeColor = Color.FromArgb(0xEF, 0x53, 0x50);
+			}
+			else if (integrity.HasWarnings)
+			{
+				this.lblReportStatus.Text = "Warnings — review before import";
+				this.lblReportStatus.ForeColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
+			}
+			else
+			{
+				this.lblReportStatus.Text = "Ready to import";
+				this.lblReportStatus.ForeColor = Color.FromArgb(0x81, 0xC7, 0x84);
+			}
+
 			bool hasChannels = File.Exists(channelsPath);
 			this.btnReviewDiff.Enabled = hasChannels;
 			this.btnReviewDiff.Text = this.diffPreApproved && hasChannels ? "Diff reviewed ✓" : "Review diff…";
@@ -615,6 +778,143 @@ namespace DMR
 			this.UserOpenedFullCps = true;
 			this.DialogResult = DialogResult.OK;
 			this.Close();
+		}
+
+		private sealed class StudioCardPanel : Panel
+		{
+			public StudioCardPanel()
+			{
+				this.BackColor = Theme.StudioCard;
+				this.DoubleBuffered = true;
+			}
+
+			protected override void OnPaint(PaintEventArgs e)
+			{
+				base.OnPaint(e);
+				Rectangle r = this.ClientRectangle;
+				r.Width--;
+				r.Height--;
+				using (GraphicsPath path = CodeplugStudioForm.RoundRect(r, Theme.Dpi(8)))
+				using (Pen pen = new Pen(Theme.StudioCardBorder))
+				using (Brush brush = new SolidBrush(this.BackColor))
+				{
+					e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+					e.Graphics.FillPath(brush, path);
+					e.Graphics.DrawPath(pen, path);
+				}
+			}
+		}
+
+		private sealed class StudioCsvTile : Panel
+		{
+			private readonly CsvTileMeta meta;
+			private readonly Label lblGlyph;
+			private readonly Label lblTitle;
+			private readonly Label lblRows;
+			private readonly Label lblStatus;
+			private bool tileOk;
+			private bool hover;
+
+			public StudioCsvTile(CsvTileMeta meta)
+			{
+				this.meta = meta;
+				this.BackColor = Theme.StudioCard;
+				this.DoubleBuffered = true;
+				this.Padding = new Padding(Theme.Dpi(10), Theme.Dpi(8), Theme.Dpi(8), Theme.Dpi(8));
+
+				this.lblGlyph = new Label
+				{
+					Text = meta.Glyph,
+					Font = new Font("Segoe UI", 8.25f, FontStyle.Bold),
+					ForeColor = Color.White,
+					TextAlign = ContentAlignment.MiddleCenter,
+					Size = new Size(Theme.Dpi(34), Theme.Dpi(34)),
+					Location = new Point(Theme.Dpi(10), Theme.Dpi(10)),
+					BackColor = meta.Accent
+				};
+
+				this.lblTitle = new Label
+				{
+					Text = meta.Title,
+					Font = Theme.UiFontBold,
+					ForeColor = Theme.Foreground,
+					AutoSize = true,
+					Location = new Point(Theme.Dpi(52), Theme.Dpi(10))
+				};
+				this.lblRows = new Label
+				{
+					Name = "rows",
+					Text = "—",
+					Font = new Font("Segoe UI", 16f, FontStyle.Bold),
+					ForeColor = Theme.Foreground,
+					AutoSize = true,
+					Location = new Point(Theme.Dpi(52), Theme.Dpi(28))
+				};
+				this.lblStatus = new Label
+				{
+					Name = "status",
+					Text = "—",
+					Font = Theme.UiFontSmall,
+					ForeColor = Theme.MutedForeground,
+					AutoSize = true,
+					Location = new Point(Theme.Dpi(52), Theme.Dpi(52))
+				};
+
+				this.Controls.Add(this.lblGlyph);
+				this.Controls.Add(this.lblTitle);
+				this.Controls.Add(this.lblRows);
+				this.Controls.Add(this.lblStatus);
+
+				this.MouseEnter += (s, e) => { this.hover = true; this.Invalidate(); };
+				this.MouseLeave += (s, e) => { this.hover = false; this.Invalidate(); };
+				foreach (Control child in this.Controls)
+				{
+					child.MouseEnter += (s, e) => { this.hover = true; this.Invalidate(); };
+					child.MouseLeave += (s, e) => { this.hover = false; this.Invalidate(); };
+				}
+			}
+
+			public void SetTileState(bool ok, int rows, string statusText)
+			{
+				this.tileOk = ok;
+				this.BackColor = ok ? Theme.StudioCardOk : Theme.StudioCardMiss;
+				this.lblRows.Text = ok && rows >= 0 ? rows.ToString() : "—";
+				this.lblStatus.Text = statusText;
+				this.lblStatus.ForeColor = ok ? Color.FromArgb(0x81, 0xC7, 0x84) : Color.FromArgb(0xEF, 0x9A, 0x9A);
+				this.Invalidate();
+			}
+
+			protected override void OnPaint(PaintEventArgs e)
+			{
+				base.OnPaint(e);
+				Rectangle r = this.ClientRectangle;
+				r.Width--;
+				r.Height--;
+				Color border = this.hover
+					? (this.tileOk ? Color.FromArgb(0x66, 0xBB, 0x6A) : Color.FromArgb(0xEF, 0x53, 0x50))
+					: Theme.StudioCardBorder;
+				using (GraphicsPath path = CodeplugStudioForm.RoundRect(r, Theme.Dpi(8)))
+				using (Pen pen = new Pen(border, this.hover ? 2f : 1f))
+				using (Brush brush = new SolidBrush(this.BackColor))
+				{
+					e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+					e.Graphics.FillPath(brush, path);
+					e.Graphics.DrawPath(pen, path);
+				}
+				Rectangle glyph = new Rectangle(this.lblGlyph.Left, this.lblGlyph.Top, this.lblGlyph.Width, this.lblGlyph.Height);
+			}
+		}
+
+		private static GraphicsPath RoundRect(Rectangle bounds, int radius)
+		{
+			int d = radius * 2;
+			GraphicsPath path = new GraphicsPath();
+			path.AddArc(bounds.X, bounds.Y, d, d, 180, 90);
+			path.AddArc(bounds.Right - d, bounds.Y, d, d, 270, 90);
+			path.AddArc(bounds.Right - d, bounds.Bottom - d, d, d, 0, 90);
+			path.AddArc(bounds.X, bounds.Bottom - d, d, d, 90, 90);
+			path.CloseFigure();
+			return path;
 		}
 	}
 }

@@ -51,6 +51,72 @@ namespace DMR
 		public static readonly Color Foreground = Color.FromArgb(0xE8, 0xEE, 0xF4);
 		public static readonly Color MutedForeground = Color.FromArgb(0xA8, 0xB8, 0xC8);
 
+		public static readonly Color StudioCard = Color.FromArgb(0x0D, 0x1C, 0x2A);
+		public static readonly Color StudioCardOk = Color.FromArgb(0x0F, 0x28, 0x1C);
+		public static readonly Color StudioCardMiss = Color.FromArgb(0x2A, 0x12, 0x14);
+		public static readonly Color StudioCardBorder = Color.FromArgb(0x1E, 0x3A, 0x5F);
+		public static readonly Color StudioAccentGreen = Color.FromArgb(0x2E, 0x7D, 0x32);
+		public static readonly Color StudioAccentBlue = Color.FromArgb(0x1E, 0x5A, 0x8F);
+		public static readonly Color StudioTextField = Color.FromArgb(0x06, 0x0D, 0x14);
+
+		public static void ApplyStudioTextBox(TextBox box)
+		{
+			if (box == null)
+			{
+				return;
+			}
+			box.BackColor = StudioTextField;
+			box.ForeColor = Foreground;
+			box.BorderStyle = BorderStyle.FixedSingle;
+			box.Font = UiFont;
+		}
+
+		public static void ApplyStudioLink(LinkLabel link)
+		{
+			if (link == null)
+			{
+				return;
+			}
+			link.LinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
+			link.ActiveLinkColor = Foreground;
+			link.VisitedLinkColor = Color.FromArgb(0x64, 0xB5, 0xF6);
+			link.BackColor = Color.Transparent;
+		}
+
+		public static void ApplyStudioButton(Button btn, bool primary, bool accent)
+		{
+			if (btn == null)
+			{
+				return;
+			}
+			btn.FlatStyle = FlatStyle.Flat;
+			btn.Font = UiFont;
+			btn.Cursor = Cursors.Hand;
+			btn.FlatAppearance.BorderSize = 1;
+			if (primary)
+			{
+				btn.BackColor = StudioAccentGreen;
+				btn.ForeColor = Color.White;
+				btn.FlatAppearance.BorderColor = Color.FromArgb(0x43, 0xA0, 0x47);
+			}
+			else if (accent)
+			{
+				btn.BackColor = StudioAccentBlue;
+				btn.ForeColor = Foreground;
+				btn.FlatAppearance.BorderColor = Accent;
+			}
+			else
+			{
+				btn.BackColor = StudioCard;
+				btn.ForeColor = Foreground;
+				btn.FlatAppearance.BorderColor = StudioCardBorder;
+			}
+			btn.FlatAppearance.MouseOverBackColor = Color.FromArgb(
+				Math.Min(255, btn.BackColor.R + 18),
+				Math.Min(255, btn.BackColor.G + 18),
+				Math.Min(255, btn.BackColor.B + 18));
+		}
+
 		/// <summary>
 		/// Main shell only (menu, toolbar, status). Does not set Form.ForeColor — MDI/dock
 		/// children inherit it and channel labels become invisible on light panels.
