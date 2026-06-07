@@ -15,6 +15,17 @@ namespace DMR
 			box.SelectAll();
 			return true;
 		}
+
+		public static bool TryFocusTreeFilterGlobal(ref Keys keyData, TextBox box)
+		{
+			if (keyData != (Keys.Control | Keys.Shift | Keys.F) || box == null)
+			{
+				return false;
+			}
+			box.Focus();
+			box.SelectAll();
+			return true;
+		}
 		public static void WireEscapeClear(TextBox box)
 		{
 			if (box == null)

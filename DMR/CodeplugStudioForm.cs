@@ -439,6 +439,7 @@ namespace DMR
 			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
 			this.footerTip.SetToolTip(btnOpenFolder, "Open backup folder in Explorer");
 			this.footerTip.SetToolTip(btnHealth, "Full codeplug health report (F7)");
+			this.footerTip.SetToolTip(this.lblReportCaption, "Re-validate CSVs in the loaded folder (F5)");
 			this.footerTip.SetToolTip(btnRawLog, "Plain-text validation, diff, and integrity log");
 			this.footerTip.SetToolTip(btnShortcut, "Create PriInterPhone Codeplug Studio shortcut on Desktop (--studio)");
 			this.footerTip.SetToolTip(this.btnOpenFullCps, "Show dock, tree, and full CPS editors");

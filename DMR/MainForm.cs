@@ -253,7 +253,7 @@ namespace DMR
 
 		private readonly List<ForkTreeFilterEntry> forkTreeFilterStash = new List<ForkTreeFilterEntry>();
 
-		private const string ForkStatusHintDefault = "CodeplugStudio.cmd | Ctrl+Shift+S Studio | F8 backup | F7 health | F1";
+		private const string ForkStatusHintDefault = "CodeplugStudio.cmd | Ctrl+Shift+S Studio | F8 backup | F7 health | Ctrl+Shift+F tree | F1";
 
 		private sealed class ForkTreeFilterEntry
 		{
@@ -2497,6 +2497,11 @@ namespace DMR
 			if (keyData == Keys.F8)
 			{
 				this.tsmiAndroidBackup_Click(this, EventArgs.Empty);
+				return true;
+			}
+			this.EnsureForkTreeFilterUi();
+			if (ForkFilterEscape.TryFocusTreeFilterGlobal(ref keyData, this.txtTreeFilter))
+			{
 				return true;
 			}
 			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtTreeFilter))

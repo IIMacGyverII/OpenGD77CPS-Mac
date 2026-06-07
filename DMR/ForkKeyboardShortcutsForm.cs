@@ -34,6 +34,7 @@ namespace DMR
 						"             Ctrl+D / Ctrl+I / Ctrl+E / F7 same as Studio while F8 is open\n" +
 						"             Recent / drop folder — same recent list as Studio\n" +
 						"             Double-click a file row to open that CSV\n" +
+						"  Ctrl+Shift+F  Focus navigation tree filter (from anywhere)\n" +
 						"  Ctrl+Shift+S  Codeplug Studio — CSV-only backup workflow\n" +
 						"  CodeplugStudio.cmd  Thin Studio launcher in install folder\n" +
 						"  --studio      Launch Studio only (optional folder path)\n" +
@@ -53,7 +54,8 @@ namespace DMR
 						"  Drop folder  Load backup folder from Explorer\n\n" +
 						"Navigation tree\n" +
 						"  Filter box Search zones, channels, contacts, etc.\n" +
-						"  Ctrl+F     Focus tree filter (from tree or main window)   Esc  Clear\n\n" +
+						"  Ctrl+F     Focus tree filter (tree or main window)   Esc  Clear\n" +
+						"  Ctrl+Shift+F  Focus tree filter from any editor/grid\n\n" +
 						"Channels grid\n" +
 						"  F2         Open channel editor\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +

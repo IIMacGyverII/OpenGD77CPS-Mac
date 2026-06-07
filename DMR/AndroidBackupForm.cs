@@ -149,7 +149,7 @@ namespace DMR
 
 			this.lblReportCaption = new Label
 			{
-				Text = "Validation report",
+				Text = "Validation report (F5 refresh)",
 				Dock = DockStyle.Top,
 				Height = 22,
 				ForeColor = Theme.MutedForeground,
@@ -241,6 +241,7 @@ namespace DMR
 			this.footerTip.SetToolTip(this.btnImportAll, "Path B import all CSVs (Ctrl+I)");
 			this.footerTip.SetToolTip(this.btnReviewDiff, "Preview channel changes before import (Ctrl+D)");
 			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
+			this.footerTip.SetToolTip(this.lblReportCaption, "Re-validate CSVs in the loaded folder (F5)");
 
 			this.KeyPreview = true;
 			this.KeyDown += this.AndroidBackupForm_KeyDown;
