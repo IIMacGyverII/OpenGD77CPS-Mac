@@ -62,7 +62,7 @@ namespace DMR
 			{
 				Dock = DockStyle.Top,
 				Height = 40,
-				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Review diff → Import all (Path B).  Report below validates CSVs."
+				Text = "PC → phone: Export all + Push (ADB) → IMPORT on phone.  PC ← phone: Pull (ADB) → Review diff → Import all (Path B).  F5 refreshes report.  Report below validates CSVs."
 			};
 
 			Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 200 };

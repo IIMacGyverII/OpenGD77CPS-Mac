@@ -14,13 +14,13 @@ namespace DMR
 				dlg.MaximizeBox = false;
 				dlg.MinimizeBox = false;
 				dlg.StartPosition = FormStartPosition.CenterParent;
-				dlg.ClientSize = new Size(460, 360);
+				dlg.ClientSize = new Size(460, 400);
 				dlg.Font = new Font("Segoe UI", 9.75f);
 				Theme.ApplyForkDialog(dlg);
 				Label body = new Label
 				{
 					Location = new Point(16, 16),
-					Size = new Size(428, 300),
+					Size = new Size(428, 340),
 					Text =
 						"Global (main window)\n" +
 						"  Ctrl+I     Import Android backup folder (Path B)\n" +
@@ -29,9 +29,8 @@ namespace DMR
 						"  Ctrl+S     Save codeplug\n" +
 						"  F1         PriInterPhone workflow help\n" +
 						"  F7         Codeplug health report — scrolls to first warning\n" +
-						"  F5         Refresh health report (while F7 report is open)\n" +
+						"  F5         Refresh health report (F7 open) or backup report (F8/Studio)\n" +
 						"  F8         Android backup manager (diff + import)\n" +
-						"  F5         Refresh backup folder report (F8 or Studio)\n" +
 						"             Ctrl+D / Ctrl+I / Ctrl+E / F7 same as Studio while F8 is open\n" +
 						"             Recent / drop folder — same recent list as Studio\n" +
 						"             Double-click a file row to open that CSV\n" +
@@ -66,6 +65,7 @@ namespace DMR
 						"Contacts grid\n" +
 						"  F2         Open contact editor\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +
+						"  Del        Delete selected contact(s)\n" +
 						"  Click row  Open contact in editor\n" +
 						"  Double-click Call ID   Look up on RadioID.net\n\n" +
 						"Zones / TG lists / scan lists grids\n" +
@@ -77,7 +77,7 @@ namespace DMR
 				};
 				Button ok = new Button
 				{
-					Location = new Point(360, 322),
+					Location = new Point(360, 362),
 					Size = new Size(84, 28),
 					Text = "OK",
 					DialogResult = DialogResult.OK

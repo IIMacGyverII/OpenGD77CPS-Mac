@@ -1513,6 +1513,19 @@ namespace DMR
 				this.OpenSelectedContactEditor();
 				return true;
 			}
+			if (keyData == Keys.Delete)
+			{
+				if (this.dgvContacts.SelectedRows.Count > 1)
+				{
+					this.btnDeleteSelect_Click(this, EventArgs.Empty);
+					return true;
+				}
+				if (this.dgvContacts.SelectedRows.Count > 0 && this.btnDelete.Enabled)
+				{
+					this.btnDelete_Click(this, EventArgs.Empty);
+					return true;
+				}
+			}
 			return base.ProcessCmdKey(ref msg, keyData);
 		}
 
