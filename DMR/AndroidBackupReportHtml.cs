@@ -361,7 +361,8 @@ namespace DMR
 				&& string.Equals(operationResult.Operation, "Import", StringComparison.OrdinalIgnoreCase)
 				&& !operationResult.HasErrors)
 			{
-				return "studio-post-import-health";
+				string healthTarget = CodeplugHealthReportHtml.GetScrollTarget(CodeplugHealthSnapshot.Collect());
+				return healthTarget ?? "studio-post-import-health";
 			}
 			if (operationResult != null
 				&& string.Equals(operationResult.Operation, "Export", StringComparison.OrdinalIgnoreCase)

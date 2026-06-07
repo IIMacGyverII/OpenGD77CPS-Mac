@@ -679,6 +679,29 @@ namespace DMR
 			mainForm.OpenScanEditorByDataIndex(dataIndex);
 		}
 
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtScanListsFilter))
+			{
+				return true;
+			}
+			if (keyData == Keys.F2)
+			{
+				this.OpenSelectedScanListEditor();
+				return true;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
+
+		private void OpenSelectedScanListEditor()
+		{
+			if (this.dgvScanLists == null || this.dgvScanLists.CurrentRow == null)
+			{
+				return;
+			}
+			this.OpenScanListEditorForRow(this.dgvScanLists.CurrentRow);
+		}
+
 		private MainForm GetMainForm()
 		{
 			MainForm mainForm = base.MdiParent as MainForm;

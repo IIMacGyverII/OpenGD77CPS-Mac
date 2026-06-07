@@ -654,6 +654,29 @@ namespace DMR
 			mainForm.OpenRxGroupListEditorByDataIndex(dataIndex);
 		}
 
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtRxListsFilter))
+			{
+				return true;
+			}
+			if (keyData == Keys.F2)
+			{
+				this.OpenSelectedRxListEditor();
+				return true;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
+
+		private void OpenSelectedRxListEditor()
+		{
+			if (this.dgvRxLists == null || this.dgvRxLists.CurrentRow == null)
+			{
+				return;
+			}
+			this.OpenRxListEditorForRow(this.dgvRxLists.CurrentRow);
+		}
+
 		private MainForm GetMainForm()
 		{
 			MainForm mainForm = base.MdiParent as MainForm;

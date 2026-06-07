@@ -999,6 +999,29 @@ namespace DMR
 			mainForm.OpenZoneEditorByDataIndex(dataIndex);
 		}
 
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtZoneFilter))
+			{
+				return true;
+			}
+			if (keyData == Keys.F2)
+			{
+				this.OpenSelectedZoneEditor();
+				return true;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
+
+		private void OpenSelectedZoneEditor()
+		{
+			if (this.dgvZones == null || this.dgvZones.CurrentRow == null)
+			{
+				return;
+			}
+			this.OpenZoneEditorForRow(this.dgvZones.CurrentRow);
+		}
+
 		private MainForm GetMainForm()
 		{
 			MainForm mainForm = base.MdiParent as MainForm;

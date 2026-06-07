@@ -304,33 +304,33 @@ namespace DMR
 			if (snap.RelayZero > 0)
 			{
 				AppendDrillList(html, "Relay = 0", snap.RelayZero, snap.RelayZeroDrill, "channel",
-					"warn", "These channels may show operation failed on the phone.", maxItems: maxItems);
+					"warn", "These channels may show operation failed on the phone.", "health-relay-zero", maxItems);
 			}
 			if (snap.OrphanCount > 0)
 			{
 				AppendDrillList(html, "Missing TX contact", snap.OrphanCount, snap.OrphanDrill, "channel",
-					"err", "Digital channels reference a contact not in the codeplug.", maxItems: maxItems);
+					"err", "Digital channels reference a contact not in the codeplug.", "health-orphan-contact", maxItems);
 			}
 			if (snap.DuplicateNameGroups > 0)
 			{
 				AppendDuplicateGroupList(html, "Duplicate channel names", snap.DuplicateNameGroups,
 					snap.DuplicateChannelGroups, "channel", "warn",
-					"Duplicate names can confuse Android import and zone editing.", maxGroups: maxItems);
+					"Duplicate names can confuse Android import and zone editing.", "health-dup-ch-names", maxItems);
 			}
 			if (snap.DuplicateDmrIdGroups > 0)
 			{
 				AppendDrillList(html, "Duplicate contact DMR IDs", snap.DuplicateDmrIdGroups, snap.DuplicateDmrIdDrill, "contact",
-					"warn", "Multiple contacts share the same Call ID.", maxItems: maxItems);
+					"warn", "Multiple contacts share the same Call ID.", "health-dup-dmr-id", maxItems);
 			}
 			if (snap.DigitalNoContact > 0)
 			{
 				AppendDrillList(html, "Digital without TX contact", snap.DigitalNoContact, snap.DigitalNoContactDrill, "channel",
-					"warn", "Digital channels should reference a contact for TX routing.", maxItems: maxItems);
+					"warn", "Digital channels should reference a contact for TX routing.", "health-dig-no-contact", maxItems);
 			}
 			if (snap.ChannelsNotInZone > 0)
 			{
 				AppendDrillList(html, "Channels not in any zone", snap.ChannelsNotInZone, snap.ChannelsNotInZoneDrill, "channel",
-					"warn", "These channels are not assigned to a zone.", maxItems: maxItems);
+					"warn", "These channels are not assigned to a zone.", "health-no-zone", maxItems);
 			}
 			if (!snap.HasWarning)
 			{

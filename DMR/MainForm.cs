@@ -2498,6 +2498,10 @@ namespace DMR
 				this.tsmiAndroidBackup_Click(this, EventArgs.Empty);
 				return true;
 			}
+			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtTreeFilter))
+			{
+				return true;
+			}
 #endif
 			return base.ProcessCmdKey(ref msg, keyData);
 		}

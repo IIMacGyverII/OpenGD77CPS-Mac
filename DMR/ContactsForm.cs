@@ -1504,6 +1504,10 @@ namespace DMR
 
 		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
 		{
+			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtContactFilter))
+			{
+				return true;
+			}
 			if (keyData == Keys.F2)
 			{
 				this.OpenSelectedContactEditor();

@@ -28,7 +28,7 @@ namespace DMR
 						"  Ctrl+O     Open codeplug\n" +
 						"  Ctrl+S     Save codeplug\n" +
 						"  F1         PriInterPhone workflow help\n" +
-						"  F7         Codeplug health report — click names to open editors\n" +
+						"  F7         Codeplug health report — scrolls to first warning\n" +
 						"  F5         Refresh health report (while F7 report is open)\n" +
 						"  F8         Android backup manager (diff + import)\n" +
 						"             Ctrl+D / Ctrl+I / Ctrl+E / F7 same as Studio while F8 is open\n" +
@@ -51,9 +51,11 @@ namespace DMR
 						"  Right-click folder path  Copy folder path\n" +
 						"  Drop folder  Load backup folder from Explorer\n\n" +
 						"Navigation tree\n" +
-						"  Filter box Search zones, channels, contacts, etc.\n\n" +
+						"  Filter box Search zones, channels, contacts, etc.\n" +
+						"  Ctrl+F     Focus tree filter   Esc  Clear filter\n\n" +
 						"Channels grid\n" +
 						"  F2         Open channel editor\n" +
+						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +
 						"  Del        Delete selected channel(s)\n" +
 						"  Ctrl+D     Duplicate selected channel(s)\n" +
 						"  Click row  Open channel in editor\n\n" +
@@ -61,8 +63,13 @@ namespace DMR
 						"  Ctrl+Z     Revert to state when channel was opened\n\n" +
 						"Contacts grid\n" +
 						"  F2         Open contact editor\n" +
+						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +
 						"  Click row  Open contact in editor\n" +
-						"  Double-click Call ID   Look up on RadioID.net"
+						"  Double-click Call ID   Look up on RadioID.net\n\n" +
+						"Zones / TG lists / scan lists grids\n" +
+						"  F2         Open editor for selected row\n" +
+						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +
+						"  Click row  Open in editor"
 				};
 				Button ok = new Button
 				{

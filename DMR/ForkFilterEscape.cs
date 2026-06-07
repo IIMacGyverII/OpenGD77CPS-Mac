@@ -2,9 +2,19 @@ using System.Windows.Forms;
 
 namespace DMR
 {
-	/// <summary>Esc clears fork grid/tree filter text boxes.</summary>
+	/// <summary>Esc clears and Ctrl+F focuses fork grid/tree filter text boxes.</summary>
 	internal static class ForkFilterEscape
 	{
+		public static bool TryFocusFilter(ref Keys keyData, TextBox box)
+		{
+			if (keyData != (Keys.Control | Keys.F) || box == null)
+			{
+				return false;
+			}
+			box.Focus();
+			box.SelectAll();
+			return true;
+		}
 		public static void WireEscapeClear(TextBox box)
 		{
 			if (box == null)
