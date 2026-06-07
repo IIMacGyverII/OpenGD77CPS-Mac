@@ -40,6 +40,7 @@ namespace DMR
 		private Label lblRxListFilter;
 		private Label lblRxListHint;
 		private bool forkRxListDpiScaled;
+		private ToolTip forkEditorFilterToolTip;
 		private List<SelectedItemUtils> forkUnselectedCache = new List<SelectedItemUtils>();
 
 		public static RxListData data;
@@ -366,7 +367,7 @@ namespace DMR
 			if (this.lblRxListHint == null)
 			{
 				this.lblRxListHint = new Label();
-				this.lblRxListHint.Text = "Group contacts only · Ctrl+F filter Available · Esc clear · Add/Delete · Up/Down reorders Member";
+				this.lblRxListHint.Text = "Group contacts only · Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete · Up/Down reorders Member";
 				this.lblRxListHint.AutoSize = false;
 				this.lblRxListHint.Height = 18;
 				this.lblRxListHint.ForeColor = System.Drawing.SystemColors.GrayText;
@@ -389,6 +390,11 @@ namespace DMR
 				Theme.ScaleNewControlTree(this.lblRxListHint);
 				this.forkRxListDpiScaled = true;
 			}
+			this.forkEditorFilterToolTip = ForkFilterEscape.EnsureFilterToolTips(
+				this.forkEditorFilterToolTip,
+				this.txtRxListFilter,
+				this.lblRxListFilter,
+				ForkFilterEscape.EditorAvailableFilterBoxTip);
 #endif
 		}
 

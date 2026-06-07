@@ -862,6 +862,7 @@ namespace DMR
 		private Label lblZoneListFilter;
 		private Label lblZoneHint;
 		private bool forkZoneDpiScaled;
+		private ToolTip forkEditorFilterToolTip;
 		private List<SelectedItemUtils> forkUnselectedCache = new List<SelectedItemUtils>();
 
 		public static readonly int SPACE_ZONE;
@@ -1348,7 +1349,7 @@ namespace DMR
 			if (this.lblZoneHint == null)
 			{
 				this.lblZoneHint = new Label();
-				this.lblZoneHint.Text = "Ctrl+F filter Available · Esc clear · Add/Delete move channels · Up/Down reorders Member";
+				this.lblZoneHint.Text = "Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete move channels · Up/Down reorders Member";
 				this.lblZoneHint.AutoSize = false;
 				this.lblZoneHint.Height = 18;
 				this.lblZoneHint.ForeColor = System.Drawing.SystemColors.GrayText;
@@ -1371,6 +1372,11 @@ namespace DMR
 				Theme.ScaleNewControlTree(this.lblZoneHint);
 				this.forkZoneDpiScaled = true;
 			}
+			this.forkEditorFilterToolTip = ForkFilterEscape.EnsureFilterToolTips(
+				this.forkEditorFilterToolTip,
+				this.txtZoneListFilter,
+				this.lblZoneListFilter,
+				ForkFilterEscape.EditorAvailableFilterBoxTip);
 #endif
 		}
 

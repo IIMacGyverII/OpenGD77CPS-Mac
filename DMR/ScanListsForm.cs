@@ -22,6 +22,7 @@ namespace DMR
 		private int forkActiveScanListDataIndex = -1;
 		private int forkLastSelectionDataIndex = -1;
 		private bool forkScanListClickHandled;
+		private ToolTip forkGridFilterToolTip;
 		private bool forkKeyboardNavPending;
 		private bool forkActivatingRow;
 
@@ -189,6 +190,11 @@ namespace DMR
 				this.lblScanListsHint.ForeColor = SystemColors.GrayText;
 				this.pnlScanLists.Controls.Add(this.lblScanListsHint);
 			}
+			this.forkGridFilterToolTip = ForkFilterEscape.EnsureFilterToolTips(
+				this.forkGridFilterToolTip,
+				this.txtScanListsFilter,
+				this.lblScanListsFilter,
+				ForkFilterEscape.GridFilterBoxTip);
 		}
 
 		private void pnlScanLists_Resize(object sender, EventArgs e)

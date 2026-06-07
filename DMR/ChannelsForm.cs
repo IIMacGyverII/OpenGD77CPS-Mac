@@ -40,6 +40,7 @@ namespace DMR
 		private TextBox txtChannelFilter;
 		private Label lblChannelFilter;
 		private Label lblChannelsGridHint;
+		private ToolTip forkGridFilterToolTip;
 		private Button btnDeleteSelect;
 		private ContextMenuStrip cmsGrid;
 		private int forkSortColumn = -1;
@@ -152,6 +153,11 @@ namespace DMR
 			this.pnlChannel.Controls.Add(this.lblChannelFilter);
 			this.pnlChannel.Controls.Add(this.txtChannelFilter);
 			this.pnlChannel.Controls.Add(this.lblChannelsGridHint);
+			this.forkGridFilterToolTip = ForkFilterEscape.EnsureFilterToolTips(
+				this.forkGridFilterToolTip,
+				this.txtChannelFilter,
+				this.lblChannelFilter,
+				ForkFilterEscape.GridFilterBoxTip);
 			this.ApplyForkChannelsToolbarLayout();
 		}
 

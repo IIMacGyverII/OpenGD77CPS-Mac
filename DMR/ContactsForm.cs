@@ -41,6 +41,7 @@ namespace DMR
 		private LinkLabel lnkLookupDmrId;
 		private Label lblLookupHint;
 		private TextBox txtContactFilter;
+		private ToolTip forkGridFilterToolTip;
 		private Label lblContactFilter;
 		private ContextMenuStrip cmsCallIdGrid;
 		private int forkSortColumn = -1;
@@ -440,6 +441,11 @@ namespace DMR
 				this.pnlContact.Controls.Add(this.lblContactFilter);
 				this.pnlContact.Controls.Add(this.txtContactFilter);
 			}
+			this.forkGridFilterToolTip = ForkFilterEscape.EnsureFilterToolTips(
+				this.forkGridFilterToolTip,
+				this.txtContactFilter,
+				this.lblContactFilter,
+				ForkFilterEscape.GridFilterBoxTip);
 			this.ApplyForkContactsToolbarLayout();
 		}
 

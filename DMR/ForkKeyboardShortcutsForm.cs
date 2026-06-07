@@ -81,7 +81,10 @@ namespace DMR
 						"  Click row  Open in editor\n\n" +
 						"Zone / TG / scan list editors (Available list)\n" +
 						"  Ctrl+F     Focus Available filter   Esc  Clear filter\n" +
-						"  Ctrl+Shift+F  Focus navigation tree filter"
+						"  Ctrl+Shift+F  Focus navigation tree filter\n" +
+						"  Hover filter box  Ctrl+F / Esc / Ctrl+Shift+F shortcuts\n\n" +
+						"List grid filter boxes\n" +
+						"  Hover filter box  Ctrl+F / Esc / Ctrl+Shift+F shortcuts"
 				};
 				Button ok = new Button
 				{

@@ -5,6 +5,27 @@ namespace DMR
 	/// <summary>Esc clears and Ctrl+F focuses fork grid/tree filter text boxes.</summary>
 	internal static class ForkFilterEscape
 	{
+		internal const string GridFilterBoxTip = "Filter grid (Ctrl+F) · Esc clears · Ctrl+Shift+F tree";
+		internal const string EditorAvailableFilterBoxTip = "Filter Available (Ctrl+F) · Esc clears · Ctrl+Shift+F tree";
+		internal const string FilterCountLabelTip = "Filter count (visible/total) while typing";
+
+		public static ToolTip EnsureFilterToolTips(ToolTip existing, TextBox box, Label label, string boxTip)
+		{
+			if (box == null)
+			{
+				return existing;
+			}
+			if (existing == null)
+			{
+				existing = new ToolTip();
+			}
+			existing.SetToolTip(box, boxTip);
+			if (label != null)
+			{
+				existing.SetToolTip(label, ForkFilterEscape.FilterCountLabelTip);
+			}
+			return existing;
+		}
 		public static bool TryFocusFilter(ref Keys keyData, TextBox box)
 		{
 			if (keyData != (Keys.Control | Keys.F) || box == null)

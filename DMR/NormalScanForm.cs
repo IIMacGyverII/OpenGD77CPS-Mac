@@ -829,6 +829,7 @@ namespace DMR
 		private Label lblScanHint;
 
 		private bool forkScanDpiScaled;
+		private ToolTip forkEditorFilterToolTip;
 
 		private List<SelectedItemUtils> forkUnselectedCache = new List<SelectedItemUtils>();
 
@@ -1116,7 +1117,7 @@ namespace DMR
 			if (this.lblScanHint == null)
 			{
 				this.lblScanHint = new Label();
-				this.lblScanHint.Text = "Ctrl+F filter Available · Esc clear · Add/Delete move channels · Up/Down reorders Member";
+				this.lblScanHint.Text = "Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete move channels · Up/Down reorders Member";
 				this.lblScanHint.AutoSize = false;
 				this.lblScanHint.Height = 18;
 				this.lblScanHint.ForeColor = System.Drawing.SystemColors.GrayText;
@@ -1139,6 +1140,11 @@ namespace DMR
 				Theme.ScaleNewControlTree(this.lblScanHint);
 				this.forkScanDpiScaled = true;
 			}
+			this.forkEditorFilterToolTip = ForkFilterEscape.EnsureFilterToolTips(
+				this.forkEditorFilterToolTip,
+				this.txtScanListFilter,
+				this.lblScanListFilter,
+				ForkFilterEscape.EditorAvailableFilterBoxTip);
 		}
 
 		private void panel1_Resize(object sender, EventArgs e)

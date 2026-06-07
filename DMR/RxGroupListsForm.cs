@@ -21,6 +21,7 @@ namespace DMR
 		private int forkActiveRxListDataIndex = -1;
 		private int forkLastSelectionDataIndex = -1;
 		private bool forkRxListClickHandled;
+		private ToolTip forkGridFilterToolTip;
 		private bool forkKeyboardNavPending;
 		private bool forkActivatingRow;
 
@@ -186,6 +187,11 @@ namespace DMR
 				this.lblRxListsHint.ForeColor = SystemColors.GrayText;
 				this.pnlRxLists.Controls.Add(this.lblRxListsHint);
 			}
+			this.forkGridFilterToolTip = ForkFilterEscape.EnsureFilterToolTips(
+				this.forkGridFilterToolTip,
+				this.txtRxListsFilter,
+				this.lblRxListsFilter,
+				ForkFilterEscape.GridFilterBoxTip);
 		}
 
 		private void pnlRxLists_Resize(object sender, EventArgs e)

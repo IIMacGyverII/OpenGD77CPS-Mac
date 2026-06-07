@@ -32,6 +32,7 @@ namespace DMR
 		private TextBox txtZoneFilter;
 		private Label lblZoneFilter;
 		private Label lblZoneGridHint;
+		private ToolTip forkGridFilterToolTip;
 		private static readonly string[] ForkZoneHeaderText = { "#", "Name", "Ch", "1st channel", "Role" };
 		private const int ForkZoneRoleColumnIndex = 4;
 		private int forkSortColumn = -1;
@@ -451,6 +452,11 @@ namespace DMR
 				this.lblZoneGridHint.ForeColor = System.Drawing.SystemColors.GrayText;
 				this.pnlZoneBasic.Controls.Add(this.lblZoneGridHint);
 			}
+			this.forkGridFilterToolTip = ForkFilterEscape.EnsureFilterToolTips(
+				this.forkGridFilterToolTip,
+				this.txtZoneFilter,
+				this.lblZoneFilter,
+				ForkFilterEscape.GridFilterBoxTip);
 			this.grpMain.Font = Theme.UiFont;
 			this.grpSub.Font = Theme.UiFont;
 		}
