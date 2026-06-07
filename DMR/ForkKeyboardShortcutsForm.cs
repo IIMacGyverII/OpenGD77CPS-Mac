@@ -29,6 +29,7 @@ namespace DMR
 						"  Ctrl+S     Save codeplug\n" +
 						"  F1         PriInterPhone workflow help\n" +
 						"  F7         Codeplug health report — click names to open editors\n" +
+						"  F5         Refresh health report (while F7 report is open)\n" +
 						"  F8         Android backup manager (diff + import)\n" +
 						"             Ctrl+D / Ctrl+I / Ctrl+E / F7 same as Studio while F8 is open\n" +
 						"             Recent / drop folder — same recent list as Studio\n" +

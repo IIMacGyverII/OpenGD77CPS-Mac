@@ -9,10 +9,12 @@ namespace DMR
 	{
 		private readonly ForkWebViewPanel webPanel;
 		private readonly string html;
+		private readonly Button btnRefresh;
 
 		public event Action<string> CustomNavigation;
+		public event Action RefreshRequested;
 
-		public ForkHtmlReportForm(string title, string html, int width, int height)
+		public ForkHtmlReportForm(string title, string html, int width, int height, bool showRefresh = false)
 		{
 			this.html = html ?? "";
 			this.Text = title;
@@ -22,6 +24,8 @@ namespace DMR
 			this.ClientSize = new Size(width, height);
 			this.Font = Theme.UiFont;
 			Theme.ApplyForkDialog(this);
+			this.KeyPreview = true;
+			this.KeyDown += this.ForkHtmlReportForm_KeyDown;
 
 			this.webPanel = new ForkWebViewPanel { Dock = DockStyle.Fill };
 			this.webPanel.CustomNavigation += this.ForwardCustomNavigation;
@@ -33,7 +37,21 @@ namespace DMR
 				Anchor = AnchorStyles.Top | AnchorStyles.Right
 			};
 			Panel bottom = new Panel { Dock = DockStyle.Bottom, Height = 40 };
-			btnClose.Location = new Point(width - btnClose.Width - 12, 6);
+			int right = width - 12;
+			btnClose.Location = new Point(right - btnClose.Width, 6);
+			right -= btnClose.Width + 8;
+			if (showRefresh)
+			{
+				this.btnRefresh = new Button
+				{
+					Text = "Refresh (F5)",
+					Size = new Size(110, 28),
+					Anchor = AnchorStyles.Top | AnchorStyles.Right
+				};
+				this.btnRefresh.Location = new Point(right - this.btnRefresh.Width, 6);
+				this.btnRefresh.Click += this.btnRefresh_Click;
+				bottom.Controls.Add(this.btnRefresh);
+			}
 			bottom.Controls.Add(btnClose);
 			this.Controls.Add(this.webPanel);
 			this.Controls.Add(bottom);
@@ -46,6 +64,29 @@ namespace DMR
 		public void NavigateHtml(string html)
 		{
 			this.webPanel.NavigateHtml(html ?? "");
+		}
+
+		private void btnRefresh_Click(object sender, EventArgs e)
+		{
+			this.RequestRefresh();
+		}
+
+		private void ForkHtmlReportForm_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.F5 && this.btnRefresh != null)
+			{
+				this.RequestRefresh();
+				e.Handled = true;
+			}
+		}
+
+		private void RequestRefresh()
+		{
+			Action handler = this.RefreshRequested;
+			if (handler != null)
+			{
+				handler();
+			}
 		}
 
 		private void ForwardCustomNavigation(string uri)

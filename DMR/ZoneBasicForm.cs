@@ -571,15 +571,19 @@ namespace DMR
 				return;
 			}
 			string query = this.txtZoneFilter == null ? "" : this.txtZoneFilter.Text.Trim();
+			int visible = 0;
+			int total = 0;
 			foreach (DataGridViewRow row in this.dgvZones.Rows)
 			{
 				if (row.IsNewRow)
 				{
 					continue;
 				}
+				total++;
 				if (string.IsNullOrEmpty(query))
 				{
 					row.Visible = true;
+					visible++;
 					continue;
 				}
 				bool match = false;
@@ -593,6 +597,16 @@ namespace DMR
 					}
 				}
 				row.Visible = match;
+				if (match)
+				{
+					visible++;
+				}
+			}
+			if (this.lblZoneFilter != null)
+			{
+				this.lblZoneFilter.Text = string.IsNullOrEmpty(query)
+					? "Filter:"
+					: "Filter (" + visible + "/" + total + "):";
 			}
 		}
 

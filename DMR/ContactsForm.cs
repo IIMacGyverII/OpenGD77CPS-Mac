@@ -519,15 +519,19 @@ namespace DMR
 		private void ApplyContactFilter()
 		{
 			string query = this.txtContactFilter == null ? "" : this.txtContactFilter.Text.Trim();
+			int visible = 0;
+			int total = 0;
 			foreach (DataGridViewRow row in this.dgvContacts.Rows)
 			{
 				if (row.IsNewRow)
 				{
 					continue;
 				}
+				total++;
 				if (string.IsNullOrEmpty(query))
 				{
 					row.Visible = true;
+					visible++;
 					continue;
 				}
 				bool match = false;
@@ -541,6 +545,16 @@ namespace DMR
 					}
 				}
 				row.Visible = match;
+				if (match)
+				{
+					visible++;
+				}
+			}
+			if (this.lblContactFilter != null)
+			{
+				this.lblContactFilter.Text = string.IsNullOrEmpty(query)
+					? "Filter:"
+					: "Filter (" + visible + "/" + total + "):";
 			}
 		}
 

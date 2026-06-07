@@ -2223,8 +2223,9 @@ namespace DMR
 				this.forkHealthReportForm.Focus();
 				return;
 			}
-			this.forkHealthReportForm = new ForkHtmlReportForm("Codeplug health", html, 720, 560);
+			this.forkHealthReportForm = new ForkHtmlReportForm("Codeplug health", html, 720, 560, true);
 			this.forkHealthReportForm.CustomNavigation += this.OnHealthReportNavigate;
+			this.forkHealthReportForm.RefreshRequested += this.RefreshCodeplugHealthReport;
 			this.forkHealthReportForm.FormClosed += this.ForkHealthReportForm_FormClosed;
 			this.forkHealthReportForm.Show(this.GetForkDialogOwner());
 #endif
@@ -2236,6 +2237,17 @@ namespace DMR
 			{
 				this.forkHealthReportForm = null;
 			}
+		}
+
+		private void RefreshCodeplugHealthReport()
+		{
+			if (this.forkHealthReportForm == null || this.forkHealthReportForm.IsDisposed)
+			{
+				return;
+			}
+			string html = CodeplugHealthReportHtml.Build(CodeplugHealthSnapshot.Collect());
+			this.forkHealthReportForm.NavigateHtml(html);
+			this.UpdateCodeplugHealth();
 		}
 
 		private void OnHealthReportNavigate(string uri)
