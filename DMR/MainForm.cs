@@ -1840,7 +1840,7 @@ namespace DMR
 			this.tsbtnCodeplugHealth.DisplayStyle = ToolStripItemDisplayStyle.Text;
 			this.tsbtnCodeplugHealth.Text = "Health";
 			this.tsbtnCodeplugHealth.Font = new Font(Theme.UiFont.FontFamily, 9.75f, FontStyle.Bold);
-			this.tsbtnCodeplugHealth.ToolTipText = "Codeplug health report (F7) — scrolls to first warning; click names to open editors";
+			this.tsbtnCodeplugHealth.ToolTipText = ForkPostImportUi.MainToolbarHealthTipDefault;
 			this.tsbtnCodeplugHealth.Click += this.ShowCodeplugHealthReport;
 			int backupIndex = this.tsrMain.Items.IndexOf(this.tsbtnAndroidBackup);
 			if (backupIndex >= 0)
@@ -2283,7 +2283,7 @@ namespace DMR
 			this.slblCodeplugHealth.LinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
 			this.slblCodeplugHealth.ActiveLinkColor = Color.White;
 			this.slblCodeplugHealth.VisitedLinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
-			this.slblCodeplugHealth.ToolTipText = "Open codeplug health report (F7) — scrolls to first warning; click names to fix";
+			this.slblCodeplugHealth.ToolTipText = ForkPostImportUi.MainToolbarHealthTipDefault;
 			this.slblCodeplugHealth.Click += this.ShowCodeplugHealthReport;
 			this.codeplugHealthLinkWired = true;
 #endif
@@ -2312,11 +2312,21 @@ namespace DMR
 				+ snap.Channels + " ch (" + snap.Digital + "D/" + snap.Analog + "A)"
 				+ " | " + snap.Contacts + " ct | " + snap.Zones + " zn | " + snap.TgLists + " TG | " + snap.ScanLists + " sc"
 				+ relayNote + orphanNote + dupNote + dupIdNote + dupCtNameNote + digNoCtNote + zoneNote + notInZoneNote + emptyTgNote + badTgNote + emptyScanNote + badScanNote;
-			this.slblCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Theme.Foreground;
+			this.slblCodeplugHealth.ForeColor = hasWarning ? ForkPostImportUi.WarnColor : Theme.Foreground;
+			this.slblCodeplugHealth.ToolTipText = hasWarning
+				? ForkPostImportUi.PostImportHealthLinkTip
+				: ForkPostImportUi.MainToolbarHealthTipDefault;
 			if (this.tsbtnCodeplugHealth != null)
 			{
 				this.tsbtnCodeplugHealth.Text = hasWarning ? "Health ⚠" : "Health";
-				this.tsbtnCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Color.FromArgb(0x81, 0xC7, 0x84);
+				this.tsbtnCodeplugHealth.ForeColor = hasWarning ? ForkPostImportUi.WarnColor : ForkPostImportUi.OkColor;
+				this.tsbtnCodeplugHealth.ToolTipText = hasWarning
+					? ForkPostImportUi.PostImportHealthLinkTip
+					: ForkPostImportUi.MainToolbarHealthTipDefault;
+			}
+			if (this.tsmiCodeplugHealth != null)
+			{
+				this.tsmiCodeplugHealth.Text = hasWarning ? "Codeplug health report ⚠…" : "Codeplug health report…";
 			}
 			if (this.forkHealthReportForm != null && !this.forkHealthReportForm.IsDisposed && this.forkHealthReportForm.Visible)
 			{

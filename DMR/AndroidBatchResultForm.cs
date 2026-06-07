@@ -83,6 +83,8 @@ namespace DMR
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
 			};
 			btnHealth.Click += this.BtnHealth_Click;
+			ToolTip healthTip = new ToolTip();
+			healthTip.SetToolTip(btnHealth, ForkPostImportUi.PostImportHealthLinkTip);
 
 			Button btnOk = new Button
 			{

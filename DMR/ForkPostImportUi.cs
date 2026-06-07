@@ -12,6 +12,7 @@ namespace DMR
 		internal static readonly Color ErrColor = Color.FromArgb(0xEF, 0x53, 0x50);
 		internal const string BatchDialogHealthHintText = "Codeplug health warnings remain — click Health ⚠ (F7) below or OK to continue.";
 		internal const string HealthButtonDefaultTip = "Full codeplug health report (F7)";
+		internal const string MainToolbarHealthTipDefault = "Codeplug health report (F7) — scrolls to first warning; click names to open editors";
 		internal const string BatchDialogHealthButton = "Health (F7)";
 		internal const string PostImportHealthLinkTip = "Click to open codeplug health report (F7)";
 		internal const string PostImportHealthButtonWarn = "Health ⚠ (F7)";
