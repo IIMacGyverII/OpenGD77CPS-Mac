@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -18,6 +19,8 @@ namespace DMR
 		private readonly ForkWebViewPanel webReport;
 		private readonly SplitContainer splitMain;
 		private readonly Button btnBrowse;
+		private readonly Button btnRecent;
+		private readonly ContextMenuStrip recentMenu;
 		private readonly Button btnPullAdb;
 		private readonly Button btnPushAdb;
 		private readonly LinkLabel lnkUsbHelp;
@@ -71,6 +74,18 @@ namespace DMR
 			};
 			this.txtFolder.Leave += this.txtFolder_Leave;
 
+			this.recentMenu = new ContextMenuStrip();
+			Theme.ApplyForkContextMenu(this.recentMenu);
+
+			this.btnRecent = new Button
+			{
+				Location = new Point(418, 6),
+				Size = new Size(94, 27),
+				Text = "Recent ▾",
+				Anchor = AnchorStyles.Top | AnchorStyles.Right
+			};
+			this.btnRecent.Click += this.btnRecent_Click;
+
 			this.btnBrowse = new Button
 			{
 				Location = new Point(518, 6),
@@ -79,6 +94,7 @@ namespace DMR
 				Anchor = AnchorStyles.Top | AnchorStyles.Right
 			};
 			this.btnBrowse.Click += this.btnBrowse_Click;
+			topPanel.Resize += (s, e) => this.LayoutFolderRow(topPanel);
 
 			this.btnPullAdb = new Button
 			{
@@ -118,6 +134,7 @@ namespace DMR
 			this.lstFiles.DoubleClick += this.lstFiles_DoubleClick;
 
 			topPanel.Controls.Add(this.txtFolder);
+			topPanel.Controls.Add(this.btnRecent);
 			topPanel.Controls.Add(this.btnBrowse);
 			topPanel.Controls.Add(this.btnPullAdb);
 			topPanel.Controls.Add(this.btnPushAdb);
@@ -222,6 +239,10 @@ namespace DMR
 			this.KeyDown += this.AndroidBackupForm_KeyDown;
 			this.Shown += this.AndroidBackupForm_Shown;
 			this.FormClosing += this.AndroidBackupForm_FormClosing;
+			this.EnableFolderDragDrop(this);
+			this.EnableFolderDragDrop(topPanel);
+			this.EnableFolderDragDrop(this.splitMain);
+			this.EnableFolderDragDrop(reportPanel);
 
 			string last = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
 			if (!string.IsNullOrEmpty(last))
@@ -232,6 +253,21 @@ namespace DMR
 					this.SetFolder(last, false);
 				}
 			}
+			this.RefreshRecentMenu();
+			this.LayoutFolderRow(topPanel);
+		}
+
+		private void LayoutFolderRow(Panel topPanel)
+		{
+			if (topPanel == null || this.btnBrowse == null || this.btnRecent == null || this.txtFolder == null)
+			{
+				return;
+			}
+			const int pad = 12;
+			const int gap = 6;
+			this.btnBrowse.Left = Math.Max(pad, topPanel.ClientSize.Width - pad - this.btnBrowse.Width);
+			this.btnRecent.Left = Math.Max(pad, this.btnBrowse.Left - gap - this.btnRecent.Width);
+			this.txtFolder.Width = Math.Max(120, this.btnRecent.Left - gap - this.txtFolder.Left);
 		}
 
 		private void AndroidBackupForm_Shown(object sender, EventArgs e)
@@ -354,6 +390,104 @@ namespace DMR
 			}
 		}
 
+		private void btnRecent_Click(object sender, EventArgs e)
+		{
+			this.RefreshRecentMenu();
+			if (this.recentMenu.Items.Count == 0)
+			{
+				return;
+			}
+			Button btn = sender as Button;
+			if (btn == null)
+			{
+				this.recentMenu.Show(Cursor.Position);
+				return;
+			}
+			this.recentMenu.Show(btn, new Point(0, btn.Height));
+		}
+
+		private void RefreshRecentMenu()
+		{
+			this.recentMenu.Items.Clear();
+			IReadOnlyList<string> folders = StudioRecentFolders.Load();
+			foreach (string path in folders)
+			{
+				bool readable = AndroidBackupFolderPicker.IsReadableBackupFolder(path);
+				ToolStripMenuItem item = new ToolStripMenuItem(StudioRecentFolders.FormatMenuLabel(path))
+				{
+					Tag = path,
+					ToolTipText = path,
+					Enabled = readable
+				};
+				item.Click += this.recentFolderItem_Click;
+				this.recentMenu.Items.Add(item);
+			}
+			if (this.btnRecent != null)
+			{
+				this.btnRecent.Enabled = this.recentMenu.Items.Count > 0;
+			}
+		}
+
+		private void recentFolderItem_Click(object sender, EventArgs e)
+		{
+			ToolStripMenuItem item = sender as ToolStripMenuItem;
+			string path = item == null ? null : item.Tag as string;
+			if (!string.IsNullOrEmpty(path))
+			{
+				this.SetFolder(path, true);
+			}
+		}
+
+		private void EnableFolderDragDrop(Control target)
+		{
+			if (target == null)
+			{
+				return;
+			}
+			target.AllowDrop = true;
+			target.DragEnter += this.FolderDragEnter;
+			target.DragDrop += this.FolderDragDrop;
+		}
+
+		private void FolderDragEnter(object sender, DragEventArgs e)
+		{
+			string path = this.GetFirstDroppedFolder(e);
+			if (path != null)
+			{
+				e.Effect = DragDropEffects.Copy;
+			}
+		}
+
+		private void FolderDragDrop(object sender, DragEventArgs e)
+		{
+			string path = this.GetFirstDroppedFolder(e);
+			if (!string.IsNullOrEmpty(path))
+			{
+				this.SetFolder(path, true);
+			}
+		}
+
+		private string GetFirstDroppedFolder(DragEventArgs e)
+		{
+			if (e == null || e.Data == null || !e.Data.GetDataPresent(DataFormats.FileDrop))
+			{
+				return null;
+			}
+			string[] paths = e.Data.GetData(DataFormats.FileDrop) as string[];
+			if (paths == null)
+			{
+				return null;
+			}
+			foreach (string path in paths)
+			{
+				if (!string.IsNullOrEmpty(path) && Directory.Exists(path))
+				{
+					return path;
+				}
+			}
+			return null;
+		}
+
 		private void btnPullAdb_Click(object sender, EventArgs e)
 		{
 			string pulled = AndroidAdbBackup.TryPickPulledFolder(this);
@@ -426,6 +560,8 @@ namespace DMR
 
 			this.txtFolder.Text = folderPath;
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
+			StudioRecentFolders.Record(folderPath);
+			this.RefreshRecentMenu();
 			string channelsPath = Path.Combine(folderPath, "Channels.csv");
 			if (!string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
 			{
@@ -496,10 +632,10 @@ namespace DMR
 			bool pendingDiff = hasChannels && diff != null && AndroidImportDiff.HasPendingDiffChanges(diff) && !this.diffPreApproved;
 			this.btnReviewDiff.Enabled = hasChannels;
 			this.btnReviewDiff.Text = this.diffPreApproved && hasChannels ? "Diff reviewed ✓" : "Review diff…";
-			this.btnReviewDiff.BackColor = pendingDiff ? Color.FromArgb(0x1E, 0x5A, 0x8F) : SystemColors.Control;
-			this.btnReviewDiff.ForeColor = pendingDiff ? Color.White : SystemColors.ControlText;
+			Theme.ApplyStudioButton(this.btnReviewDiff, false, pendingDiff);
 			bool canImport = this.lastValidation != null && !this.lastValidation.HasBlockingErrors && !pendingDiff;
 			this.btnImportAll.Enabled = canImport;
+			Theme.ApplyStudioButton(this.btnImportAll, canImport, false);
 			this.footerTip.SetToolTip(this.btnImportAll,
 				pendingDiff ? "Review diff first (Ctrl+D), then import (Ctrl+I)" : "Path B import all CSVs (Ctrl+I)");
 		}

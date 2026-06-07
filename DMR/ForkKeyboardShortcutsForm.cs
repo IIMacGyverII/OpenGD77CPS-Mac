@@ -31,6 +31,7 @@ namespace DMR
 						"  F7         Codeplug health report — click names to open editors\n" +
 						"  F8         Android backup manager (diff + import)\n" +
 						"             Ctrl+D / Ctrl+I / Ctrl+E / F7 same as Studio while F8 is open\n" +
+						"             Recent / drop folder — same recent list as Studio\n" +
 						"             Double-click a file row to open that CSV\n" +
 						"  Ctrl+Shift+S  Codeplug Studio — CSV-only backup workflow\n" +
 						"  --studio      Launch Studio only (optional folder path)\n\n" +
@@ -42,6 +43,7 @@ namespace DMR
 						"  Ctrl+E     Export all\n" +
 						"  F7         Codeplug health report\n" +
 						"  Recent     Pick a recently used backup folder\n" +
+						"  Raw log    Plain-text validation + diff log\n" +
 						"  Drop folder  Load backup folder from Explorer\n\n" +
 						"Navigation tree\n" +
 						"  Filter box Search zones, channels, contacts, etc.\n\n" +

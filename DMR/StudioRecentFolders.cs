@@ -5,7 +5,7 @@ using System.IO;
 namespace DMR
 {
 	/// <summary>
-	/// Persists recently used Android backup folders for Codeplug Studio.
+	/// Persists recently used Android backup folders (Studio + F8).
 	/// </summary>
 	internal static class StudioRecentFolders
 	{

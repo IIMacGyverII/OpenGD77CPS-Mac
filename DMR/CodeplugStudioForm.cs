@@ -402,6 +402,7 @@ namespace DMR
 			this.btnExportAll = this.MakeFooterButton("Export all", false, false);
 			Button btnOpenFolder = this.MakeFooterButton("Open folder", false, false);
 			Button btnHealth = this.MakeFooterButton("Health (F7)", false, false);
+			Button btnRawLog = this.MakeFooterButton("Raw log…", false, false);
 			this.btnOpenFullCps = this.MakeFooterButton("Open full editor…", false, true);
 			Button btnClose = this.MakeFooterButton("Close", false, false);
 			btnClose.DialogResult = DialogResult.OK;
@@ -413,6 +414,7 @@ namespace DMR
 			this.btnExportAll.Click += this.btnExportAll_Click;
 			btnOpenFolder.Click += this.btnOpenFolder_Click;
 			btnHealth.Click += this.btnHealth_Click;
+			btnRawLog.Click += this.btnRawLog_Click;
 			this.btnOpenFullCps.Click += this.btnOpenFullCps_Click;
 
 			this.btnReviewDiff.Enabled = false;
@@ -422,8 +424,9 @@ namespace DMR
 			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
 			this.footerTip.SetToolTip(btnOpenFolder, "Open backup folder in Explorer");
 			this.footerTip.SetToolTip(btnHealth, "Full codeplug health report (F7)");
+			this.footerTip.SetToolTip(btnRawLog, "Plain-text validation, diff, and integrity log");
 			this.footerTip.SetToolTip(this.btnOpenFullCps, "Show dock, tree, and full CPS editors");
-			foreach (Control c in new Control[] { this.btnImportAll, this.btnReviewDiff, this.btnExportAll, btnOpenFolder, btnHealth, this.btnOpenFullCps, btnClose })
+			foreach (Control c in new Control[] { this.btnImportAll, this.btnReviewDiff, this.btnExportAll, btnOpenFolder, btnHealth, btnRawLog, this.btnOpenFullCps, btnClose })
 			{
 				if (c != this.btnReviewDiff)
 				{
@@ -1153,6 +1156,31 @@ namespace DMR
 		private void btnHealth_Click(object sender, EventArgs e)
 		{
 			this.mainForm.OpenCodeplugHealthReport();
+		}
+
+		private void btnRawLog_Click(object sender, EventArgs e)
+		{
+			using (Form dlg = new Form())
+			{
+				dlg.Text = "Codeplug Studio — raw log";
+				dlg.StartPosition = FormStartPosition.CenterParent;
+				dlg.ClientSize = new Size(560, 400);
+				dlg.Font = Theme.UiFont;
+				Theme.ApplyForkDialog(dlg);
+				TextBox txt = new TextBox
+				{
+					Dock = DockStyle.Fill,
+					Multiline = true,
+					ReadOnly = true,
+					ScrollBars = ScrollBars.Both,
+					Font = new Font("Consolas", 9f),
+					Text = this.txtValidation.Text,
+					BackColor = Color.FromArgb(0x06, 0x0D, 0x14),
+					ForeColor = Color.FromArgb(0xE8, 0xEE, 0xF4)
+				};
+				dlg.Controls.Add(txt);
+				dlg.ShowDialog(this);
+			}
 		}
 
 		private void btnOpenFullCps_Click(object sender, EventArgs e)
