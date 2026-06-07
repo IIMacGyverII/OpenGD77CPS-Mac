@@ -2280,9 +2280,9 @@ namespace DMR
 			}
 			this.slblCodeplugHealth.IsLink = true;
 			this.slblCodeplugHealth.LinkBehavior = LinkBehavior.AlwaysUnderline;
-			this.slblCodeplugHealth.LinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
+			this.slblCodeplugHealth.LinkColor = ForkPostImportUi.HealthLinkColorDefault;
 			this.slblCodeplugHealth.ActiveLinkColor = Color.White;
-			this.slblCodeplugHealth.VisitedLinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
+			this.slblCodeplugHealth.VisitedLinkColor = ForkPostImportUi.HealthLinkColorDefault;
 			this.slblCodeplugHealth.ToolTipText = ForkPostImportUi.MainToolbarHealthTipDefault;
 			this.slblCodeplugHealth.Click += this.ShowCodeplugHealthReport;
 			this.codeplugHealthLinkWired = true;
@@ -2312,10 +2312,7 @@ namespace DMR
 				+ snap.Channels + " ch (" + snap.Digital + "D/" + snap.Analog + "A)"
 				+ " | " + snap.Contacts + " ct | " + snap.Zones + " zn | " + snap.TgLists + " TG | " + snap.ScanLists + " sc"
 				+ relayNote + orphanNote + dupNote + dupIdNote + dupCtNameNote + digNoCtNote + zoneNote + notInZoneNote + emptyTgNote + badTgNote + emptyScanNote + badScanNote;
-			this.slblCodeplugHealth.ForeColor = hasWarning ? ForkPostImportUi.WarnColor : Theme.Foreground;
-			this.slblCodeplugHealth.ToolTipText = hasWarning
-				? ForkPostImportUi.PostImportHealthLinkTip
-				: ForkPostImportUi.MainToolbarHealthTipDefault;
+			ForkPostImportUi.ApplyMainHealthStatusLink(this.slblCodeplugHealth, hasWarning);
 			if (this.tsbtnCodeplugHealth != null)
 			{
 				this.tsbtnCodeplugHealth.Text = hasWarning ? "Health ⚠" : "Health";

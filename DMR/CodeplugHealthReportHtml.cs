@@ -340,7 +340,7 @@ namespace DMR
 			}
 
 			html.Append("<p class=\"warn\">").Append(ForkReportHtml.HealthReportLink(ForkPostImportUi.PostImportReportHealthLink))
-				.Append(" — also amber status chip, Health ⚠ footer, or press F7.</p>");
+				.Append(" — also amber status chip, Health ⚠ footer/toolbar/menu, or press F7.</p>");
 			html.Append("<p class=\"foot\">").Append(ForkPostImportUi.PostImportReportFootWarn).Append("</p>");
 		}
 

@@ -10,6 +10,7 @@ namespace DMR
 		internal static readonly Color OkColor = Color.FromArgb(0x81, 0xC7, 0x84);
 		internal static readonly Color WarnColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
 		internal static readonly Color ErrColor = Color.FromArgb(0xEF, 0x53, 0x50);
+		internal static readonly Color HealthLinkColorDefault = Color.FromArgb(0x7E, 0xC8, 0xFF);
 		internal const string BatchDialogHealthHintText = "Codeplug health warnings remain — click Health ⚠ (F7) below or OK to continue.";
 		internal const string HealthButtonDefaultTip = "Full codeplug health report (F7)";
 		internal const string MainToolbarHealthTipDefault = "Codeplug health report (F7) — scrolls to first warning; click names to open editors";
@@ -17,9 +18,9 @@ namespace DMR
 		internal const string PostImportHealthLinkTip = "Click to open codeplug health report (F7)";
 		internal const string PostImportHealthButtonWarn = "Health ⚠ (F7)";
 		internal const string PostImportReportHealthLink = "Open full health report (F7)";
-		internal const string PostImportReportFootWarn = "Click a channel/contact name to open the editor. Amber status, Health ⚠ footer, or F7 for the full report.";
+		internal const string PostImportReportFootWarn = "Click a channel/contact name to open the editor. Amber status, Health ⚠ footer/toolbar/menu, or F7 for the full report.";
 		internal const string PostImportReportFootOk = "Click a name to open the editor.";
-		internal const string F8StudioBannerHealthHint = "Post-import scrolls to health · click report link, amber status, Health ⚠ footer, or F7";
+		internal const string F8StudioBannerHealthHint = "Post-import scrolls to health · report link, amber status, Health ⚠ footer/toolbar, or F7";
 
 		public static bool ImportHasHealthWarnings()
 		{
@@ -125,6 +126,21 @@ namespace DMR
 			{
 				toolTip.SetToolTip(button, ForkPostImportUi.HealthButtonDefaultTip);
 			}
+		}
+
+		public static void ApplyMainHealthStatusLink(ToolStripStatusLabel label, bool hasWarning)
+		{
+			if (label == null)
+			{
+				return;
+			}
+			label.ForeColor = hasWarning ? ForkPostImportUi.WarnColor : Theme.Foreground;
+			label.LinkColor = hasWarning ? ForkPostImportUi.WarnColor : ForkPostImportUi.HealthLinkColorDefault;
+			label.VisitedLinkColor = hasWarning ? ForkPostImportUi.WarnColor : ForkPostImportUi.HealthLinkColorDefault;
+			label.ActiveLinkColor = Color.White;
+			label.ToolTipText = hasWarning
+				? ForkPostImportUi.PostImportHealthLinkTip
+				: ForkPostImportUi.MainToolbarHealthTipDefault;
 		}
 
 		private static void ApplyHealthButtonState(Button button, bool highlight)

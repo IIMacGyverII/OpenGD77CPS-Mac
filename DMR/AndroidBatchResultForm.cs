@@ -120,6 +120,15 @@ namespace DMR
 				this.Controls.Add(lblHealthHint);
 				this.Controls.Add(btnHealth);
 				this.ClientSize = new Size(520, 432);
+				this.KeyPreview = true;
+				this.KeyDown += (s, e) =>
+				{
+					if (e.KeyCode == Keys.F7)
+					{
+						this.BtnHealth_Click(btnHealth, EventArgs.Empty);
+						e.Handled = true;
+					}
+				};
 			}
 			this.Controls.Add(btnOk);
 		}
