@@ -393,9 +393,12 @@ namespace DMR
 				? "Validation report — review warnings below"
 				: "Validation report — ready to import";
 			bool hasChannels = File.Exists(channelsPath);
+			bool pendingDiff = hasChannels && diff != null && AndroidImportDiff.HasPendingDiffChanges(diff) && !this.diffPreApproved;
 			this.btnReviewDiff.Enabled = hasChannels;
 			this.btnReviewDiff.Text = this.diffPreApproved && hasChannels ? "Diff reviewed ✓" : "Review diff…";
-			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
+			this.btnReviewDiff.BackColor = pendingDiff ? Color.FromArgb(0x1E, 0x5A, 0x8F) : SystemColors.Control;
+			this.btnReviewDiff.ForeColor = pendingDiff ? Color.White : SystemColors.ControlText;
+			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors && !pendingDiff;
 			return true;
 		}
 
@@ -420,6 +423,9 @@ namespace DMR
 			this.lastApprovedChannelsStamp = stamp;
 			this.diffPreApproved = true;
 			this.btnReviewDiff.Text = "Diff reviewed ✓";
+			this.btnReviewDiff.BackColor = SystemColors.Control;
+			this.btnReviewDiff.ForeColor = SystemColors.ControlText;
+			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
 			return true;
 		}
 

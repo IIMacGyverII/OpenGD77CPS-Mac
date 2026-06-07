@@ -1616,8 +1616,44 @@ namespace DMR
 		public void HandleForkReportNavigation(string uri)
 		{
 #if OpenGD77
+			if (this.TryOpenBackupCsvFromForkUri(uri))
+			{
+				return;
+			}
 			this.OnHealthReportNavigate(uri);
 #endif
+		}
+
+		private bool TryOpenBackupCsvFromForkUri(string uri)
+		{
+			const string prefix = "fork://backup-csv/";
+			if (string.IsNullOrEmpty(uri) || !uri.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+			string fileName = uri.Substring(prefix.Length);
+			if (fileName.IndexOf('/') >= 0 || fileName.IndexOf('\\') >= 0 || fileName.IndexOf("..") >= 0)
+			{
+				return false;
+			}
+			string folder = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
+			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folder))
+			{
+				return false;
+			}
+			string path = Path.Combine(folder, fileName);
+			if (!File.Exists(path))
+			{
+				return false;
+			}
+			try
+			{
+				System.Diagnostics.Process.Start(path);
+			}
+			catch
+			{
+			}
+			return true;
 		}
 
 		/// <summary>

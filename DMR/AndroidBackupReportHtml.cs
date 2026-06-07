@@ -56,7 +56,8 @@ namespace DMR
 				foreach (string file in BackupFiles)
 				{
 					bool exists = File.Exists(Path.Combine(folderPath, file));
-					html.Append("<tr><td>").Append(ForkReportHtml.Escape(file)).Append("</td><td class=\"")
+					string fileCell = exists ? ForkReportHtml.BackupCsvLink(file) : ForkReportHtml.Escape(file);
+					html.Append("<tr><td>").Append(fileCell).Append("</td><td class=\"")
 						.Append(exists ? "ok" : "miss").Append("\">")
 						.Append(exists ? "Found" : "Missing").Append("</td></tr>");
 				}
@@ -66,6 +67,7 @@ namespace DMR
 				html.Append("<tr><td colspan=\"2\" class=\"err\">Folder not found</td></tr>");
 			}
 			html.Append("</table>");
+			html.Append("<p class=\"foot\">Click a filename to open it from the loaded backup folder.</p>");
 
 			if (validation != null)
 			{

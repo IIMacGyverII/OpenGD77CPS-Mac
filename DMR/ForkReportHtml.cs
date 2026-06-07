@@ -51,6 +51,16 @@ namespace DMR
 			return "<a class=\"drill\" href=\"" + DrillHref(kind, dataIndex) + "\">" + Escape(label) + "</a>";
 		}
 
+		public static string BackupCsvHref(string fileName)
+		{
+			return "fork://backup-csv/" + fileName;
+		}
+
+		public static string BackupCsvLink(string fileName)
+		{
+			return "<a class=\"drill\" href=\"" + BackupCsvHref(fileName) + "\">" + Escape(fileName) + "</a>";
+		}
+
 		public static string Escape(string text)
 		{
 			if (string.IsNullOrEmpty(text))

@@ -160,8 +160,22 @@ namespace DMR
 				AutoSize = true,
 				Location = new Point(Theme.Dpi(20), Theme.Dpi(42))
 			};
+			LinkLabel lnkShortcuts = new LinkLabel
+			{
+				Text = "Shortcuts (F1)",
+				AutoSize = true,
+				Anchor = AnchorStyles.Top | AnchorStyles.Right
+			};
+			Theme.ApplyStudioLink(lnkShortcuts);
+			lnkShortcuts.LinkClicked += this.lnkShortcuts_LinkClicked;
+			header.Controls.Add(lnkShortcuts);
 			header.Controls.Add(lblTitle);
 			header.Controls.Add(lblSub);
+			header.Resize += (s, e) =>
+			{
+				lnkShortcuts.Location = new Point(Math.Max(Theme.Dpi(20), header.ClientSize.Width - lnkShortcuts.Width - Theme.Dpi(20)), Theme.Dpi(14));
+			};
+			lnkShortcuts.Location = new Point(header.ClientSize.Width - lnkShortcuts.Width - Theme.Dpi(20), Theme.Dpi(14));
 			return header;
 		}
 
@@ -534,11 +548,22 @@ namespace DMR
 				e.Handled = true;
 				return;
 			}
+			if (e.KeyCode == Keys.F1)
+			{
+				ForkKeyboardShortcutsForm.Show(this);
+				e.Handled = true;
+				return;
+			}
 			if (e.KeyCode == Keys.F7)
 			{
 				this.btnHealth_Click(this, EventArgs.Empty);
 				e.Handled = true;
 			}
+		}
+
+		private void lnkShortcuts_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			ForkKeyboardShortcutsForm.Show(this);
 		}
 
 		private void btnRecent_Click(object sender, EventArgs e)
@@ -979,11 +1004,21 @@ namespace DMR
 				this.lblReportStatus.ForeColor = Color.FromArgb(0x81, 0xC7, 0x84);
 			}
 
+			this.UpdateDiffImportButtons(channelsPath, diff);
+			return true;
+		}
+
+		private void UpdateDiffImportButtons(string channelsPath, AndroidImportDiffResult diff)
+		{
 			bool hasChannels = File.Exists(channelsPath);
+			bool pendingDiff = hasChannels && diff != null && AndroidImportDiff.HasPendingDiffChanges(diff) && !this.diffPreApproved;
 			this.btnReviewDiff.Enabled = hasChannels;
 			this.btnReviewDiff.Text = this.diffPreApproved && hasChannels ? "Diff reviewed ✓" : "Review diff…";
-			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
-			return true;
+			Theme.ApplyStudioButton(this.btnReviewDiff, false, pendingDiff);
+			bool canImport = this.lastValidation != null && !this.lastValidation.HasBlockingErrors && !pendingDiff;
+			this.btnImportAll.Enabled = canImport;
+			this.footerTip.SetToolTip(this.btnImportAll,
+				pendingDiff ? "Review diff first (Ctrl+D), then import (Ctrl+I)" : "Path B import all CSVs (Ctrl+I)");
 		}
 
 		private bool TryApproveChannelDiff(string folderPath)
@@ -1008,6 +1043,7 @@ namespace DMR
 			this.diffPreApproved = true;
 			this.btnReviewDiff.Text = "Diff reviewed ✓";
 			this.SetReportStatusChip("Diff reviewed ✓ — ready to import", Color.FromArgb(0x81, 0xC7, 0x84));
+			this.UpdateDiffImportButtons(channelsPath, this.lastDiff);
 			return true;
 		}
 

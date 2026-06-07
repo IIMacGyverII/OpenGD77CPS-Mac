@@ -33,6 +33,7 @@ namespace DMR
 						"  Ctrl+Shift+S  Codeplug Studio — CSV-only backup workflow\n" +
 						"  --studio      Launch Studio only (optional folder path)\n\n" +
 						"Codeplug Studio\n" +
+						"  F1         Keyboard shortcuts (this dialog)\n" +
 						"  Ctrl+O     Browse backup folder\n" +
 						"  Ctrl+I     Import all (Path B)\n" +
 						"  Ctrl+D     Review diff…\n" +
