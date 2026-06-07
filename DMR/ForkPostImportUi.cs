@@ -90,6 +90,16 @@ namespace DMR
 			return ForkPostImportUi.PostImportHealthButtonWarn;
 		}
 
+		public static string PostImportHealthStatusSuffix()
+		{
+			CodeplugHealthSnapshot snap = ForkPostImportUi.CurrentHealthSnapshot();
+			if (!snap.HasWarning)
+			{
+				return "";
+			}
+			return ForkFilterEscape.PostImportHealthHint + ForkPostImportUi.HealthCategoryStatusNote(snap);
+		}
+
 		public static void ApplyBatchCaption(Label label, AndroidBatchResult batch)
 		{
 			if (label == null || batch == null)
@@ -108,7 +118,7 @@ namespace DMR
 			if (string.Equals(batch.Operation, "Import", StringComparison.OrdinalIgnoreCase)
 				&& ForkPostImportUi.ImportHasHealthWarnings())
 			{
-				text += ForkFilterEscape.PostImportHealthHint;
+				text += ForkPostImportUi.PostImportHealthStatusSuffix();
 				label.ForeColor = ForkPostImportUi.WarnColor;
 			}
 			label.Text = text;

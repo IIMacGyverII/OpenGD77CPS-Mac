@@ -178,7 +178,7 @@ namespace DMR
 				html.Append("<p>").Append(ForkReportHtml.Escape(integrity.Summary)).Append("</p>");
 				if (integrity.HasWarnings && integrity.Warnings != null && integrity.Warnings.Count > 0)
 				{
-					html.Append("<p class=\"foot\">Click a channel or DMR ID (blue link) to open it in the loaded codeplug editor.</p>");
+					html.Append("<p class=\"foot\">Click a highlighted channel or DMR ID link to open it in the loaded codeplug editor.</p>");
 					html.Append("<ul>");
 					int shown = 0;
 					foreach (string warning in integrity.Warnings)

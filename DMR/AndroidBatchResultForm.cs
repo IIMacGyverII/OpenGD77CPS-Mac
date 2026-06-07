@@ -27,7 +27,7 @@ namespace DMR
 			string statsText = this.result.StatsLine;
 			if (ForkPostImportUi.ShouldOfferHealthLink(this.result))
 			{
-				statsText += ForkFilterEscape.PostImportHealthHint;
+				statsText += ForkPostImportUi.PostImportHealthStatusSuffix();
 			}
 			Label lblStats = new Label
 			{

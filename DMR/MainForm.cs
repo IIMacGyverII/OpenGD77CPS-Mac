@@ -2242,7 +2242,7 @@ namespace DMR
 				this.slblComapny.ActiveLinkColor = Color.White;
 				this.slblComapny.VisitedLinkColor = ForkPostImportUi.WarnColor;
 				this.slblComapny.ForeColor = ForkPostImportUi.WarnColor;
-				this.slblComapny.ToolTipText = ForkPostImportUi.PostImportHealthLinkTip;
+				this.slblComapny.ToolTipText = ForkPostImportUi.HealthCategoryTooltip(ForkPostImportUi.CurrentHealthSnapshot());
 			}
 			else
 			{
@@ -4722,7 +4722,7 @@ namespace DMR
 				&& string.Equals(batch.Operation, "Import", StringComparison.OrdinalIgnoreCase)
 				&& ForkPostImportUi.ImportHasHealthWarnings())
 			{
-				statusMsg += ForkFilterEscape.PostImportHealthHint;
+				statusMsg += ForkPostImportUi.PostImportHealthStatusSuffix();
 				statusRevertMs = 12000;
 			}
 			this.ShowForkStatusMessage(statusMsg, statusRevertMs);
