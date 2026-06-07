@@ -386,13 +386,12 @@ namespace DMR
 			{
 				return true;
 			}
-			string stamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
-			if (this.diffPreApproved
-				&& string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase)
-				&& string.Equals(stamp, this.lastApprovedChannelsStamp, StringComparison.Ordinal))
+			if (AndroidImportDiff.IsDiffReviewCurrent(channelsPath, this.diffPreApproved, this.lastApprovedChannelsStamp)
+				&& string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}
+			string stamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
 			if (!AndroidImportDiff.ShowPreviewDialog(this, channelsPath))
 			{
 				return false;

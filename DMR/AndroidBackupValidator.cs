@@ -10,6 +10,7 @@ namespace DMR
 	{
 		public bool HasBlockingErrors;
 		public int RelayZeroCount;
+		public List<string> RelayZeroChannelNameList = new List<string>();
 		public int DuplicateChannelNames;
 		public List<string> DuplicateChannelNameList = new List<string>();
 		public int CsvChannelRows;
@@ -171,6 +172,10 @@ namespace DMR
 							if (int.TryParse(cols[relayCol].Trim(), out relayVal) && relayVal == 0)
 							{
 								result.RelayZeroCount++;
+								if (!string.IsNullOrEmpty(name) && result.RelayZeroChannelNameList.Count < 20)
+								{
+									result.RelayZeroChannelNameList.Add(name);
+								}
 							}
 						}
 					}

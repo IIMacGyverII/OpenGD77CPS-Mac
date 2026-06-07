@@ -79,6 +79,19 @@ namespace DMR
 				AppendMetricRow(html, "Relay=0 rows", validation.RelayZeroCount.ToString(), validation.RelayZeroCount > 0);
 				AppendMetricRow(html, "Duplicate names", validation.DuplicateChannelNames.ToString(), validation.DuplicateChannelNames > 0);
 				html.Append("</table>");
+				if (validation.RelayZeroChannelNameList != null && validation.RelayZeroChannelNameList.Count > 0)
+				{
+					html.Append("<p class=\"warn\">Channels with relay=0 in CSV (coerced to 2 on CPS import):</p><ul>");
+					foreach (string name in validation.RelayZeroChannelNameList)
+					{
+						int channelIndex = AndroidImportDiff.FindLoadedChannelIndexByName(name);
+						string nameCell = channelIndex >= 0
+							? ForkReportHtml.DrillLink("channel", channelIndex, name)
+							: ForkReportHtml.Escape(name);
+						html.Append("<li class=\"warn\">").Append(nameCell).Append("</li>");
+					}
+					html.Append("</ul>");
+				}
 				if (validation.DuplicateChannelNameList != null && validation.DuplicateChannelNameList.Count > 0)
 				{
 					html.Append("<p class=\"warn\">Duplicate channel names in CSV (").Append(validation.DuplicateChannelNames)
@@ -158,7 +171,7 @@ namespace DMR
 			if (integrity != null)
 			{
 				string iBadge = integrity.HasWarnings ? "badge-warn" : "badge-ok";
-				html.Append("<h2>Integrity <span class=\"badge ").Append(iBadge).Append("\">")
+				html.Append("<h2 id=\"studio-integrity\">Integrity <span class=\"badge ").Append(iBadge).Append("\">")
 					.Append(integrity.HasWarnings ? "Warnings" : "OK").Append("</span></h2>");
 				html.Append("<p>").Append(ForkReportHtml.Escape(integrity.Summary)).Append("</p>");
 				if (integrity.HasWarnings && integrity.Warnings != null && integrity.Warnings.Count > 0)

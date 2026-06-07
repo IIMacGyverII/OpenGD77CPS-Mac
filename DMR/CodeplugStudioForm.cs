@@ -52,6 +52,7 @@ namespace DMR
 		private readonly ToolTip csvTileTip = new ToolTip();
 		private readonly ToolTip footerTip = new ToolTip();
 		private AndroidBackupValidationResult lastValidation;
+		private AndroidImportDiffResult lastDiff;
 		private string lastDiffFolder = "";
 		private string lastApprovedChannelsStamp = "";
 		private bool diffPreApproved;
@@ -545,6 +546,28 @@ namespace DMR
 			return diff != null && (diff.Added > 0 || diff.Changed > 0 || diff.Deleted > 0);
 		}
 
+		private void OfferReviewDiffAfterPull(string folderPath)
+		{
+			if (this.lastValidation != null && this.lastValidation.HasBlockingErrors)
+			{
+				return;
+			}
+			if (this.diffPreApproved || !HasPendingDiffChanges(this.lastDiff))
+			{
+				return;
+			}
+			int pending = this.lastDiff.Added + this.lastDiff.Changed + this.lastDiff.Deleted;
+			DialogResult offer = MessageBox.Show(this,
+				"Phone backup pulled.\n\n" + pending + " channel change(s) detected vs your loaded codeplug.\n\nOpen Review diff now?",
+				"Review import changes",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Question);
+			if (offer == DialogResult.Yes)
+			{
+				this.TryApproveChannelDiff(folderPath);
+			}
+		}
+
 		private void btnRecent_Click(object sender, EventArgs e)
 		{
 			this.RefreshRecentMenu();
@@ -755,7 +778,10 @@ namespace DMR
 			string pulled = AndroidAdbBackup.TryPickPulledFolder(this);
 			if (!string.IsNullOrEmpty(pulled))
 			{
-				this.SetFolder(pulled, true);
+				if (this.SetFolder(pulled, true))
+				{
+					this.OfferReviewDiffAfterPull(pulled);
+				}
 			}
 			else if (!AndroidAdbBackup.IsAdbAvailable())
 			{
@@ -892,7 +918,12 @@ namespace DMR
 			if (File.Exists(channelsPath))
 			{
 				diff = AndroidImportDiff.Compute(channelsPath);
+				this.lastDiff = diff;
 				log.Append("\n\n").Append(diff.Summary);
+			}
+			else
+			{
+				this.lastDiff = null;
 			}
 			AndroidContactIntegrityResult integrity = AndroidContactIntegrityChecker.CheckFolder(folderPath);
 			log.Append("\n\n").Append(integrity.Summary);
@@ -912,6 +943,10 @@ namespace DMR
 			else if (diff != null && !this.diffPreApproved && HasPendingDiffChanges(diff))
 			{
 				scrollId = "studio-import-diff";
+			}
+			else if (integrity != null && integrity.HasWarnings)
+			{
+				scrollId = "studio-integrity";
 			}
 			this.webReport.NavigateHtml(
 				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
@@ -958,13 +993,12 @@ namespace DMR
 			{
 				return true;
 			}
-			string stamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
-			if (this.diffPreApproved
-				&& string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase)
-				&& string.Equals(stamp, this.lastApprovedChannelsStamp, StringComparison.Ordinal))
+			if (AndroidImportDiff.IsDiffReviewCurrent(channelsPath, this.diffPreApproved, this.lastApprovedChannelsStamp)
+				&& string.Equals(this.lastDiffFolder, folderPath, StringComparison.OrdinalIgnoreCase))
 			{
 				return true;
 			}
+			string stamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
 			if (!AndroidImportDiff.ShowPreviewDialog(this, channelsPath, this.mainForm))
 			{
 				return false;
@@ -973,6 +1007,7 @@ namespace DMR
 			this.lastApprovedChannelsStamp = stamp;
 			this.diffPreApproved = true;
 			this.btnReviewDiff.Text = "Diff reviewed ✓";
+			this.SetReportStatusChip("Diff reviewed ✓ — ready to import", Color.FromArgb(0x81, 0xC7, 0x84));
 			return true;
 		}
 
