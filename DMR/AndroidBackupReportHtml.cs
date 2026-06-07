@@ -279,5 +279,39 @@ namespace DMR
 			html.Append("<p class=\"foot\">").Append(ForkReportHtml.Escape(batch.StatsLine)).Append("</p>");
 		}
 
+		public static string GetReportScrollTarget(
+			AndroidBatchResult operationResult,
+			AndroidImportDiffResult diff,
+			AndroidContactIntegrityResult integrity,
+			AndroidBackupValidationResult validation,
+			bool diffPreApproved)
+		{
+			if (operationResult != null
+				&& string.Equals(operationResult.Operation, "Import", StringComparison.OrdinalIgnoreCase)
+				&& !operationResult.HasErrors)
+			{
+				return "studio-post-import-health";
+			}
+			if (operationResult != null
+				&& string.Equals(operationResult.Operation, "Export", StringComparison.OrdinalIgnoreCase)
+				&& !operationResult.HasErrors)
+			{
+				return "studio-last-operation";
+			}
+			if (diff != null && !diffPreApproved && AndroidImportDiff.HasPendingDiffChanges(diff))
+			{
+				return "studio-import-diff";
+			}
+			if (integrity != null && integrity.HasWarnings)
+			{
+				return "studio-integrity";
+			}
+			if (validation != null && (validation.RelayZeroCount > 0 || validation.DuplicateChannelNames > 0))
+			{
+				return "studio-validation";
+			}
+			return null;
+		}
+
 	}
 }

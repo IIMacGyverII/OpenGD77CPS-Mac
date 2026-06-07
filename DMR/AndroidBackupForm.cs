@@ -33,6 +33,7 @@ namespace DMR
 		private string lastDiffFolder = "";
 		private string lastApprovedChannelsStamp = "";
 		private bool diffPreApproved;
+		private readonly ToolTip footerTip = new ToolTip();
 
 		private static readonly string[] BackupFiles = new string[]
 		{
@@ -131,6 +132,7 @@ namespace DMR
 				Padding = new Padding(4, 4, 0, 0)
 			};
 			this.webReport = new ForkWebViewPanel { Dock = DockStyle.Fill };
+			this.webReport.CustomNavigation += this.BackupWebReportNavigate;
 			this.txtValidation = new TextBox { Multiline = true, ReadOnly = true };
 
 			Panel reportPanel = new Panel { Dock = DockStyle.Fill };
@@ -211,7 +213,14 @@ namespace DMR
 			this.Controls.Add(bottomPanel);
 			this.Controls.Add(this.lblHint);
 
+			this.footerTip.SetToolTip(this.btnImportAll, "Path B import all CSVs (Ctrl+I)");
+			this.footerTip.SetToolTip(this.btnReviewDiff, "Preview channel changes before import (Ctrl+D)");
+			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
+
+			this.KeyPreview = true;
+			this.KeyDown += this.AndroidBackupForm_KeyDown;
 			this.Shown += this.AndroidBackupForm_Shown;
+			this.FormClosing += this.AndroidBackupForm_FormClosing;
 
 			string last = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
 			if (!string.IsNullOrEmpty(last))
@@ -226,7 +235,45 @@ namespace DMR
 
 		private void AndroidBackupForm_Shown(object sender, EventArgs e)
 		{
+			this.mainForm.SetForkDialogOwner(this);
 			this.webReport.EnsureInitialized();
+		}
+
+		private void AndroidBackupForm_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			this.mainForm.ClearForkDialogOwner(this);
+		}
+
+		private void BackupWebReportNavigate(string uri)
+		{
+			this.mainForm.HandleForkReportNavigation(uri);
+		}
+
+		private void AndroidBackupForm_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.Control && e.KeyCode == Keys.I)
+			{
+				this.btnImportAll_Click(this.btnImportAll, EventArgs.Empty);
+				e.Handled = true;
+				return;
+			}
+			if (e.Control && e.KeyCode == Keys.D)
+			{
+				this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty);
+				e.Handled = true;
+				return;
+			}
+			if (e.Control && e.KeyCode == Keys.E)
+			{
+				this.btnExportAll_Click(this.btnExportAll, EventArgs.Empty);
+				e.Handled = true;
+				return;
+			}
+			if (e.KeyCode == Keys.F1)
+			{
+				ForkKeyboardShortcutsForm.Show(this);
+				e.Handled = true;
+			}
 		}
 
 		private void btnRawLog_Click(object sender, EventArgs e)
@@ -320,7 +367,7 @@ namespace DMR
 			AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, this.txtFolder.Text.Trim());
 		}
 
-		private bool SetFolder(string folderPath, bool showErrors)
+		private bool SetFolder(string folderPath, bool showErrors, AndroidBatchResult operationResult = null)
 		{
 			folderPath = folderPath == null ? "" : folderPath.Trim();
 			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
@@ -388,18 +435,30 @@ namespace DMR
 			}
 			this.txtValidation.Text = log.ToString();
 			this.webReport.EnsureInitialized();
-			this.webReport.NavigateHtml(AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity));
+			string scrollId = AndroidBackupReportHtml.GetReportScrollTarget(
+				operationResult, diff, integrity, this.lastValidation, this.diffPreApproved);
+			this.webReport.NavigateHtml(
+				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
+				scrollId);
 			this.lblReportCaption.Text = integrity.HasWarnings || this.lastValidation.HasBlockingErrors
 				? "Validation report — review warnings below"
 				: "Validation report — ready to import";
+			this.UpdateDiffImportButtons(channelsPath, diff);
+			return true;
+		}
+
+		private void UpdateDiffImportButtons(string channelsPath, AndroidImportDiffResult diff)
+		{
 			bool hasChannels = File.Exists(channelsPath);
 			bool pendingDiff = hasChannels && diff != null && AndroidImportDiff.HasPendingDiffChanges(diff) && !this.diffPreApproved;
 			this.btnReviewDiff.Enabled = hasChannels;
 			this.btnReviewDiff.Text = this.diffPreApproved && hasChannels ? "Diff reviewed ✓" : "Review diff…";
 			this.btnReviewDiff.BackColor = pendingDiff ? Color.FromArgb(0x1E, 0x5A, 0x8F) : SystemColors.Control;
 			this.btnReviewDiff.ForeColor = pendingDiff ? Color.White : SystemColors.ControlText;
-			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors && !pendingDiff;
-			return true;
+			bool canImport = this.lastValidation != null && !this.lastValidation.HasBlockingErrors && !pendingDiff;
+			this.btnImportAll.Enabled = canImport;
+			this.footerTip.SetToolTip(this.btnImportAll,
+				pendingDiff ? "Review diff first (Ctrl+D), then import (Ctrl+I)" : "Path B import all CSVs (Ctrl+I)");
 		}
 
 		private bool TryApproveChannelDiff(string folderPath)
@@ -415,17 +474,14 @@ namespace DMR
 				return true;
 			}
 			string stamp = AndroidImportDiff.GetChannelsCsvStamp(channelsPath);
-			if (!AndroidImportDiff.ShowPreviewDialog(this, channelsPath))
+			if (!AndroidImportDiff.ShowPreviewDialog(this, channelsPath, this.mainForm))
 			{
 				return false;
 			}
 			this.lastDiffFolder = folderPath;
 			this.lastApprovedChannelsStamp = stamp;
 			this.diffPreApproved = true;
-			this.btnReviewDiff.Text = "Diff reviewed ✓";
-			this.btnReviewDiff.BackColor = SystemColors.Control;
-			this.btnReviewDiff.ForeColor = SystemColors.ControlText;
-			this.btnImportAll.Enabled = !this.lastValidation.HasBlockingErrors;
+			this.UpdateDiffImportButtons(channelsPath, this.lastDiff);
 			return true;
 		}
 
@@ -467,9 +523,12 @@ namespace DMR
 			{
 				return;
 			}
-			this.mainForm.ImportAndroidBackupFolder(
+			AndroidBatchResult batch = this.mainForm.ImportAndroidBackupFolder(
 				folderPath, this.diffPreApproved, true, false, this.lastApprovedChannelsStamp);
-			this.SetFolder(folderPath, false);
+			if (batch != null)
+			{
+				this.SetFolder(folderPath, false, batch);
+			}
 		}
 
 		private void btnExportAll_Click(object sender, EventArgs e)
@@ -483,8 +542,11 @@ namespace DMR
 				}
 				this.SetFolder(picked, true);
 			}
-			this.mainForm.ExportAndroidBackupFolder(this.txtFolder.Text);
-			this.SetFolder(this.txtFolder.Text, false);
+			AndroidBatchResult batch = this.mainForm.ExportAndroidBackupFolder(this.txtFolder.Text, false);
+			if (batch != null)
+			{
+				this.SetFolder(this.txtFolder.Text.Trim(), false, batch);
+			}
 		}
 
 		private void btnOpenFolder_Click(object sender, EventArgs e)

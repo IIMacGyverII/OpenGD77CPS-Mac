@@ -942,32 +942,8 @@ namespace DMR
 			}
 			this.txtValidation.Text = log.ToString();
 			this.webReport.EnsureInitialized();
-			string scrollId = null;
-			if (operationResult != null
-				&& string.Equals(operationResult.Operation, "Import", StringComparison.OrdinalIgnoreCase)
-				&& !operationResult.HasErrors)
-			{
-				scrollId = "studio-post-import-health";
-			}
-			else if (operationResult != null
-				&& string.Equals(operationResult.Operation, "Export", StringComparison.OrdinalIgnoreCase)
-				&& !operationResult.HasErrors)
-			{
-				scrollId = "studio-last-operation";
-			}
-			else if (diff != null && !this.diffPreApproved && AndroidImportDiff.HasPendingDiffChanges(diff))
-			{
-				scrollId = "studio-import-diff";
-			}
-			else if (integrity != null && integrity.HasWarnings)
-			{
-				scrollId = "studio-integrity";
-			}
-			else if (this.lastValidation != null
-				&& (this.lastValidation.RelayZeroCount > 0 || this.lastValidation.DuplicateChannelNames > 0))
-			{
-				scrollId = "studio-validation";
-			}
+			string scrollId = AndroidBackupReportHtml.GetReportScrollTarget(
+				operationResult, diff, integrity, this.lastValidation, this.diffPreApproved);
 			this.webReport.NavigateHtml(
 				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
 				scrollId);
@@ -1017,6 +993,7 @@ namespace DMR
 			Theme.ApplyStudioButton(this.btnReviewDiff, false, pendingDiff);
 			bool canImport = this.lastValidation != null && !this.lastValidation.HasBlockingErrors && !pendingDiff;
 			this.btnImportAll.Enabled = canImport;
+			Theme.ApplyStudioButton(this.btnImportAll, canImport, false);
 			this.footerTip.SetToolTip(this.btnImportAll,
 				pendingDiff ? "Review diff first (Ctrl+D), then import (Ctrl+I)" : "Path B import all CSVs (Ctrl+I)");
 		}
