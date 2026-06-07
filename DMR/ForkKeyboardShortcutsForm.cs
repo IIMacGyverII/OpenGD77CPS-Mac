@@ -46,7 +46,7 @@ namespace DMR
 						"Codeplug Studio\n" +
 						"  F1         Keyboard shortcuts (this dialog)\n" +
 						"  Ctrl+O     Browse backup folder\n" +
-						"  Ctrl+I     Import all (Path B)\n" +
+						"  Ctrl+I     Import all (Path B) — if blocked by pending diff, offers Review diff\n" +
 						"  Ctrl+D     Review diff…\n" +
 						"  Ctrl+E     Export all\n" +
 						"  F7         Codeplug health report\n" +

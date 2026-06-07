@@ -36,6 +36,7 @@ namespace DMR
 		internal const string F8StudioBannerDiffHint = "Pending diff: amber status, Review diff ⚠ footer/toolbar/menu/status bar/report link (Ctrl+D in F8/Studio) · left status after pull";
 		internal const string PreImportReportDiffLink = "Open Review diff… (Ctrl+D)";
 		internal const string PreImportReportFootWarn = "Review channel changes before Path B import — amber status, Review diff ⚠ footer/toolbar/menu, status bar links, or Ctrl+D in F8/Studio.";
+		internal const string ImportBlockedDiffTitle = "Review diff first";
 		internal const string MainToolbarDiffTipDefault = "Review channel changes before Path B import — open F8/Studio (Ctrl+D while open)";
 		internal const string PendingDiffLinkTip = "Click to review channel changes before import (Ctrl+D)";
 		internal const string PreImportDiffButtonDefault = "Review diff…";
@@ -261,6 +262,33 @@ namespace DMR
 			diffPreApproved = string.Equals(folderPath, approvedFolder, StringComparison.OrdinalIgnoreCase)
 				&& AndroidImportDiff.IsDiffReviewCurrent(channelsPath, true, approvedStamp);
 			return diffPreApproved;
+		}
+
+		public static bool NotifyImportBlockedByPendingDiff(
+			IWin32Window owner,
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv,
+			Action openReviewDiff)
+		{
+			if (!ForkPostImportUi.ShouldOfferDiffLink(diff, diffPreApproved, hasChannelsCsv))
+			{
+				return false;
+			}
+			int pending = ForkPostImportUi.PendingDiffChangeCount(diff);
+			string suffix = pending > 1 ? " (" + pending + " ch)" : "";
+			DialogResult offer = MessageBox.Show(owner,
+				pending + " channel change(s) need review before Path B import" + suffix + ".\n\n"
+					+ "Open Review diff now (Ctrl+D)?\n\n"
+					+ "Or use amber status, Review diff ⚠ footer/toolbar/menu, center/left status bar, or the report link.",
+				ForkPostImportUi.ImportBlockedDiffTitle,
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Warning);
+			if (offer == DialogResult.Yes && openReviewDiff != null)
+			{
+				openReviewDiff();
+			}
+			return true;
 		}
 
 		public static ForkPendingDiffSnapshot CollectPendingDiffSnapshot()

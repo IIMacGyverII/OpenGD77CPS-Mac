@@ -557,6 +557,16 @@ namespace DMR
 				{
 					this.btnImportAll_Click(this.btnImportAll, EventArgs.Empty);
 				}
+				else
+				{
+					string channelsPath = Path.Combine(this.txtFolder.Text.Trim(), "Channels.csv");
+					ForkPostImportUi.NotifyImportBlockedByPendingDiff(
+						this,
+						this.lastDiff,
+						this.diffPreApproved,
+						File.Exists(channelsPath),
+						() => this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty));
+				}
 				e.Handled = true;
 				return;
 			}
