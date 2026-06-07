@@ -29,6 +29,7 @@ namespace DMR
 		private readonly Button btnExportAll;
 		private readonly Button btnOpenFolder;
 		private readonly Button btnRawLog;
+		private readonly Button btnHealth;
 		private readonly Label lblHint;
 		private readonly Label lblReportCaption;
 		private AndroidBackupValidationResult lastValidation;
@@ -214,9 +215,18 @@ namespace DMR
 			};
 			this.btnRawLog.Click += this.btnRawLog_Click;
 
+			this.btnHealth = new Button
+			{
+				Location = new Point(538, 8),
+				Size = new Size(100, 28),
+				Text = "Health (F7)"
+			};
+			this.btnHealth.Click += (s, e) => this.mainForm.OpenCodeplugHealthReport();
+			Theme.ApplyStudioButton(this.btnHealth, false, false);
+
 			Button btnClose = new Button
 			{
-				Location = new Point(608, 8),
+				Location = new Point(644, 8),
 				Size = new Size(100, 28),
 				Text = "Close",
 				DialogResult = DialogResult.OK,
@@ -231,6 +241,7 @@ namespace DMR
 			bottomPanel.Controls.Add(this.btnExportAll);
 			bottomPanel.Controls.Add(this.btnOpenFolder);
 			bottomPanel.Controls.Add(this.btnRawLog);
+			bottomPanel.Controls.Add(this.btnHealth);
 			bottomPanel.Controls.Add(btnClose);
 
 			this.Controls.Add(this.splitMain);
@@ -242,6 +253,7 @@ namespace DMR
 			this.footerTip.SetToolTip(this.btnReviewDiff, "Preview channel changes before import (Ctrl+D)");
 			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
 			this.footerTip.SetToolTip(this.lblReportCaption, "Re-validate CSVs in the loaded folder (F5)");
+			this.footerTip.SetToolTip(this.btnHealth, "Full codeplug health report (F7)");
 
 			this.KeyPreview = true;
 			this.KeyDown += this.AndroidBackupForm_KeyDown;
@@ -661,10 +673,12 @@ namespace DMR
 				ForkPostImportUi.ApplyBatchCaption(this.lblReportCaption, operationResult);
 				ForkPostImportUi.ConfigureHealthLink(
 					this.lblReportCaption, operationResult, () => this.mainForm.OpenCodeplugHealthReport(), this.footerTip);
+				ForkPostImportUi.ConfigureHealthButton(this.btnHealth, operationResult);
 			}
 			else
 			{
 				ForkPostImportUi.ClearHealthLink(this.lblReportCaption, this.footerTip, "Re-validate CSVs in the loaded folder (F5)");
+				ForkPostImportUi.ClearHealthButton(this.btnHealth);
 				this.lblReportCaption.Text = AndroidBackupReportHtml.GetFolderStatusSummary(
 					this.lastValidation, integrity, diff, this.diffPreApproved, File.Exists(channelsPath));
 				this.lblReportCaption.ForeColor = Theme.MutedForeground;

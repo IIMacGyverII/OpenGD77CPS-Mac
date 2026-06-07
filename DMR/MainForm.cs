@@ -256,6 +256,9 @@ namespace DMR
 
 		private const string ForkStatusHintDefault = "CodeplugStudio.cmd | Ctrl+Shift+S Studio | F8 backup | F7 health | Ctrl+Shift+F tree | F1";
 
+		private bool forkStatusHealthLinkWired;
+		private bool forkStatusHealthLinkActive;
+
 		private sealed class ForkTreeFilterEntry
 		{
 			public TreeNodeCollection ParentCollection;
@@ -2193,8 +2196,55 @@ namespace DMR
 			}
 			this.forkStatusHintTimer.Stop();
 			this.slblComapny.Text = message;
+			bool healthLink = message.IndexOf(ForkFilterEscape.PostImportHealthHint, StringComparison.Ordinal) >= 0;
+			this.ConfigureForkStatusHealthLink(healthLink);
 			this.forkStatusHintTimer.Interval = revertMs;
 			this.forkStatusHintTimer.Start();
+#endif
+		}
+
+		private void EnsureForkStatusHealthLink()
+		{
+#if OpenGD77
+			if (this.forkStatusHealthLinkWired || this.slblComapny == null)
+			{
+				return;
+			}
+			this.slblComapny.Click += this.ForkStatusLabel_Click;
+			this.forkStatusHealthLinkWired = true;
+#endif
+		}
+
+		private void ConfigureForkStatusHealthLink(bool active)
+		{
+#if OpenGD77
+			this.EnsureForkStatusHealthLink();
+			this.forkStatusHealthLinkActive = active;
+			this.slblComapny.IsLink = active;
+			this.slblComapny.LinkBehavior = active ? LinkBehavior.AlwaysUnderline : LinkBehavior.SystemDefault;
+			if (active)
+			{
+				this.slblComapny.LinkColor = ForkPostImportUi.WarnColor;
+				this.slblComapny.ActiveLinkColor = Color.White;
+				this.slblComapny.VisitedLinkColor = ForkPostImportUi.WarnColor;
+				this.slblComapny.ForeColor = ForkPostImportUi.WarnColor;
+				this.slblComapny.ToolTipText = ForkPostImportUi.PostImportHealthLinkTip;
+			}
+			else
+			{
+				this.slblComapny.ForeColor = Theme.Foreground;
+				this.slblComapny.ToolTipText = "";
+			}
+#endif
+		}
+
+		private void ForkStatusLabel_Click(object sender, EventArgs e)
+		{
+#if OpenGD77
+			if (this.forkStatusHealthLinkActive)
+			{
+				this.ShowCodeplugHealthReport(this, EventArgs.Empty);
+			}
 #endif
 		}
 
@@ -2202,6 +2252,7 @@ namespace DMR
 		{
 #if OpenGD77
 			this.forkStatusHintTimer.Stop();
+			this.ConfigureForkStatusHealthLink(false);
 			this.ApplyForkStatusHint();
 #endif
 		}

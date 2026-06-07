@@ -12,8 +12,8 @@ namespace DMR
 		internal static readonly Color ErrColor = Color.FromArgb(0xEF, 0x53, 0x50);
 		internal const string BatchDialogHealthHintText = "Codeplug health warnings remain — open the full report or press OK.";
 		internal const string BatchDialogHealthButton = "Health (F7)";
-		internal const string PostImportHealthLinkTip = "Click amber status to open codeplug health report (F7)";
-		private static readonly object HealthLinkHandlerKey = new object();
+		internal const string PostImportHealthLinkTip = "Click to open codeplug health report (F7)";
+		internal const string PostImportHealthButtonWarn = "Health ⚠ (F7)";
 
 		public static bool ImportHasHealthWarnings()
 		{
@@ -98,6 +98,27 @@ namespace DMR
 			{
 				toolTip.SetToolTip(label, defaultTip);
 			}
+		}
+
+		public static void ConfigureHealthButton(Button button, AndroidBatchResult batch)
+		{
+			ForkPostImportUi.ApplyHealthButtonState(button, ForkPostImportUi.ShouldOfferHealthLink(batch));
+		}
+
+		public static void ClearHealthButton(Button button)
+		{
+			ForkPostImportUi.ApplyHealthButtonState(button, false);
+		}
+
+		private static void ApplyHealthButtonState(Button button, bool highlight)
+		{
+			if (button == null)
+			{
+				return;
+			}
+			button.Text = highlight ? ForkPostImportUi.PostImportHealthButtonWarn : ForkPostImportUi.BatchDialogHealthButton;
+			button.ForeColor = highlight ? ForkPostImportUi.WarnColor : Theme.Foreground;
+			button.FlatAppearance.BorderColor = highlight ? ForkPostImportUi.WarnColor : Theme.StudioCardBorder;
 		}
 	}
 }

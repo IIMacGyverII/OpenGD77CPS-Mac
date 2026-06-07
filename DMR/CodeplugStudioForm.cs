@@ -49,6 +49,7 @@ namespace DMR
 		private Button btnReviewDiff;
 		private Button btnExportAll;
 		private Button btnOpenFullCps;
+		private Button btnHealth;
 		private TextBox txtValidation;
 		private readonly ToolTip csvTileTip = new ToolTip();
 		private readonly ToolTip footerTip = new ToolTip();
@@ -414,7 +415,7 @@ namespace DMR
 			this.btnReviewDiff = this.MakeFooterButton("Review diff…", false, false);
 			this.btnExportAll = this.MakeFooterButton("Export all", false, false);
 			Button btnOpenFolder = this.MakeFooterButton("Open folder", false, false);
-			Button btnHealth = this.MakeFooterButton("Health (F7)", false, false);
+			this.btnHealth = this.MakeFooterButton("Health (F7)", false, false);
 			Button btnRawLog = this.MakeFooterButton("Raw log…", false, false);
 			Button btnShortcut = this.MakeFooterButton("Desktop shortcut…", false, false);
 			this.btnOpenFullCps = this.MakeFooterButton("Open full editor…", false, true);
@@ -427,7 +428,7 @@ namespace DMR
 			this.btnReviewDiff.Click += this.btnReviewDiff_Click;
 			this.btnExportAll.Click += this.btnExportAll_Click;
 			btnOpenFolder.Click += this.btnOpenFolder_Click;
-			btnHealth.Click += this.btnHealth_Click;
+			this.btnHealth.Click += this.btnHealth_Click;
 			btnRawLog.Click += this.btnRawLog_Click;
 			btnShortcut.Click += this.btnShortcut_Click;
 			this.btnOpenFullCps.Click += this.btnOpenFullCps_Click;
@@ -438,12 +439,12 @@ namespace DMR
 			this.footerTip.SetToolTip(this.btnReviewDiff, "Preview channel changes before import (Ctrl+D)");
 			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
 			this.footerTip.SetToolTip(btnOpenFolder, "Open backup folder in Explorer");
-			this.footerTip.SetToolTip(btnHealth, "Full codeplug health report (F7)");
+			this.footerTip.SetToolTip(this.btnHealth, "Full codeplug health report (F7)");
 			this.footerTip.SetToolTip(this.lblReportCaption, "Re-validate CSVs in the loaded folder (F5)");
 			this.footerTip.SetToolTip(btnRawLog, "Plain-text validation, diff, and integrity log");
 			this.footerTip.SetToolTip(btnShortcut, "Create PriInterPhone Codeplug Studio shortcut on Desktop (--studio)");
 			this.footerTip.SetToolTip(this.btnOpenFullCps, "Show dock, tree, and full CPS editors");
-			foreach (Control c in new Control[] { this.btnImportAll, this.btnReviewDiff, this.btnExportAll, btnOpenFolder, btnHealth, btnRawLog, btnShortcut, this.btnOpenFullCps, btnClose })
+			foreach (Control c in new Control[] { this.btnImportAll, this.btnReviewDiff, this.btnExportAll, btnOpenFolder, this.btnHealth, btnRawLog, btnShortcut, this.btnOpenFullCps, btnClose })
 			{
 				if (c != this.btnReviewDiff)
 				{
@@ -1182,6 +1183,7 @@ namespace DMR
 				return;
 			}
 			ForkPostImportUi.ClearHealthLink(this.lblReportStatus, this.footerTip);
+			ForkPostImportUi.ClearHealthButton(this.btnHealth);
 			this.lblReportStatus.Text = text;
 			this.lblReportStatus.ForeColor = color;
 			Control parent = this.lblReportStatus.Parent;
@@ -1202,6 +1204,7 @@ namespace DMR
 			ForkPostImportUi.ApplyBatchCaption(this.lblReportStatus, batch);
 			ForkPostImportUi.ConfigureHealthLink(
 				this.lblReportStatus, batch, () => this.mainForm.OpenCodeplugHealthReport(), this.footerTip);
+			ForkPostImportUi.ConfigureHealthButton(this.btnHealth, batch);
 			Control parent = this.lblReportStatus == null ? null : this.lblReportStatus.Parent;
 			if (parent != null && this.lblReportStatus != null)
 			{
