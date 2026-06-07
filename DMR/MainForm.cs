@@ -4207,7 +4207,7 @@ namespace DMR
 			this.ImportAndroidBackupFolder(null);
 		}
 
-		public AndroidBatchResult ImportAndroidBackupFolder(string folderPath, bool diffPreApproved = false, bool showResultDialog = true)
+		public AndroidBatchResult ImportAndroidBackupFolder(string folderPath, bool diffPreApproved = false, bool showResultDialog = true, bool suppressValidationPrompts = false)
 		{
 			if (string.IsNullOrEmpty(folderPath))
 			{
@@ -4310,7 +4310,7 @@ namespace DMR
 					return null;
 				}
 			}
-			else if (validation.RelayZeroCount > 0 || validation.DuplicateChannelNames > 0)
+			else if (!suppressValidationPrompts && (validation.RelayZeroCount > 0 || validation.DuplicateChannelNames > 0))
 			{
 				DialogResult warn = MessageBox.Show(validation.Summary + "\n\nContinue import?",
 					"Validation warnings", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);

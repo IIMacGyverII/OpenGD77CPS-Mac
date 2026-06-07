@@ -950,7 +950,7 @@ namespace DMR
 			{
 				return;
 			}
-			AndroidBatchResult batch = this.mainForm.ImportAndroidBackupFolder(folderPath, this.diffPreApproved, false);
+			AndroidBatchResult batch = this.mainForm.ImportAndroidBackupFolder(folderPath, this.diffPreApproved, false, true);
 			if (batch == null)
 			{
 				return;
