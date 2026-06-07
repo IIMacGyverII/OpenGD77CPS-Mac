@@ -37,6 +37,7 @@ namespace DMR
 		private const string IniKeyStudioBounds = "CodeplugStudioBounds";
 
 		private readonly MainForm mainForm;
+		private readonly bool standaloneLaunch;
 		private TextBox txtFolder;
 		private Button btnRecent;
 		private ContextMenuStrip recentMenu;
@@ -62,6 +63,7 @@ namespace DMR
 		public CodeplugStudioForm(MainForm owner, string launchFolder = null, bool standaloneLaunch = false)
 		{
 			this.mainForm = owner;
+			this.standaloneLaunch = standaloneLaunch;
 			this.Text = "PriInterPhone Codeplug Studio";
 			this.FormBorderStyle = FormBorderStyle.Sizable;
 			if (standaloneLaunch)
@@ -152,9 +154,14 @@ namespace DMR
 				AutoSize = true,
 				Location = new Point(Theme.Dpi(20), Theme.Dpi(12))
 			};
+			string subText = "PriInterPhone Android CSV workflow  ·  Path B import/export  ·  " + AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION;
+			if (this.standaloneLaunch)
+			{
+				subText += "  ·  Standalone (--studio)";
+			}
 			Label lblSub = new Label
 			{
-				Text = "PriInterPhone Android CSV workflow  ·  Path B import/export  ·  " + AboutForm.FORK_NAME + " v" + AboutForm.FORK_VERSION,
+				Text = subText,
 				Font = Theme.UiFontSmall,
 				ForeColor = Theme.MutedForeground,
 				AutoSize = true,
@@ -903,10 +910,12 @@ namespace DMR
 				this.UpdateCsvTiles("");
 				this.lblReportStatus.Text = "No folder loaded";
 				this.lblReportStatus.ForeColor = Theme.MutedForeground;
+				this.UpdateStudioTitle("");
 				return false;
 			}
 
 			this.txtFolder.Text = folderPath;
+			this.UpdateStudioTitle(folderPath);
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			StudioRecentFolders.Record(folderPath);
 			this.RefreshRecentMenu();
@@ -1099,6 +1108,26 @@ namespace DMR
 			}
 			this.SetFolder(folderPath, false, batch);
 			this.ApplyBatchStatusChip(batch);
+		}
+
+		private void UpdateStudioTitle(string folderPath)
+		{
+			const string baseTitle = "PriInterPhone Codeplug Studio";
+			if (string.IsNullOrEmpty(folderPath))
+			{
+				this.Text = baseTitle;
+				return;
+			}
+			string name = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+			if (string.IsNullOrEmpty(name))
+			{
+				name = folderPath;
+			}
+			if (name.Length > 48)
+			{
+				name = name.Substring(0, 45) + "…";
+			}
+			this.Text = baseTitle + " — " + name;
 		}
 
 		private void SetReportStatusChip(string text, Color color)

@@ -1300,8 +1300,22 @@ namespace DMR
 					{
 						this.forkStudioLaunch = true;
 						this.forkStudioLaunchFolder = arg.Substring("--studio=".Length).Trim('"');
+						continue;
+					}
+					string pathArg = arg.Trim('"');
+					if (!this.forkStudioLaunch
+						&& !pathArg.StartsWith("-", StringComparison.Ordinal)
+						&& Directory.Exists(pathArg))
+					{
+						this.forkStudioLaunch = true;
+						this.forkStudioLaunchFolder = pathArg;
 					}
 				}
+			}
+			if (this.forkStudioLaunch)
+			{
+				this.Visible = false;
+				this.ShowInTaskbar = false;
 			}
 
 			this.frmHelp = new HelpForm();
@@ -2179,11 +2193,12 @@ namespace DMR
 			string badTgNote = snap.InvalidTgRefs > 0 ? " | bad TG ref: " + snap.InvalidTgRefs : "";
 			string emptyScanNote = snap.EmptyScanLists > 0 ? " | empty sc: " + snap.EmptyScanLists : "";
 			string badScanNote = snap.InvalidScanRefs > 0 ? " | bad sc ref: " + snap.InvalidScanRefs : "";
+			string notInZoneNote = snap.ChannelsNotInZone > 0 ? " | no zn: " + snap.ChannelsNotInZone : "";
 			string warningTag = hasWarning ? " ⚠" : "";
 			this.slblCodeplugHealth.Text = "▶ Health report" + warningTag + " — "
 				+ snap.Channels + " ch (" + snap.Digital + "D/" + snap.Analog + "A)"
 				+ " | " + snap.Contacts + " ct | " + snap.Zones + " zn | " + snap.TgLists + " TG | " + snap.ScanLists + " sc"
-				+ relayNote + orphanNote + dupNote + dupIdNote + dupCtNameNote + digNoCtNote + zoneNote + emptyTgNote + badTgNote + emptyScanNote + badScanNote;
+				+ relayNote + orphanNote + dupNote + dupIdNote + dupCtNameNote + digNoCtNote + zoneNote + notInZoneNote + emptyTgNote + badTgNote + emptyScanNote + badScanNote;
 			this.slblCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Theme.Foreground;
 			if (this.tsbtnCodeplugHealth != null)
 			{

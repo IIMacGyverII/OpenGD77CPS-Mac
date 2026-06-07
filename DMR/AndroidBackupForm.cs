@@ -231,6 +231,7 @@ namespace DMR
 			this.Controls.Add(bottomPanel);
 			this.Controls.Add(this.lblHint);
 
+			this.footerTip.SetToolTip(this.btnRecent, "Recently used backup folders (shared with Studio)");
 			this.footerTip.SetToolTip(this.btnImportAll, "Path B import all CSVs (Ctrl+I)");
 			this.footerTip.SetToolTip(this.btnReviewDiff, "Preview channel changes before import (Ctrl+D)");
 			this.footerTip.SetToolTip(this.btnExportAll, "Export codeplug to backup folder (Ctrl+E)");
