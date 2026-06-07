@@ -1877,7 +1877,7 @@ namespace DMR
 			{
 				this.tsbtnAndroidBackup.Font = new Font(Theme.UiFont.FontFamily, 9.75f, FontStyle.Bold);
 				this.tsbtnAndroidBackup.ForeColor = Color.FromArgb(0x64, 0xB5, 0xF6);
-				this.tsbtnAndroidBackup.ToolTipText = "Android backup manager (F8) — Path B import/export, validation report";
+				this.tsbtnAndroidBackup.ToolTipText = "Android backup manager (F8) — F5 refresh report, Path B import/export";
 			}
 			if (this.tsmiAndroidBackup != null)
 			{
@@ -1974,6 +1974,7 @@ namespace DMR
 			this.txtTreeFilter.Size = new Size(170, 23);
 			this.txtTreeFilter.TextChanged += this.txtTreeFilter_TextChanged;
 			ForkFilterEscape.WireEscapeClear(this.txtTreeFilter);
+			ForkFilterEscape.WireTreeFocusFilter(this.tvwMain, this.txtTreeFilter);
 			this.pnlTreeFilter.Controls.Add(this.lblTreeFilter);
 			this.pnlTreeFilter.Controls.Add(this.txtTreeFilter);
 			this.pnlTvw.Controls.Add(this.pnlTreeFilter);

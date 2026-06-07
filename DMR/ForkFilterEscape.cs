@@ -24,6 +24,34 @@ namespace DMR
 			box.PreviewKeyDown += ForkFilterEscape_TextBox_PreviewKeyDown;
 		}
 
+		public static void WireTreeFocusFilter(Control tree, TextBox box)
+		{
+			if (tree == null || box == null)
+			{
+				return;
+			}
+			tree.KeyDown += ForkFilterEscape_Tree_KeyDown;
+			tree.Tag = box;
+		}
+
+		private static void ForkFilterEscape_Tree_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (!e.Control || e.KeyCode != Keys.F)
+			{
+				return;
+			}
+			Control tree = sender as Control;
+			TextBox box = tree == null ? null : tree.Tag as TextBox;
+			if (box == null)
+			{
+				return;
+			}
+			box.Focus();
+			box.SelectAll();
+			e.Handled = true;
+			e.SuppressKeyPress = true;
+		}
+
 		private static void ForkFilterEscape_TextBox_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
 		{
 			if (e.KeyCode != Keys.Escape)

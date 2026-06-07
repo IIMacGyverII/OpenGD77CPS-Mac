@@ -264,7 +264,7 @@ namespace DMR
 
 			Label lblHint = new Label
 			{
-				Text = "Drop a folder, pick Recent, or double-click a CSV card",
+				Text = "F5 refresh report · drop folder, Recent, or double-click a CSV card",
 				Font = Theme.UiFontSmall,
 				ForeColor = Theme.MutedForeground,
 				AutoSize = true,
