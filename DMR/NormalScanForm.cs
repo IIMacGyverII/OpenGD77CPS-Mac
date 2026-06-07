@@ -1225,6 +1225,8 @@ namespace DMR
 		private void ApplyScanListFilter()
 		{
 			string query = this.txtScanListFilter == null ? "" : this.txtScanListFilter.Text.Trim();
+			int visible = 0;
+			int total = this.forkUnselectedCache == null ? 0 : this.forkUnselectedCache.Count;
 			this.lstUnselected.Items.Clear();
 			foreach (SelectedItemUtils item in this.forkUnselectedCache)
 			{
@@ -1232,7 +1234,14 @@ namespace DMR
 					|| (item.Name != null && item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
 				{
 					this.lstUnselected.Items.Add(item);
+					visible++;
 				}
+			}
+			if (this.lblScanListFilter != null)
+			{
+				this.lblScanListFilter.Text = string.IsNullOrEmpty(query)
+					? "Filter:"
+					: "Filter (" + visible + "/" + total + "):";
 			}
 			if (this.lstUnselected.Items.Count > 0)
 			{

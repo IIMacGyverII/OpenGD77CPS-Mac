@@ -2014,8 +2014,13 @@ namespace DMR
 			string query = this.txtTreeFilter == null ? "" : this.txtTreeFilter.Text.Trim();
 			if (string.IsNullOrEmpty(query))
 			{
+				if (this.lblTreeFilter != null)
+				{
+					this.lblTreeFilter.Text = "Filter:";
+				}
 				return;
 			}
+			int total = this.CountForkTreeNodes(this.tvwMain.Nodes);
 			this.tvwMain.BeginUpdate();
 			try
 			{
@@ -2025,6 +2030,30 @@ namespace DMR
 			{
 				this.tvwMain.EndUpdate();
 			}
+			int visible = this.CountForkTreeNodes(this.tvwMain.Nodes);
+			if (this.lblTreeFilter != null)
+			{
+				this.lblTreeFilter.Text = "Filter (" + visible + "/" + total + "):";
+			}
+#endif
+		}
+
+		private int CountForkTreeNodes(TreeNodeCollection nodes)
+		{
+#if OpenGD77
+			int count = 0;
+			if (nodes == null)
+			{
+				return 0;
+			}
+			foreach (TreeNode node in nodes)
+			{
+				count++;
+				count += this.CountForkTreeNodes(node.Nodes);
+			}
+			return count;
+#else
+			return 0;
 #endif
 		}
 

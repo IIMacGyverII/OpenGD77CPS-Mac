@@ -471,6 +471,8 @@ namespace DMR
 		private void ApplyRxListFilter()
 		{
 			string query = this.txtRxListFilter == null ? "" : this.txtRxListFilter.Text.Trim();
+			int visible = 0;
+			int total = this.forkUnselectedCache == null ? 0 : this.forkUnselectedCache.Count;
 			this.lstUnselected.Items.Clear();
 			foreach (SelectedItemUtils item in this.forkUnselectedCache)
 			{
@@ -478,7 +480,14 @@ namespace DMR
 					|| (item.Name != null && item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
 				{
 					this.lstUnselected.Items.Add(item);
+					visible++;
 				}
+			}
+			if (this.lblRxListFilter != null)
+			{
+				this.lblRxListFilter.Text = string.IsNullOrEmpty(query)
+					? "Filter:"
+					: "Filter (" + visible + "/" + total + "):";
 			}
 			if (this.lstUnselected.Items.Count > 0)
 			{

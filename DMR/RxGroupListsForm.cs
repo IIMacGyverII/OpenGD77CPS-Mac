@@ -250,15 +250,19 @@ namespace DMR
 				return;
 			}
 			string query = this.txtRxListsFilter == null ? "" : this.txtRxListsFilter.Text.Trim();
+			int visible = 0;
+			int total = 0;
 			foreach (DataGridViewRow row in this.dgvRxLists.Rows)
 			{
 				if (row.IsNewRow)
 				{
 					continue;
 				}
+				total++;
 				if (string.IsNullOrEmpty(query))
 				{
 					row.Visible = true;
+					visible++;
 					continue;
 				}
 				bool match = false;
@@ -272,6 +276,16 @@ namespace DMR
 					}
 				}
 				row.Visible = match;
+				if (match)
+				{
+					visible++;
+				}
+			}
+			if (this.lblRxListsFilter != null)
+			{
+				this.lblRxListsFilter.Text = string.IsNullOrEmpty(query)
+					? "Filter:"
+					: "Filter (" + visible + "/" + total + "):";
 			}
 		}
 
