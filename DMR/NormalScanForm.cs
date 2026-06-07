@@ -822,6 +822,16 @@ namespace DMR
 
 		private CustomPanel panel1;
 
+		private TextBox txtScanListFilter;
+
+		private Label lblScanListFilter;
+
+		private Label lblScanHint;
+
+		private bool forkScanDpiScaled;
+
+		private List<SelectedItemUtils> forkUnselectedCache = new List<SelectedItemUtils>();
+
 		public TreeNode Node
 		{
 			get;
@@ -921,19 +931,16 @@ namespace DMR
 				{
 					array[num] = NormalScanForm.data[num2].ChList[num];
 				}
-				this.lstUnselected.Items.Clear();
+				this.forkUnselectedCache.Clear();
 				for (num = 0; num < ChannelForm.CurCntCh; num++)
 				{
 					if (ChannelForm.data.DataIsValid(num) && !array.Contains(num + 2))
 					{
 						num3 = num + 1;
-						this.lstUnselected.Items.Add(new SelectedItemUtils(-1, num3 + 1, ChannelForm.data.GetName(num)));
+						this.forkUnselectedCache.Add(new SelectedItemUtils(-1, num3 + 1, ChannelForm.data.GetName(num)));
 					}
 				}
-				if (this.lstUnselected.Items.Count > 0)
-				{
-					this.lstUnselected.SelectedIndex = 0;
-				}
+				this.ApplyScanListFilter();
 				this.method_1();
 				this.cmbPriorityCh1.method_2(NormalScanForm.data[num2].PriorityCh1);
 				this.cmbPriorityCh2.method_2(NormalScanForm.data[num2].PriorityCh2);
@@ -1085,7 +1092,152 @@ namespace DMR
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
 			this.method_3();
+			this.EnsureForkScanUi();
+			this.panel1.Resize += this.panel1_Resize;
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkScanLayout();
+		}
+
+		private void EnsureForkScanUi()
+		{
+			if (this.txtScanListFilter == null)
+			{
+				this.lblScanListFilter = new Label();
+				this.lblScanListFilter.Text = "Filter:";
+				this.lblScanListFilter.AutoSize = true;
+				this.txtScanListFilter = new TextBox();
+				this.txtScanListFilter.Size = new Size(160, 23);
+				this.txtScanListFilter.TextChanged += this.txtScanListFilter_TextChanged;
+				this.grpUnselected.Controls.Add(this.lblScanListFilter);
+				this.grpUnselected.Controls.Add(this.txtScanListFilter);
+			}
+			if (this.lblScanHint == null)
+			{
+				this.lblScanHint = new Label();
+				this.lblScanHint.Text = "Filter searches Available only · Add/Delete move channels · Up/Down reorders Member";
+				this.lblScanHint.AutoSize = false;
+				this.lblScanHint.Height = 18;
+				this.lblScanHint.ForeColor = System.Drawing.SystemColors.GrayText;
+				this.panel1.Controls.Add(this.lblScanHint);
+			}
+			this.lstUnselected.BorderStyle = BorderStyle.FixedSingle;
+			this.lstUnselected.Font = Theme.UiFont;
+			this.lstUnselected.IntegralHeight = false;
+			this.lstSelected.BorderStyle = BorderStyle.FixedSingle;
+			this.lstSelected.Font = Theme.UiFont;
+			this.lstSelected.IntegralHeight = false;
+			this.grpUnselected.Font = Theme.UiFont;
+			this.grpSelected.Font = Theme.UiFont;
+			this.grpListParam.Font = Theme.UiFont;
+			this.panel1.AutoSize = false;
+			if (!this.forkScanDpiScaled)
+			{
+				Theme.ScaleNewControlTree(this.lblScanListFilter);
+				Theme.ScaleNewControlTree(this.txtScanListFilter);
+				Theme.ScaleNewControlTree(this.lblScanHint);
+				this.forkScanDpiScaled = true;
+			}
+		}
+
+		private void panel1_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkScanLayout();
+		}
+
+		private void ApplyForkScanLayout()
+		{
+			if (this.txtScanListFilter == null)
+			{
+				return;
+			}
+			int pad = Theme.Dpi(12);
+			int centerBtnW = Theme.Dpi(78);
+			int reorderBtnW = Theme.Dpi(76);
+			int paramH = Theme.Dpi(280);
+			int clientW = this.panel1.ClientSize.Width;
+			int clientH = this.panel1.ClientSize.Height;
+			int nameRowY = Theme.Dpi(10);
+			int groupsTop = Theme.Dpi(52);
+			int groupsH = Math.Max(Theme.Dpi(180), clientH - groupsTop - paramH - pad * 2);
+
+			this.lblName.Location = new Point(pad, nameRowY + Theme.Dpi(2));
+			this.lblName.AutoSize = true;
+			this.txtName.Location = new Point(Theme.Dpi(72), nameRowY);
+			this.txtName.Size = new Size(Math.Max(Theme.Dpi(160), Math.Min(Theme.Dpi(360), clientW - Theme.Dpi(96))), Theme.Dpi(23));
+
+			if (this.lblScanHint != null)
+			{
+				this.lblScanHint.Location = new Point(pad, nameRowY + Theme.Dpi(28));
+				this.lblScanHint.Width = Math.Max(Theme.Dpi(200), clientW - pad * 2);
+				this.lblScanHint.Height = Theme.Dpi(18);
+			}
+
+			int availW = Math.Max(Theme.Dpi(200), (clientW - pad * 3 - centerBtnW - reorderBtnW) / 2);
+			int centerX = pad + availW + Theme.Dpi(4);
+			int memberX = centerX + centerBtnW + Theme.Dpi(4);
+			int memberW = Math.Max(Theme.Dpi(200), clientW - memberX - reorderBtnW - pad);
+
+			this.grpUnselected.SetBounds(pad, groupsTop, availW, groupsH);
+			this.grpSelected.SetBounds(memberX, groupsTop, memberW, groupsH);
+
+			int filterY = Theme.Dpi(20);
+			this.lblScanListFilter.Location = new Point(Theme.Dpi(10), filterY + Theme.Dpi(2));
+			this.txtScanListFilter.Location = new Point(Theme.Dpi(56), filterY);
+			this.txtScanListFilter.Width = Math.Max(Theme.Dpi(100), this.grpUnselected.ClientSize.Width - Theme.Dpi(66));
+
+			int listTop = filterY + Theme.Dpi(30);
+			int listH = Math.Max(Theme.Dpi(100), this.grpUnselected.ClientSize.Height - listTop - Theme.Dpi(10));
+			this.lstUnselected.SetBounds(Theme.Dpi(10), listTop, Math.Max(Theme.Dpi(80), this.grpUnselected.ClientSize.Width - Theme.Dpi(20)), listH);
+			this.lstUnselected.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+			int memberListTop = Theme.Dpi(22);
+			int memberListH = Math.Max(Theme.Dpi(100), this.grpSelected.ClientSize.Height - memberListTop - Theme.Dpi(10));
+			this.lstSelected.SetBounds(Theme.Dpi(10), memberListTop, Math.Max(Theme.Dpi(80), this.grpSelected.ClientSize.Width - Theme.Dpi(20)), memberListH);
+			this.lstSelected.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+			int btnX = centerX + (centerBtnW - Theme.Dpi(75)) / 2;
+			int btnMidY = groupsTop + groupsH / 2;
+			this.btnAdd.SetBounds(btnX, btnMidY - Theme.Dpi(36), Theme.Dpi(75), Theme.Dpi(23));
+			this.btnDel.SetBounds(btnX, btnMidY + Theme.Dpi(8), Theme.Dpi(75), Theme.Dpi(23));
+
+			int reorderX = memberX + memberW + Theme.Dpi(6);
+			this.btnUp.SetBounds(reorderX, btnMidY - Theme.Dpi(36), reorderBtnW - Theme.Dpi(8), Theme.Dpi(23));
+			this.btnDown.SetBounds(reorderX, btnMidY + Theme.Dpi(8), reorderBtnW - Theme.Dpi(8), Theme.Dpi(23));
+
+			int paramY = clientH - paramH - pad;
+			this.grpListParam.SetBounds(pad, Math.Max(groupsTop + groupsH + pad, paramY), Math.Max(Theme.Dpi(400), clientW - pad * 2), paramH);
+			this.grpListParam.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+			this.lblScanListFilter.BringToFront();
+			this.txtScanListFilter.BringToFront();
+			if (this.lblScanHint != null)
+			{
+				this.lblScanHint.BringToFront();
+			}
+		}
+
+		private void txtScanListFilter_TextChanged(object sender, EventArgs e)
+		{
+			this.ApplyScanListFilter();
+		}
+
+		private void ApplyScanListFilter()
+		{
+			string query = this.txtScanListFilter == null ? "" : this.txtScanListFilter.Text.Trim();
+			this.lstUnselected.Items.Clear();
+			foreach (SelectedItemUtils item in this.forkUnselectedCache)
+			{
+				if (string.IsNullOrEmpty(query)
+					|| (item.Name != null && item.Name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0))
+				{
+					this.lstUnselected.Items.Add(item);
+				}
+			}
+			if (this.lstUnselected.Items.Count > 0)
+			{
+				this.lstUnselected.SelectedIndex = 0;
+			}
 		}
 
 		private void NormalScanForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -1127,6 +1279,7 @@ namespace DMR
 				num = this.lstSelected.Items.Add(@class);
 				this.lstSelected.SetSelected(num, true);
 				this.lstUnselected.Items.RemoveAt(this.lstUnselected.SelectedIndices[0]);
+				this.forkUnselectedCache.Remove(@class);
 			}
 			if (this.lstUnselected.SelectedItems.Count == 0)
 			{
@@ -1150,18 +1303,16 @@ namespace DMR
 		{
 			if (this.method_5())
 			{
-				int num = 0;
 				int count = this.lstSelected.SelectedIndices.Count;
 				int num2 = this.lstSelected.SelectedIndices[count - 1];
 				this.lstUnselected.SelectedItems.Clear();
 				while (this.lstSelected.SelectedItems.Count > 0)
 				{
 					SelectedItemUtils @class = (SelectedItemUtils)this.lstSelected.SelectedItems[0];
-					num = this.method_6(@class);
 					@class.method_1(-1);
-					this.lstUnselected.Items.Insert(num, @class);
-					this.lstUnselected.SetSelected(num, true);
+					this.forkUnselectedCache.Add(@class);
 					this.lstSelected.Items.RemoveAt(this.lstSelected.SelectedIndices[0]);
+					this.ApplyScanListFilter();
 				}
 				int num3 = num2 - count + 1;
 				if (num3 >= this.lstSelected.Items.Count)

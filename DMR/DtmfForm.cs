@@ -974,7 +974,29 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkDtmfUi();
+			this.pnlDtmf.Resize += this.pnlDtmf_Resize;
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkDtmfLayout();
+		}
+
+		private void EnsureForkDtmfUi()
+		{
+			this.pnlDtmf.AutoSize = false;
+			this.pnlDtmf.AutoScroll = true;
+		}
+
+		private void pnlDtmf_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkDtmfLayout();
+		}
+
+		private void ApplyForkDtmfLayout()
+		{
+			int minW = Theme.Dpi(700);
+			int minH = Theme.Dpi(440);
+			this.pnlDtmf.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void DtmfForm_FormClosing(object sender, FormClosingEventArgs e)

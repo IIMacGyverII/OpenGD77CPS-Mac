@@ -368,6 +368,7 @@ namespace DMR
 			Settings.smethod_68(this);
 			this.method_0();
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
 		}
 
 		private void ScanBasicForm_FormClosing(object sender, FormClosingEventArgs e)
