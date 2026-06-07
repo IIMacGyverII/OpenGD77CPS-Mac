@@ -2503,6 +2503,22 @@ namespace DMR
 				this.tsbtnImportAndroid.ForeColor = hasPending ? ForkPostImportUi.WarnColor : Theme.Foreground;
 				this.tsbtnImportAndroid.ToolTipText = ForkPostImportUi.ImportToolbarTooltip(snap);
 			}
+			if (this.tsmiAndroidBackup != null)
+			{
+				this.tsmiAndroidBackup.Text = ForkPostImportUi.BackupMenuLabel(snap);
+			}
+			if (this.tsbtnAndroidBackup != null)
+			{
+				this.tsbtnAndroidBackup.Text = ForkPostImportUi.BackupToolbarLabel(snap);
+				this.tsbtnAndroidBackup.ForeColor = hasPending
+					? ForkPostImportUi.WarnColor
+					: ForkPostImportUi.BackupToolbarColorDefault;
+				this.tsbtnAndroidBackup.ToolTipText = ForkPostImportUi.BackupToolbarTooltip(snap);
+			}
+			if (this.tsbtnOpenBackupFolder != null)
+			{
+				this.tsbtnOpenBackupFolder.ToolTipText = ForkPostImportUi.OpenBackupFolderTooltip(snap);
+			}
 #endif
 		}
 
@@ -4633,6 +4649,29 @@ namespace DMR
 #endif
 		}
 
+		private void NotifyPendingDiffAfterFolderSelected(string folderPath)
+		{
+#if OpenGD77
+			if (string.IsNullOrEmpty(folderPath))
+			{
+				return;
+			}
+			string channelsFile = Path.Combine(folderPath, "Channels.csv");
+			if (!File.Exists(channelsFile))
+			{
+				return;
+			}
+			try
+			{
+				AndroidImportDiffResult diff = AndroidImportDiff.Compute(channelsFile);
+				this.ShowForkPendingDiffStatus(folderPath, diff);
+			}
+			catch
+			{
+			}
+#endif
+		}
+
 		public void ShowForkPendingDiffStatus(string folderPath, AndroidImportDiffResult diff)
 		{
 #if OpenGD77
@@ -4718,6 +4757,7 @@ namespace DMR
 					if (source == DialogResult.Yes)
 					{
 						folderPath = AndroidAdbBackup.TryPickPulledFolder(this);
+						this.NotifyPendingDiffAfterFolderSelected(folderPath);
 					}
 				}
 				if (string.IsNullOrEmpty(folderPath))

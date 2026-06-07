@@ -39,6 +39,8 @@ namespace DMR
 		internal const string ImportBlockedDiffTitle = "Review diff first";
 		internal const string MainToolbarDiffTipDefault = "Review channel changes before Path B import — Ctrl+D when pending, or F8/Studio";
 		internal const string MainImportToolbarTipDefault = "Import PriInterPhone backup folder (File → Import CSV, Path B)";
+		internal const string MainBackupToolbarTipDefault = "Android backup manager (F8) — F5 refresh report, Path B import/export";
+		internal static readonly Color BackupToolbarColorDefault = Color.FromArgb(0x64, 0xB5, 0xF6);
 		internal const string PendingDiffLinkTip = "Click to review channel changes before import (Ctrl+D)";
 		internal const string PreImportDiffButtonDefault = "Review diff…";
 		internal const string PreImportDiffButtonWarn = "Review diff ⚠ (Ctrl+D)";
@@ -219,6 +221,50 @@ namespace DMR
 				return "Import ⚠ (" + snap.ChangeCount + ")";
 			}
 			return "Import ⚠";
+		}
+
+		public static string BackupMenuLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "Android backup manager...";
+			}
+			if (snap.ChangeCount > 1)
+			{
+				return "Android backup manager ⚠ (" + snap.ChangeCount + " ch)...";
+			}
+			return "Android backup manager ⚠...";
+		}
+
+		public static string BackupToolbarLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "Backup…";
+			}
+			if (snap.ChangeCount > 1)
+			{
+				return "Backup ⚠ (" + snap.ChangeCount + ")";
+			}
+			return "Backup ⚠";
+		}
+
+		public static string BackupToolbarTooltip(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return ForkPostImportUi.MainBackupToolbarTipDefault;
+			}
+			return "Pending channel changes in last backup — open F8 to Review diff (Ctrl+D)";
+		}
+
+		public static string OpenBackupFolderTooltip(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "Open last Android backup folder in Explorer";
+			}
+			return "Last backup has pending channel changes — open folder or Review diff (Ctrl+D)";
 		}
 
 		public static string ImportToolbarTooltip(ForkPendingDiffSnapshot snap)

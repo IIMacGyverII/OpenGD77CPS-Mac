@@ -34,7 +34,7 @@ namespace DMR
 						"             Pending diff: center/left status bar, Review diff ⚠ toolbar/menu (View), F8 report link\n" +
 						"             After pull: left status bar link opens Review diff (Ctrl+D)\n" +
 						"             After Path B import: click names in F8/Studio health section, report link, amber status, toolbar/menu, batch, status bar\n" +
-						"  F8         Android backup manager (diff + import)\n" +
+						"  F8         Android backup manager (diff + import) — toolbar turns Backup ⚠ when diff pending\n" +
 						"             Pending diff: click amber status or Review diff ⚠ footer (Ctrl+D)\n" +
 						"             Ctrl+D / Ctrl+I / Ctrl+E / F7 same as Studio while F8 is open\n" +
 						"             Recent / drop folder — same recent list as Studio\n" +
