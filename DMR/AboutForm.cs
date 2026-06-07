@@ -12,7 +12,7 @@ namespace DMR
 		// inside a DMRModHooks release. Format: MAJOR.MINOR.PATCH.
 		// See phonedmrapp/.github/copilot-instructions.md → OpenGD77 Fork section.
 		// =====================================================================
-		public const string FORK_VERSION = "1.9.12";
+		public const string FORK_VERSION = "1.9.13";
 		public const string FORK_NAME    = "DMRModHooks / PriInterPhone fork";
 
 		//private IContainer components;

@@ -42,7 +42,15 @@ namespace DMR
 
 			if (owner is Control ownerControl)
 			{
-				this.Owner = ownerControl.FindForm();
+				Form ownerForm = ownerControl.FindForm();
+				if (ownerForm != null && ownerForm.Visible)
+				{
+					this.Owner = ownerForm;
+				}
+				else
+				{
+					this.StartPosition = FormStartPosition.CenterScreen;
+				}
 			}
 		}
 

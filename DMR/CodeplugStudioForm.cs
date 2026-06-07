@@ -494,6 +494,7 @@ namespace DMR
 
 		private void CodeplugStudioForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
+			this.mainForm.ClearForkDialogOwner(this);
 			this.SaveStudioBounds();
 		}
 
@@ -656,6 +657,7 @@ namespace DMR
 
 		private void CodeplugStudioForm_Shown(object sender, EventArgs e)
 		{
+			this.mainForm.SetForkDialogOwner(this);
 			this.webReport.EnsureInitialized();
 			this.LayoutCsvTiles();
 		}

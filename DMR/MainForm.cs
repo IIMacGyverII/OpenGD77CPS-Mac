@@ -241,6 +241,8 @@ namespace DMR
 
 		private ForkHtmlReportForm forkHealthReportForm;
 
+		private IWin32Window forkDialogOwner;
+
 		private Panel pnlTreeFilter;
 
 		private Label lblTreeFilter;
@@ -1560,6 +1562,29 @@ namespace DMR
 			}
 		}
 
+		internal void SetForkDialogOwner(IWin32Window owner)
+		{
+			this.forkDialogOwner = owner;
+		}
+
+		internal void ClearForkDialogOwner(IWin32Window owner)
+		{
+			if (this.forkDialogOwner == owner)
+			{
+				this.forkDialogOwner = null;
+			}
+		}
+
+		internal IWin32Window GetForkDialogOwner()
+		{
+			Control ownerControl = this.forkDialogOwner as Control;
+			if (ownerControl != null && !ownerControl.IsDisposed)
+			{
+				return this.forkDialogOwner;
+			}
+			return this;
+		}
+
 		/// <summary>Reveal dock/tree/menu after Studio-only launch when user opens full CPS.</summary>
 		private void EnsureFullCpsShellReady()
 		{
@@ -2143,7 +2168,7 @@ namespace DMR
 			this.forkHealthReportForm = new ForkHtmlReportForm("Codeplug health", html, 720, 560);
 			this.forkHealthReportForm.CustomNavigation += this.OnHealthReportNavigate;
 			this.forkHealthReportForm.FormClosed += this.ForkHealthReportForm_FormClosed;
-			this.forkHealthReportForm.Show(this);
+			this.forkHealthReportForm.Show(this.GetForkDialogOwner());
 #endif
 		}
 
@@ -2158,6 +2183,11 @@ namespace DMR
 		private void OnHealthReportNavigate(string uri)
 		{
 #if OpenGD77
+			if (!this.Visible)
+			{
+				this.EnsureFullCpsShellReady();
+				ForkDockLayout.EnsureWorkspaceOpen(this);
+			}
 			if (string.IsNullOrEmpty(uri) || !uri.StartsWith("fork://open/", StringComparison.OrdinalIgnoreCase))
 			{
 				return;
@@ -4343,7 +4373,7 @@ namespace DMR
 			}
 			
 			// Import files in correct order: Contacts → TG Lists → Channels → Zones
-			using (AndroidBusyForm busy = new AndroidBusyForm(this, "Importing Android backup…"))
+			using (AndroidBusyForm busy = new AndroidBusyForm(this.GetForkDialogOwner(), "Importing Android backup…"))
 			{
 				busy.ShowBusy();
 
@@ -4553,7 +4583,7 @@ namespace DMR
 				}
 			}
 			
-			using (AndroidBusyForm busy = new AndroidBusyForm(this, "Exporting Android backup…"))
+			using (AndroidBusyForm busy = new AndroidBusyForm(this.GetForkDialogOwner(), "Exporting Android backup…"))
 			{
 				busy.ShowBusy();
 
