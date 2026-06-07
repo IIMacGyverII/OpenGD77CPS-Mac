@@ -26,14 +26,14 @@ namespace DMR
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
 			this.StartPosition = FormStartPosition.CenterParent;
-			this.ClientSize = new Size(520, 388);
+			this.ClientSize = new Size(520, 404);
 			this.Font = new Font("Segoe UI", 9.75f);
 			Theme.ApplyForkDialog(this);
 
 			Label intro = new Label
 			{
 				Location = new Point(16, 16),
-				Size = new Size(488, 228),
+				Size = new Size(488, 244),
 				Text =
 					"This build is for PriInterPhone / DMRModHooks on Android — not stock Radioddity GD-77.\n\n" +
 					"Phone workflow:\n" +
@@ -44,13 +44,14 @@ namespace DMR
 					"   Validate, Review diff, then Import all (Path B). Or File → Import CSV… / Ctrl+I.\n" +
 					"4. Edit channels in the tree; Android-only fields live in the PriInterPhone section on each channel.\n" +
 					"5. Export with File → Export CSV… or Ctrl+E. Files are UTF-8 without BOM.\n" +
-					"6. F7 opens codeplug health report (scrolls to first warning). F5 refreshes reports in F8 or Studio.\n\n" +
+					"6. F7 opens codeplug health report (scrolls to first warning). F5 refreshes reports in F8 or Studio.\n" +
+					"7. Navigation: Ctrl+Shift+F tree filter · Ctrl+F on grids · F2 opens editors · F1 lists all shortcuts.\n\n" +
 					"Do not use the channel list grid Import/Clear buttons for phone backups — those use the 35-column grid format (Path A)."
 			};
 
 			this.lnkReleases = new LinkLabel
 			{
-				Location = new Point(16, 256),
+				Location = new Point(16, 272),
 				AutoSize = true,
 				Text = "Fork releases on GitHub"
 			};
@@ -58,7 +59,7 @@ namespace DMR
 
 			this.lnkNotes = new LinkLabel
 			{
-				Location = new Point(16, 280),
+				Location = new Point(16, 296),
 				AutoSize = true,
 				Text = "Release notes (v" + AboutForm.FORK_VERSION + ")"
 			};
@@ -66,7 +67,7 @@ namespace DMR
 
 			this.lnkPhonedmrapp = new LinkLabel
 			{
-				Location = new Point(16, 304),
+				Location = new Point(16, 320),
 				AutoSize = true,
 				Text = "DMRModHooks / phonedmrapp docs"
 			};
@@ -74,14 +75,14 @@ namespace DMR
 
 			this.chkDismiss = new CheckBox
 			{
-				Location = new Point(16, 332),
+				Location = new Point(16, 348),
 				AutoSize = true,
 				Text = "Do not show this again"
 			};
 
 			this.btnOk = new Button
 			{
-				Location = new Point(412, 350),
+				Location = new Point(412, 366),
 				Size = new Size(88, 28),
 				Text = "OK",
 				DialogResult = DialogResult.OK

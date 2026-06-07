@@ -4642,7 +4642,18 @@ namespace DMR
 			{
 				AndroidBatchResult.ShowDialog(this, batch);
 			}
-			this.ShowForkStatusMessage(batch.Title + " — " + batch.StatsLine);
+			string statusMsg = batch.Title + " — " + batch.StatsLine;
+			int statusRevertMs = 8000;
+			if (!batch.HasErrors && string.Equals(batch.Operation, "Import", StringComparison.OrdinalIgnoreCase))
+			{
+				CodeplugHealthSnapshot health = CodeplugHealthSnapshot.Collect();
+				if (health.HasWarning)
+				{
+					statusMsg += ForkFilterEscape.PostImportHealthHint;
+					statusRevertMs = 12000;
+				}
+			}
+			this.ShowForkStatusMessage(statusMsg, statusRevertMs);
 			this.RefreshOpenEditorsAfterAndroidImport();
 			this.UpdateForkChrome();
 			this.InitTree();

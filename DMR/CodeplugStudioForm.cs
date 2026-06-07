@@ -264,7 +264,7 @@ namespace DMR
 
 			Label lblHint = new Label
 			{
-				Text = "F5 refresh report · drop folder, Recent, or double-click a CSV card",
+				Text = "F5 refresh · post-import scrolls to health · F7 full report · drop folder, Recent, or double-click a CSV card",
 				Font = Theme.UiFontSmall,
 				ForeColor = Theme.MutedForeground,
 				AutoSize = true,
@@ -1204,7 +1204,18 @@ namespace DMR
 				return;
 			}
 			string prefix = string.Equals(batch.Operation, "Export", StringComparison.OrdinalIgnoreCase) ? "Exported" : "Import";
-			this.SetReportStatusChip(prefix + " complete ✓ — " + batch.StatsLine, Color.FromArgb(0x81, 0xC7, 0x84));
+			string chip = prefix + " complete ✓ — " + batch.StatsLine;
+			Color chipColor = Color.FromArgb(0x81, 0xC7, 0x84);
+			if (string.Equals(batch.Operation, "Import", StringComparison.OrdinalIgnoreCase))
+			{
+				CodeplugHealthSnapshot health = CodeplugHealthSnapshot.Collect();
+				if (health.HasWarning)
+				{
+					chip += ForkFilterEscape.PostImportHealthHint;
+					chipColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
+				}
+			}
+			this.SetReportStatusChip(chip, chipColor);
 		}
 
 		private void btnOpenFolder_Click(object sender, EventArgs e)
