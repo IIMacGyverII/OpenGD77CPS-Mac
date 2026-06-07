@@ -2493,6 +2493,16 @@ namespace DMR
 			{
 				this.tsmiReviewDiff.Text = ForkPostImportUi.DiffMenuLabel(snap);
 			}
+			if (this.tsmiImportCsv != null)
+			{
+				this.tsmiImportCsv.Text = ForkPostImportUi.ImportMenuLabel(snap);
+			}
+			if (this.tsbtnImportAndroid != null)
+			{
+				this.tsbtnImportAndroid.Text = ForkPostImportUi.ImportToolbarLabel(snap);
+				this.tsbtnImportAndroid.ForeColor = hasPending ? ForkPostImportUi.WarnColor : Theme.Foreground;
+				this.tsbtnImportAndroid.ToolTipText = ForkPostImportUi.ImportToolbarTooltip(snap);
+			}
 #endif
 		}
 
@@ -2767,6 +2777,16 @@ namespace DMR
 			{
 				this.ShowCodeplugHealthReport(this, EventArgs.Empty);
 				return true;
+			}
+			if (keyData == (Keys.Control | Keys.D))
+			{
+				ForkPendingDiffSnapshot diffSnap = ForkPostImportUi.CollectPendingDiffSnapshot();
+				if (diffSnap.HasPending && !string.IsNullOrEmpty(diffSnap.FolderPath))
+				{
+					this.OpenAndroidBackupForDiffReview(diffSnap.FolderPath);
+					this.RefreshForkPendingDiff();
+					return true;
+				}
 			}
 			if (keyData == Keys.F8)
 			{
@@ -4762,6 +4782,8 @@ namespace DMR
 					return null;
 				}
 				diffApproved = true;
+				ForkPostImportUi.MarkPendingDiffReviewed(folderPath);
+				this.RefreshForkPendingDiff();
 			}
 			else if (channelsWillImport && skipDiffReview)
 			{

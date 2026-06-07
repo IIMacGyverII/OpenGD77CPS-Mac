@@ -37,7 +37,8 @@ namespace DMR
 		internal const string PreImportReportDiffLink = "Open Review diff… (Ctrl+D)";
 		internal const string PreImportReportFootWarn = "Review channel changes before Path B import — amber status, Review diff ⚠ footer/toolbar/menu, status bar links, or Ctrl+D in F8/Studio.";
 		internal const string ImportBlockedDiffTitle = "Review diff first";
-		internal const string MainToolbarDiffTipDefault = "Review channel changes before Path B import — open F8/Studio (Ctrl+D while open)";
+		internal const string MainToolbarDiffTipDefault = "Review channel changes before Path B import — Ctrl+D when pending, or F8/Studio";
+		internal const string MainImportToolbarTipDefault = "Import PriInterPhone backup folder (File → Import CSV, Path B)";
 		internal const string PendingDiffLinkTip = "Click to review channel changes before import (Ctrl+D)";
 		internal const string PreImportDiffButtonDefault = "Review diff…";
 		internal const string PreImportDiffButtonWarn = "Review diff ⚠ (Ctrl+D)";
@@ -192,6 +193,41 @@ namespace DMR
 				return "Review diff";
 			}
 			return "Review diff ⚠" + ForkPostImportUi.DiffChangeCountToolbarNote(snap.ChangeCount);
+		}
+
+		public static string ImportMenuLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "Import Android backup folder...";
+			}
+			if (snap.ChangeCount > 1)
+			{
+				return "Import Android backup folder ⚠ (" + snap.ChangeCount + " ch)...";
+			}
+			return "Import Android backup folder ⚠...";
+		}
+
+		public static string ImportToolbarLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "Import Android";
+			}
+			if (snap.ChangeCount > 1)
+			{
+				return "Import ⚠ (" + snap.ChangeCount + ")";
+			}
+			return "Import ⚠";
+		}
+
+		public static string ImportToolbarTooltip(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return ForkPostImportUi.MainImportToolbarTipDefault;
+			}
+			return "Pending channel changes in last backup — Review diff first (Ctrl+D) or import shows diff preview";
 		}
 
 		public static string DiffMenuLabel(ForkPendingDiffSnapshot snap)

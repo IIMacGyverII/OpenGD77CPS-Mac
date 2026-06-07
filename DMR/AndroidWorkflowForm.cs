@@ -44,7 +44,7 @@ namespace DMR
 					"   Validate, Review diff, then Import all (Path B). Or File → Import CSV… / Ctrl+I.\n" +
 					"4. Edit channels in the tree; Android-only fields live in the PriInterPhone section on each channel.\n" +
 					"5. Export with File → Export CSV… or Ctrl+E. Files are UTF-8 without BOM.\n" +
-					"6. Pending diff: center status bar Review diff ⚠ link, left status after pull, toolbar/menu (View), or report link in F8/Studio. Click amber status or Review diff ⚠ footer (Ctrl+D in F8/Studio).\n" +
+					"6. Pending diff: Ctrl+D (main window when pending), center/left status bar, Review diff ⚠ toolbar/menu (View), Import ⚠ toolbar/menu, or report link in F8/Studio. Footer Ctrl+D in F8/Studio.\n" +
 					"   F7 opens codeplug health report (scrolls to first warning). After import: click names in F8/Studio health section, report link, amber status, Health ⚠ footer, toolbar/menu, batch dialog, or left status bar link.\n" +
 					"   F5 refreshes reports in F8 or Studio.\n" +
 					"7. Navigation: Ctrl+Shift+F tree filter · Ctrl+F on grids · F2 opens editors · F1 lists all shortcuts.\n\n" +

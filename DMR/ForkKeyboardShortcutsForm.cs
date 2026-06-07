@@ -23,6 +23,7 @@ namespace DMR
 					Size = new Size(428, 340),
 					Text =
 						"Global (main window)\n" +
+						"  Ctrl+D     Review diff when pending (main window; channels grid uses Ctrl+D to duplicate)\n" +
 						"  Ctrl+I     Import Android backup folder (Path B)\n" +
 						"  Ctrl+E     Export Android backup folder\n" +
 						"  Ctrl+O     Open codeplug\n" +
