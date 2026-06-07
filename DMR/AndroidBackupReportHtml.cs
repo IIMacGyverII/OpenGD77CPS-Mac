@@ -178,7 +178,7 @@ namespace DMR
 				html.Append("<p>").Append(ForkReportHtml.Escape(integrity.Summary)).Append("</p>");
 				if (integrity.HasWarnings && integrity.Warnings != null && integrity.Warnings.Count > 0)
 				{
-					html.Append("<p class=\"foot\">Click a channel name (blue link) to open it in the loaded codeplug editor.</p>");
+					html.Append("<p class=\"foot\">Click a channel or DMR ID (blue link) to open it in the loaded codeplug editor.</p>");
 					html.Append("<ul>");
 					int shown = 0;
 					foreach (string warning in integrity.Warnings)
@@ -219,12 +219,83 @@ namespace DMR
 				return ForkReportHtml.Escape(warning);
 			}
 			int channelIndex = AndroidImportDiff.FindLoadedChannelIndexByName(channelName);
+			string tail = warning.Substring(colon);
 			if (channelIndex < 0)
 			{
-				return ForkReportHtml.Escape(warning);
+				return LinkDmrIdsInText(warning);
 			}
-			return ForkReportHtml.DrillLink("channel", channelIndex, channelName)
-				+ ForkReportHtml.Escape(warning.Substring(colon));
+			return ForkReportHtml.DrillLink("channel", channelIndex, channelName) + LinkDmrIdsInText(tail);
+		}
+
+		private static string LinkDmrIdsInText(string text)
+		{
+			if (string.IsNullOrEmpty(text))
+			{
+				return "";
+			}
+			const string marker = "DMR ID ";
+			StringBuilder html = new StringBuilder();
+			int pos = 0;
+			while (pos < text.Length)
+			{
+				int idx = text.IndexOf(marker, pos, StringComparison.OrdinalIgnoreCase);
+				if (idx < 0)
+				{
+					html.Append(ForkReportHtml.Escape(text.Substring(pos)));
+					break;
+				}
+				html.Append(ForkReportHtml.Escape(text.Substring(pos, idx - pos)));
+				html.Append("DMR ID ");
+				int idStart = idx + marker.Length;
+				int idEnd = idStart;
+				while (idEnd < text.Length && char.IsDigit(text[idEnd]))
+				{
+					idEnd++;
+				}
+				string idStr = text.Substring(idStart, idEnd - idStart);
+				int contactIndex = AndroidImportDiff.FindContactIndexByCallId(idStr);
+				if (contactIndex >= 0)
+				{
+					html.Append(ForkReportHtml.DrillLink("contact", contactIndex, idStr));
+				}
+				else
+				{
+					html.Append(ForkReportHtml.Escape(idStr));
+				}
+				pos = idEnd;
+			}
+			return html.ToString();
+		}
+
+		public static string GetFolderStatusSummary(
+			AndroidBackupValidationResult validation,
+			AndroidContactIntegrityResult integrity,
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv)
+		{
+			if (validation != null && validation.HasBlockingErrors)
+			{
+				return "Blocking errors — fix before import";
+			}
+			if (integrity != null && integrity.HasWarnings)
+			{
+				return "Warnings — review before import";
+			}
+			if (diff != null && !diffPreApproved && AndroidImportDiff.HasPendingDiffChanges(diff))
+			{
+				int pending = diff.Added + diff.Changed + diff.Deleted;
+				return pending + " channel change(s) — Review diff… (Ctrl+D)";
+			}
+			if (diffPreApproved && hasChannelsCsv && diff != null && !AndroidImportDiff.HasPendingDiffChanges(diff))
+			{
+				return "No channel changes — ready to import";
+			}
+			if (diffPreApproved && hasChannelsCsv)
+			{
+				return "Diff reviewed ✓ — ready to import";
+			}
+			return "Ready to import";
 		}
 
 		private static void AppendMetricRow(StringBuilder html, string label, string value, bool warn = false)

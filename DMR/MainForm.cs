@@ -253,7 +253,7 @@ namespace DMR
 
 		private readonly List<ForkTreeFilterEntry> forkTreeFilterStash = new List<ForkTreeFilterEntry>();
 
-		private const string ForkStatusHintDefault = "F8 backup | Ctrl+I import | F7 health | F1 help";
+		private const string ForkStatusHintDefault = "Ctrl+Shift+S Studio | F8 backup | F7 health | F1 shortcuts";
 
 		private sealed class ForkTreeFilterEntry
 		{

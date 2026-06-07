@@ -532,19 +532,28 @@ namespace DMR
 			}
 			if (e.Control && e.KeyCode == Keys.I)
 			{
-				this.btnImportAll_Click(this.btnImportAll, EventArgs.Empty);
+				if (this.btnImportAll.Enabled)
+				{
+					this.btnImportAll_Click(this.btnImportAll, EventArgs.Empty);
+				}
 				e.Handled = true;
 				return;
 			}
 			if (e.Control && e.KeyCode == Keys.E)
 			{
-				this.btnExportAll_Click(this.btnExportAll, EventArgs.Empty);
+				if (this.btnExportAll.Enabled)
+				{
+					this.btnExportAll_Click(this.btnExportAll, EventArgs.Empty);
+				}
 				e.Handled = true;
 				return;
 			}
 			if (e.Control && e.KeyCode == Keys.D)
 			{
-				this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty);
+				if (this.btnReviewDiff.Enabled)
+				{
+					this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty);
+				}
 				e.Handled = true;
 				return;
 			}
@@ -948,37 +957,19 @@ namespace DMR
 				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
 				scrollId);
 
+			string statusSummary = AndroidBackupReportHtml.GetFolderStatusSummary(
+				this.lastValidation, integrity, diff, this.diffPreApproved, File.Exists(channelsPath));
+			Color statusColor = Color.FromArgb(0x81, 0xC7, 0x84);
 			if (this.lastValidation.HasBlockingErrors)
 			{
-				this.lblReportStatus.Text = "Blocking errors — fix before import";
-				this.lblReportStatus.ForeColor = Color.FromArgb(0xEF, 0x53, 0x50);
+				statusColor = Color.FromArgb(0xEF, 0x53, 0x50);
 			}
-			else if (integrity.HasWarnings)
+			else if (integrity.HasWarnings
+				|| (diff != null && !this.diffPreApproved && AndroidImportDiff.HasPendingDiffChanges(diff)))
 			{
-				this.lblReportStatus.Text = "Warnings — review before import";
-				this.lblReportStatus.ForeColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
+				statusColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
 			}
-			else if (diff != null && !this.diffPreApproved && AndroidImportDiff.HasPendingDiffChanges(diff))
-			{
-				int pending = diff.Added + diff.Changed + diff.Deleted;
-				this.lblReportStatus.Text = pending + " channel change(s) — Review diff…";
-				this.lblReportStatus.ForeColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
-			}
-			else if (this.diffPreApproved && File.Exists(channelsPath) && diff != null && !AndroidImportDiff.HasPendingDiffChanges(diff))
-			{
-				this.lblReportStatus.Text = "No channel changes — ready to import";
-				this.lblReportStatus.ForeColor = Color.FromArgb(0x81, 0xC7, 0x84);
-			}
-			else if (this.diffPreApproved && File.Exists(channelsPath))
-			{
-				this.lblReportStatus.Text = "Diff reviewed ✓ — ready to import";
-				this.lblReportStatus.ForeColor = Color.FromArgb(0x81, 0xC7, 0x84);
-			}
-			else
-			{
-				this.lblReportStatus.Text = "Ready to import";
-				this.lblReportStatus.ForeColor = Color.FromArgb(0x81, 0xC7, 0x84);
-			}
+			this.SetReportStatusChip(statusSummary, statusColor);
 
 			this.UpdateDiffImportButtons(channelsPath, diff);
 			return true;

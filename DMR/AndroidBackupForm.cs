@@ -115,6 +115,7 @@ namespace DMR
 			};
 			this.lstFiles.Columns.Add("File", 160);
 			this.lstFiles.Columns.Add("Status", 420);
+			this.lstFiles.DoubleClick += this.lstFiles_DoubleClick;
 
 			topPanel.Controls.Add(this.txtFolder);
 			topPanel.Controls.Add(this.btnBrowse);
@@ -253,19 +254,34 @@ namespace DMR
 		{
 			if (e.Control && e.KeyCode == Keys.I)
 			{
-				this.btnImportAll_Click(this.btnImportAll, EventArgs.Empty);
+				if (this.btnImportAll.Enabled)
+				{
+					this.btnImportAll_Click(this.btnImportAll, EventArgs.Empty);
+				}
 				e.Handled = true;
 				return;
 			}
 			if (e.Control && e.KeyCode == Keys.D)
 			{
-				this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty);
+				if (this.btnReviewDiff.Enabled)
+				{
+					this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty);
+				}
 				e.Handled = true;
 				return;
 			}
 			if (e.Control && e.KeyCode == Keys.E)
 			{
-				this.btnExportAll_Click(this.btnExportAll, EventArgs.Empty);
+				if (this.btnExportAll.Enabled)
+				{
+					this.btnExportAll_Click(this.btnExportAll, EventArgs.Empty);
+				}
+				e.Handled = true;
+				return;
+			}
+			if (e.KeyCode == Keys.F7)
+			{
+				this.mainForm.OpenCodeplugHealthReport();
 				e.Handled = true;
 				return;
 			}
@@ -298,6 +314,34 @@ namespace DMR
 				};
 				dlg.Controls.Add(txt);
 				dlg.ShowDialog(this);
+			}
+		}
+
+		private void lstFiles_DoubleClick(object sender, EventArgs e)
+		{
+			if (this.lstFiles.SelectedItems.Count == 0)
+			{
+				return;
+			}
+			string fileName = this.lstFiles.SelectedItems[0].Text;
+			string folderPath = this.txtFolder.Text.Trim();
+			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
+			{
+				return;
+			}
+			string path = Path.Combine(folderPath, fileName);
+			if (!File.Exists(path))
+			{
+				return;
+			}
+			try
+			{
+				System.Diagnostics.Process.Start(path);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(this, path + "\n\n" + ex.Message, "Open file",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
 			}
 		}
 
@@ -440,9 +484,8 @@ namespace DMR
 			this.webReport.NavigateHtml(
 				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
 				scrollId);
-			this.lblReportCaption.Text = integrity.HasWarnings || this.lastValidation.HasBlockingErrors
-				? "Validation report — review warnings below"
-				: "Validation report — ready to import";
+			this.lblReportCaption.Text = AndroidBackupReportHtml.GetFolderStatusSummary(
+				this.lastValidation, integrity, diff, this.diffPreApproved, File.Exists(channelsPath));
 			this.UpdateDiffImportButtons(channelsPath, diff);
 			return true;
 		}

@@ -243,6 +243,16 @@ namespace DMR
 			return info.LastWriteTimeUtc.Ticks.ToString() + ":" + info.Length.ToString();
 		}
 
+		public static int FindContactIndexByCallId(string callId)
+		{
+			int id;
+			if (string.IsNullOrEmpty(callId) || !int.TryParse(callId.Trim(), out id) || id <= 0)
+			{
+				return -1;
+			}
+			return ContactForm.data.GetCallIndexFromIdString(id);
+		}
+
 		public static int FindLoadedChannelIndexByName(string channelName)
 		{
 			if (string.IsNullOrEmpty(channelName))
