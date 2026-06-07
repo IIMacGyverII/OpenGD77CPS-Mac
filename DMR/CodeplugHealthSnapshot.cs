@@ -86,11 +86,28 @@ namespace DMR
 		{
 			get
 			{
-				return this.RelayZero > 0 || this.OrphanCount > 0 || this.DuplicateNameGroups > 0
-					|| this.EmptyZones > 0 || this.ChannelsNotInZone > 0 || this.DuplicateDmrIdGroups > 0
-					|| this.DuplicateContactNameGroups > 0 || this.DigitalNoContact > 0
-					|| this.EmptyScanLists > 0 || this.InvalidScanRefs > 0
-					|| this.EmptyTgLists > 0 || this.InvalidTgRefs > 0;
+				return this.WarningCategoryCount > 0;
+			}
+		}
+
+		public int WarningCategoryCount
+		{
+			get
+			{
+				int count = 0;
+				if (this.RelayZero > 0) { count++; }
+				if (this.OrphanCount > 0) { count++; }
+				if (this.DuplicateNameGroups > 0) { count++; }
+				if (this.DuplicateDmrIdGroups > 0) { count++; }
+				if (this.DuplicateContactNameGroups > 0) { count++; }
+				if (this.DigitalNoContact > 0) { count++; }
+				if (this.EmptyZones > 0) { count++; }
+				if (this.ChannelsNotInZone > 0) { count++; }
+				if (this.EmptyTgLists > 0) { count++; }
+				if (this.InvalidTgRefs > 0) { count++; }
+				if (this.EmptyScanLists > 0) { count++; }
+				if (this.InvalidScanRefs > 0) { count++; }
+				return count;
 			}
 		}
 

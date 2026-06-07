@@ -24,10 +24,7 @@ namespace DMR
 				new[] { snap.TgLists.ToString(), "TG lists", "" },
 				new[] { snap.ScanLists.ToString(), "Scan lists", "" });
 
-			string badgeClass = snap.HasWarning ? "badge-warn" : "badge-ok";
-			string badgeText = snap.HasWarning ? "Review warnings" : "Healthy";
-			html.Append("<h2>Status <span class=\"badge ").Append(badgeClass).Append("\">")
-				.Append(badgeText).Append("</span></h2>");
+			AppendHealthStatusBadge(html, snap, "Status");
 
 			if (snap.RelayZero > 0)
 			{
@@ -289,10 +286,7 @@ namespace DMR
 		{
 			CodeplugHealthSnapshot snap = CodeplugHealthSnapshot.Collect();
 			const int maxItems = 8;
-			string badgeClass = snap.HasWarning ? "badge-warn" : "badge-ok";
-			string badgeText = snap.HasWarning ? "Review warnings" : "Healthy";
-			html.Append("<h2 id=\"studio-post-import-health\">Loaded codeplug health <span class=\"badge ").Append(badgeClass).Append("\">")
-				.Append(badgeText).Append("</span></h2>");
+			AppendHealthStatusBadge(html, snap, "Loaded codeplug health", "studio-post-import-health");
 
 			ForkReportHtml.AppendMetricCards(html,
 				new[] { snap.Channels.ToString(), "Channels", "" },
@@ -400,6 +394,32 @@ namespace DMR
 			html.Append("<p class=\"warn\">").Append(ForkReportHtml.HealthReportLink(ForkPostImportUi.PostImportReportHealthLink))
 				.Append(" — also amber status chip, Health ⚠ footer/toolbar/menu, or press F7.</p>");
 			html.Append("<p class=\"foot\">").Append(ForkPostImportUi.PostImportReportFootWarn).Append("</p>");
+		}
+
+		private static void AppendHealthStatusBadge(StringBuilder html, CodeplugHealthSnapshot snap, string title, string elementId = null)
+		{
+			string badgeClass = snap.HasWarning ? "badge-warn" : "badge-ok";
+			string badgeText = GetHealthBadgeText(snap);
+			html.Append("<h2");
+			if (!string.IsNullOrEmpty(elementId))
+			{
+				html.Append(" id=\"").Append(elementId).Append("\"");
+			}
+			html.Append(">").Append(title).Append(" <span class=\"badge ").Append(badgeClass).Append("\">")
+				.Append(badgeText).Append("</span></h2>");
+		}
+
+		private static string GetHealthBadgeText(CodeplugHealthSnapshot snap)
+		{
+			if (snap == null || !snap.HasWarning)
+			{
+				return "Healthy";
+			}
+			if (snap.WarningCategoryCount > 1)
+			{
+				return "Review warnings · " + snap.WarningCategoryCount + " categories";
+			}
+			return "Review warnings";
 		}
 
 		private static void AppendDrillList(StringBuilder html, string title, int total,

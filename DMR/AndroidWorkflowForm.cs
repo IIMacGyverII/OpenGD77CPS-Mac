@@ -44,7 +44,7 @@ namespace DMR
 					"   Validate, Review diff, then Import all (Path B). Or File → Import CSV… / Ctrl+I.\n" +
 					"4. Edit channels in the tree; Android-only fields live in the PriInterPhone section on each channel.\n" +
 					"5. Export with File → Export CSV… or Ctrl+E. Files are UTF-8 without BOM.\n" +
-					"6. F7 opens codeplug health report (scrolls to first warning). After import: report link, amber status, Health ⚠ footer, toolbar/menu Health ⚠, batch dialog, or left status bar link.\n" +
+					"6. F7 opens codeplug health report (scrolls to first warning). After import: click names in F8/Studio health section, report link, amber status, Health ⚠ footer, toolbar/menu, batch dialog, or left status bar link.\n" +
 					"   F5 refreshes reports in F8 or Studio.\n" +
 					"7. Navigation: Ctrl+Shift+F tree filter · Ctrl+F on grids · F2 opens editors · F1 lists all shortcuts.\n\n" +
 					"Do not use the channel list grid Import/Clear buttons for phone backups — those use the 35-column grid format (Path A)."
