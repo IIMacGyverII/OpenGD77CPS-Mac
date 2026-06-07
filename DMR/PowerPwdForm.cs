@@ -21,8 +21,29 @@ namespace DMR
 		private void PowerPwdForm_Load(object sender, EventArgs e)
 		{
 			Settings.smethod_68(this);
+			this.EnsureForkPowerPwdUi();
+			base.Resize += this.PowerPwdForm_Resize;
 			this.txtPwd.MaxByteLength = 16;
 			this.txtPwd.InputString = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\b";
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkPowerPwdLayout();
+		}
+
+		private void EnsureForkPowerPwdUi()
+		{
+			base.AutoScroll = true;
+		}
+
+		private void PowerPwdForm_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkPowerPwdLayout();
+		}
+
+		private void ApplyForkPowerPwdLayout()
+		{
+			int minW = Theme.Dpi(290);
+			int minH = Theme.Dpi(170);
+			base.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void btnOk_Click(object sender, EventArgs e)

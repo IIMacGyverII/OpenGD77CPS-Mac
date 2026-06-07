@@ -85,9 +85,30 @@ namespace DMR
 		private void PasswordForm_Load(object sender, EventArgs e)
 		{
 			Settings.smethod_68(this);
+			this.EnsureForkPasswordUi();
+			base.Resize += this.PasswordForm_Resize;
 			this.txtPwd.MaxByteLength = 8;
 			this.txtPwd.InputString = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\b";
 			this.txtPwd.Text = Settings.CUR_PWD;
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkPasswordLayout();
+		}
+
+		private void EnsureForkPasswordUi()
+		{
+			base.AutoScroll = true;
+		}
+
+		private void PasswordForm_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkPasswordLayout();
+		}
+
+		private void ApplyForkPasswordLayout()
+		{
+			int minW = Theme.Dpi(290);
+			int minH = Theme.Dpi(170);
+			base.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void btnOk_Click(object sender, EventArgs e)

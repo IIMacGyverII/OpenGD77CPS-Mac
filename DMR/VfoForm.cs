@@ -3264,15 +3264,37 @@ namespace DMR
 			{
 				Settings.smethod_59(base.Controls);
 				Settings.smethod_68(this);
+				this.EnsureForkVfoUi();
+				this.pnlChannel.Resize += this.pnlChannel_Resize;
 				VfoForm.data.ChModeChangeEvent += this.method_3;
 				this.method_9();
 				this.method_1();
 				this.DispData();
+				Theme.ApplyStandardEditorColors(this);
+				this.ApplyForkVfoLayout();
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message);
 			}
+		}
+
+		private void EnsureForkVfoUi()
+		{
+			this.pnlChannel.AutoSize = false;
+			this.pnlChannel.AutoScroll = true;
+		}
+
+		private void pnlChannel_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkVfoLayout();
+		}
+
+		private void ApplyForkVfoLayout()
+		{
+			int minW = Theme.Dpi(1120);
+			int minH = Theme.Dpi(720);
+			this.pnlChannel.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void VfoForm_FormClosing(object sender, FormClosingEventArgs e)

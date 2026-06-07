@@ -116,8 +116,29 @@ namespace DMR
 		private void ComForm_Load(object sender, EventArgs e)
 		{
 			Settings.smethod_68(this);
+			this.EnsureForkComUi();
+			base.Resize += this.ComForm_Resize;
 			this.method_0();
 			this.cmbPort.SelectedItem = MainForm.CurCom;
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkComLayout();
+		}
+
+		private void EnsureForkComUi()
+		{
+			base.AutoScroll = true;
+		}
+
+		private void ComForm_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkComLayout();
+		}
+
+		private void ApplyForkComLayout()
+		{
+			int minW = Theme.Dpi(380);
+			int minH = Theme.Dpi(300);
+			base.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void btnOK_Click(object sender, EventArgs e)
