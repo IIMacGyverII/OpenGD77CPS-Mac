@@ -582,6 +582,11 @@
 			<Control Id="lblName" Text="Name" />
 		</Controls>
 	</RxGroupListForm>
+	<RxGroupListsForm Text="TG Lists">
+		<Controls>
+			<Control Id="dgvRxLists" Text="#,Name,Contacts,1st contact" />
+		</Controls>
+	</RxGroupListsForm>
 	<SignalingBasicForm Text="Signaling Basic">
 		<Controls>
 			<Control Id="chkCallAlert" Text="Call Alert Encode" />

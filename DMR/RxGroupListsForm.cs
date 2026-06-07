@@ -110,8 +110,8 @@ namespace DMR
 
 		private void RxGroupListsForm_Load(object sender, EventArgs e)
 		{
-			Settings.smethod_68(this);
 			this.EnsureForkRxListsGridUi();
+			Settings.smethod_68(this);
 			this.pnlRxLists.Resize += this.pnlRxLists_Resize;
 			this.DispData();
 			Theme.ApplyStandardEditorColors(this);

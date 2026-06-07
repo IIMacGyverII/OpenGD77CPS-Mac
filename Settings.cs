@@ -1292,6 +1292,10 @@ internal class Settings
 		new Dictionary<string, string>();
 		string xpath = string.Format("/Resource/{0}", form_0.Name);
 		XmlNode xmlNode = _languageXML.SelectSingleNode(xpath);
+		if (xmlNode == null)
+		{
+			return;
+		}
 		try
 		{
 			form_0.Text = xmlNode.Attributes["Text"].Value;
