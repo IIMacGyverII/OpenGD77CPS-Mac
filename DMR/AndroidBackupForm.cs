@@ -73,6 +73,12 @@ namespace DMR
 				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
 			};
 			this.txtFolder.Leave += this.txtFolder_Leave;
+			ContextMenuStrip folderMenu = new ContextMenuStrip();
+			Theme.ApplyForkContextMenu(folderMenu);
+			ToolStripMenuItem mnuCopyPath = new ToolStripMenuItem("Copy folder path");
+			mnuCopyPath.Click += this.mnuCopyFolderPath_Click;
+			folderMenu.Items.Add(mnuCopyPath);
+			this.txtFolder.ContextMenuStrip = folderMenu;
 
 			this.recentMenu = new ContextMenuStrip();
 			Theme.ApplyForkContextMenu(this.recentMenu);
@@ -378,6 +384,24 @@ namespace DMR
 			catch (Exception ex)
 			{
 				MessageBox.Show(this, path + "\n\n" + ex.Message, "Open file",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
+		}
+
+		private void mnuCopyFolderPath_Click(object sender, EventArgs e)
+		{
+			string path = this.txtFolder.Text.Trim();
+			if (string.IsNullOrEmpty(path))
+			{
+				return;
+			}
+			try
+			{
+				Clipboard.SetText(path);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(this, ex.Message, "Copy folder path",
 					MessageBoxButtons.OK, MessageBoxIcon.Warning);
 			}
 		}

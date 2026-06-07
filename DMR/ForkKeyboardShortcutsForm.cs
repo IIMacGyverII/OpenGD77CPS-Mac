@@ -45,6 +45,8 @@ namespace DMR
 						"  F7         Codeplug health report\n" +
 						"  Recent     Pick a recently used backup folder\n" +
 						"  Raw log    Plain-text validation + diff log\n" +
+						"  Desktop shortcut  Create --studio shortcut on Desktop\n" +
+						"  Right-click folder path  Copy folder path\n" +
 						"  Drop folder  Load backup folder from Explorer\n\n" +
 						"Navigation tree\n" +
 						"  Filter box Search zones, channels, contacts, etc.\n\n" +

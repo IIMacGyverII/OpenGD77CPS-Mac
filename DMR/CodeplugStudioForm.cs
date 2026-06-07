@@ -212,6 +212,12 @@ namespace DMR
 				Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
 			};
 			Theme.ApplyStudioTextBox(this.txtFolder);
+			ContextMenuStrip folderMenu = new ContextMenuStrip();
+			Theme.ApplyForkContextMenu(folderMenu);
+			ToolStripMenuItem mnuCopyPath = new ToolStripMenuItem("Copy folder path");
+			mnuCopyPath.Click += this.mnuCopyFolderPath_Click;
+			folderMenu.Items.Add(mnuCopyPath);
+			this.txtFolder.ContextMenuStrip = folderMenu;
 
 			btnRecent = new Button
 			{
@@ -410,6 +416,7 @@ namespace DMR
 			Button btnOpenFolder = this.MakeFooterButton("Open folder", false, false);
 			Button btnHealth = this.MakeFooterButton("Health (F7)", false, false);
 			Button btnRawLog = this.MakeFooterButton("Raw log…", false, false);
+			Button btnShortcut = this.MakeFooterButton("Desktop shortcut…", false, false);
 			this.btnOpenFullCps = this.MakeFooterButton("Open full editor…", false, true);
 			Button btnClose = this.MakeFooterButton("Close", false, false);
 			btnClose.DialogResult = DialogResult.OK;
@@ -422,6 +429,7 @@ namespace DMR
 			btnOpenFolder.Click += this.btnOpenFolder_Click;
 			btnHealth.Click += this.btnHealth_Click;
 			btnRawLog.Click += this.btnRawLog_Click;
+			btnShortcut.Click += this.btnShortcut_Click;
 			this.btnOpenFullCps.Click += this.btnOpenFullCps_Click;
 
 			this.btnReviewDiff.Enabled = false;
@@ -432,8 +440,9 @@ namespace DMR
 			this.footerTip.SetToolTip(btnOpenFolder, "Open backup folder in Explorer");
 			this.footerTip.SetToolTip(btnHealth, "Full codeplug health report (F7)");
 			this.footerTip.SetToolTip(btnRawLog, "Plain-text validation, diff, and integrity log");
+			this.footerTip.SetToolTip(btnShortcut, "Create PriInterPhone Codeplug Studio shortcut on Desktop (--studio)");
 			this.footerTip.SetToolTip(this.btnOpenFullCps, "Show dock, tree, and full CPS editors");
-			foreach (Control c in new Control[] { this.btnImportAll, this.btnReviewDiff, this.btnExportAll, btnOpenFolder, btnHealth, btnRawLog, this.btnOpenFullCps, btnClose })
+			foreach (Control c in new Control[] { this.btnImportAll, this.btnReviewDiff, this.btnExportAll, btnOpenFolder, btnHealth, btnRawLog, btnShortcut, this.btnOpenFullCps, btnClose })
 			{
 				if (c != this.btnReviewDiff)
 				{
@@ -720,6 +729,31 @@ namespace DMR
 			this.mainForm.SetForkDialogOwner(this);
 			this.webReport.EnsureInitialized();
 			this.LayoutCsvTiles();
+			this.OfferStudioShortcutOnce();
+		}
+
+		private void OfferStudioShortcutOnce()
+		{
+			if (!this.standaloneLaunch)
+			{
+				return;
+			}
+			string offered = IniFileUtils.getProfileStringWithDefault("Setup", "OfferedStudioDesktopShortcut", "");
+			if (string.Equals(offered, "yes", StringComparison.OrdinalIgnoreCase))
+			{
+				return;
+			}
+			IniFileUtils.WriteProfileString("Setup", "OfferedStudioDesktopShortcut", "yes");
+			DialogResult create = MessageBox.Show(this,
+				"Create a Desktop shortcut that opens Codeplug Studio directly?\n\n"
+				+ "You can also use Desktop shortcut… in the footer any time.",
+				"Codeplug Studio",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Question);
+			if (create == DialogResult.Yes)
+			{
+				ForkDesktopShortcut.TryCreateStudioShortcut(this);
+			}
 		}
 
 		private void StudioWebReportNavigate(string uri)
@@ -1185,6 +1219,29 @@ namespace DMR
 		private void btnHealth_Click(object sender, EventArgs e)
 		{
 			this.mainForm.OpenCodeplugHealthReport();
+		}
+
+		private void mnuCopyFolderPath_Click(object sender, EventArgs e)
+		{
+			string path = this.txtFolder.Text.Trim();
+			if (string.IsNullOrEmpty(path))
+			{
+				return;
+			}
+			try
+			{
+				Clipboard.SetText(path);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(this, ex.Message, "Copy folder path",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
+		}
+
+		private void btnShortcut_Click(object sender, EventArgs e)
+		{
+			ForkDesktopShortcut.TryCreateStudioShortcut(this);
 		}
 
 		private void btnRawLog_Click(object sender, EventArgs e)
