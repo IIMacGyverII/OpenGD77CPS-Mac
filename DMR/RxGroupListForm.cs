@@ -692,6 +692,15 @@ namespace DMR
 			}
 		}
 
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtRxListFilter))
+			{
+				return true;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
+
 		static RxGroupListForm()
 		{
 			

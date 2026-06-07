@@ -328,6 +328,16 @@ namespace DMR
 				e.Handled = true;
 				return;
 			}
+			if (e.KeyCode == Keys.F5)
+			{
+				string folderPath = this.txtFolder.Text.Trim();
+				if (AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
+				{
+					this.SetFolder(folderPath, false);
+				}
+				e.Handled = true;
+				return;
+			}
 			if (e.KeyCode == Keys.F1)
 			{
 				ForkKeyboardShortcutsForm.Show(this);

@@ -1478,6 +1478,15 @@ namespace DMR
 			}
 		}
 
+		protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+		{
+			if (ForkFilterEscape.TryFocusFilter(ref keyData, this.txtZoneListFilter))
+			{
+				return true;
+			}
+			return base.ProcessCmdKey(ref msg, keyData);
+		}
+
 		private void ZoneForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			this.SaveData();

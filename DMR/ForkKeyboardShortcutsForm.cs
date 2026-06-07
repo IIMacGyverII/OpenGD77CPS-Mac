@@ -31,6 +31,7 @@ namespace DMR
 						"  F7         Codeplug health report — scrolls to first warning\n" +
 						"  F5         Refresh health report (while F7 report is open)\n" +
 						"  F8         Android backup manager (diff + import)\n" +
+						"  F5         Refresh backup folder report (F8 or Studio)\n" +
 						"             Ctrl+D / Ctrl+I / Ctrl+E / F7 same as Studio while F8 is open\n" +
 						"             Recent / drop folder — same recent list as Studio\n" +
 						"             Double-click a file row to open that CSV\n" +
@@ -45,6 +46,7 @@ namespace DMR
 						"  Ctrl+D     Review diff…\n" +
 						"  Ctrl+E     Export all\n" +
 						"  F7         Codeplug health report\n" +
+						"  F5         Refresh folder validation report\n" +
 						"  Recent     Pick a recently used backup folder\n" +
 						"  Raw log    Plain-text validation + diff log\n" +
 						"  Desktop shortcut  Create --studio shortcut on Desktop\n" +
@@ -69,7 +71,9 @@ namespace DMR
 						"Zones / TG lists / scan lists grids\n" +
 						"  F2         Open editor for selected row\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +
-						"  Click row  Open in editor"
+						"  Click row  Open in editor\n\n" +
+						"Zone / TG / scan list editors (Available list)\n" +
+						"  Ctrl+F     Focus Available filter   Esc  Clear filter"
 				};
 				Button ok = new Button
 				{

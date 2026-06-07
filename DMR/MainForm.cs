@@ -1822,7 +1822,7 @@ namespace DMR
 			this.tsbtnCodeplugHealth.DisplayStyle = ToolStripItemDisplayStyle.Text;
 			this.tsbtnCodeplugHealth.Text = "Health";
 			this.tsbtnCodeplugHealth.Font = new Font(Theme.UiFont.FontFamily, 9.75f, FontStyle.Bold);
-			this.tsbtnCodeplugHealth.ToolTipText = "Codeplug health report (F7) — click names to open editors";
+			this.tsbtnCodeplugHealth.ToolTipText = "Codeplug health report (F7) — scrolls to first warning; click names to open editors";
 			this.tsbtnCodeplugHealth.Click += this.ShowCodeplugHealthReport;
 			int backupIndex = this.tsrMain.Items.IndexOf(this.tsbtnAndroidBackup);
 			if (backupIndex >= 0)
@@ -2200,7 +2200,7 @@ namespace DMR
 			this.slblCodeplugHealth.LinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
 			this.slblCodeplugHealth.ActiveLinkColor = Color.White;
 			this.slblCodeplugHealth.VisitedLinkColor = Color.FromArgb(0x7E, 0xC8, 0xFF);
-			this.slblCodeplugHealth.ToolTipText = "Open codeplug health report (F7) — click warning names to fix";
+			this.slblCodeplugHealth.ToolTipText = "Open codeplug health report (F7) — scrolls to first warning; click names to fix";
 			this.slblCodeplugHealth.Click += this.ShowCodeplugHealthReport;
 			this.codeplugHealthLinkWired = true;
 #endif
