@@ -62,10 +62,16 @@ namespace DMR
 		}
 
 		public const string HealthReportHref = "fork://health-report";
+		public const string ReviewDiffHref = "fork://review-diff";
 
 		public static string HealthReportLink(string label)
 		{
 			return "<a class=\"drill\" href=\"" + HealthReportHref + "\">" + Escape(label) + "</a>";
+		}
+
+		public static string ReviewDiffLink(string label)
+		{
+			return "<a class=\"drill\" href=\"" + ReviewDiffHref + "\">" + Escape(label) + "</a>";
 		}
 
 		public static string Escape(string text)

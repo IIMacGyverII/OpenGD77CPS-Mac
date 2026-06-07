@@ -33,7 +33,9 @@ namespace DMR
 		internal const string PostImportReportFootWarn = "Fix issues above or use amber status, Health ⚠ footer/toolbar/menu, or F7 for the full report.";
 		internal const string PostImportReportFootOk = "Click a highlighted name to open the editor.";
 		internal const string F8StudioBannerHealthHint = "Post-import scrolls to health · click names in health section, report link, amber status, Health ⚠ footer/toolbar, or F7";
-		internal const string F8StudioBannerDiffHint = "Pending diff: amber status, Review diff ⚠ footer/toolbar/menu (Ctrl+D in F8/Studio) · left status after pull";
+		internal const string F8StudioBannerDiffHint = "Pending diff: amber status, Review diff ⚠ footer/toolbar/menu/status bar/report link (Ctrl+D in F8/Studio) · left status after pull";
+		internal const string PreImportReportDiffLink = "Open Review diff… (Ctrl+D)";
+		internal const string PreImportReportFootWarn = "Review channel changes before Path B import — amber status, Review diff ⚠ footer/toolbar/menu, status bar links, or Ctrl+D in F8/Studio.";
 		internal const string MainToolbarDiffTipDefault = "Review channel changes before Path B import — open F8/Studio (Ctrl+D while open)";
 		internal const string PendingDiffLinkTip = "Click to review channel changes before import (Ctrl+D)";
 		internal const string PreImportDiffButtonDefault = "Review diff…";
@@ -504,6 +506,37 @@ namespace DMR
 			label.VisitedLinkColor = hasWarning ? ForkPostImportUi.WarnColor : ForkPostImportUi.HealthLinkColorDefault;
 			label.ActiveLinkColor = Color.White;
 			label.ToolTipText = ForkPostImportUi.HealthCategoryTooltip(snap);
+		}
+
+		public static string MainPendingDiffStatusLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "";
+			}
+			return "▶ Review diff ⚠" + ForkPostImportUi.DiffChangeCountToolbarNote(snap.ChangeCount);
+		}
+
+		public static void ApplyMainPendingDiffStatusLink(ToolStripStatusLabel label, ForkPendingDiffSnapshot snap)
+		{
+			if (label == null)
+			{
+				return;
+			}
+			bool hasPending = snap != null && snap.HasPending;
+			label.Visible = hasPending;
+			if (!hasPending)
+			{
+				label.Text = "";
+				label.ToolTipText = "";
+				return;
+			}
+			label.Text = ForkPostImportUi.MainPendingDiffStatusLabel(snap);
+			label.ForeColor = ForkPostImportUi.WarnColor;
+			label.LinkColor = ForkPostImportUi.WarnColor;
+			label.VisitedLinkColor = ForkPostImportUi.WarnColor;
+			label.ActiveLinkColor = Color.White;
+			label.ToolTipText = ForkPostImportUi.DiffToolbarTooltip(snap);
 		}
 
 		private static void ApplyHealthButtonState(Button button, bool highlight)

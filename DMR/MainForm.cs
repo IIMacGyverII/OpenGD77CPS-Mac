@@ -243,7 +243,11 @@ namespace DMR
 
 		private ToolStripStatusLabel slblCodeplugHealth;
 
+		private ToolStripStatusLabel slblPendingDiff;
+
 		private bool codeplugHealthLinkWired;
+
+		private bool pendingDiffStatusLinkWired;
 
 		private ForkHtmlReportForm forkHealthReportForm;
 
@@ -503,6 +507,7 @@ namespace DMR
 			this.toolStripSeparator3 = new ToolStripSeparator();
 			this.tsbtnAbout = new ToolStripButton();
 			this.slblForkVersion = new ToolStripStatusLabel();
+			this.slblPendingDiff = new ToolStripStatusLabel();
 			this.slblCodeplugHealth = new ToolStripStatusLabel();
 			this.mnsMain.SuspendLayout();
 			this.cmsGroup.SuspendLayout();
@@ -1113,9 +1118,10 @@ namespace DMR
 			this.tvwMain.NodeMouseClick += this.tvwMain_NodeMouseClick;
 			this.tvwMain.BeforeLabelEdit += this.tvwMain_BeforeLabelEdit;
 			this.tvwMain.KeyDown += this.tvwMain_KeyDown;
-			this.ssrMain.Items.AddRange(new ToolStripItem[3]
+			this.ssrMain.Items.AddRange(new ToolStripItem[4]
 			{
 				this.slblComapny,
+				this.slblPendingDiff,
 				this.slblCodeplugHealth,
 				this.slblForkVersion
 			});
@@ -1128,6 +1134,10 @@ namespace DMR
 			this.slblComapny.Name = "slblComapny";
 			this.slblComapny.Size = new Size(63, 17);
 			this.slblComapny.Text = "Prompt：";
+			this.slblPendingDiff.Name = "slblPendingDiff";
+			this.slblPendingDiff.AutoSize = true;
+			this.slblPendingDiff.Visible = false;
+			this.slblPendingDiff.Text = "";
 			this.slblCodeplugHealth.Name = "slblCodeplugHealth";
 			this.slblCodeplugHealth.Size = new Size(420, 17);
 			this.slblCodeplugHealth.Spring = true;
@@ -1650,6 +1660,10 @@ namespace DMR
 			{
 				return;
 			}
+			if (this.TryOpenReviewDiffFromForkUri(uri))
+			{
+				return;
+			}
 			this.OnHealthReportNavigate(uri);
 #endif
 		}
@@ -1693,6 +1707,25 @@ namespace DMR
 				return false;
 			}
 			this.OpenCodeplugHealthReport();
+			return true;
+		}
+
+		private bool TryOpenReviewDiffFromForkUri(string uri)
+		{
+			if (!string.Equals(uri, ForkReportHtml.ReviewDiffHref, StringComparison.OrdinalIgnoreCase))
+			{
+				return false;
+			}
+			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectPendingDiffSnapshot();
+			if (snap.HasPending && !string.IsNullOrEmpty(snap.FolderPath))
+			{
+				this.OpenAndroidBackupForDiffReview(snap.FolderPath);
+				this.RefreshForkPendingDiff();
+			}
+			else
+			{
+				this.tsmiAndroidBackup_Click(this, EventArgs.Empty);
+			}
 			return true;
 		}
 
@@ -2363,6 +2396,23 @@ namespace DMR
 #endif
 		}
 
+		private void EnsurePendingDiffStatusLink()
+		{
+#if OpenGD77
+			if (this.pendingDiffStatusLinkWired || this.slblPendingDiff == null)
+			{
+				return;
+			}
+			this.slblPendingDiff.IsLink = true;
+			this.slblPendingDiff.LinkBehavior = LinkBehavior.AlwaysUnderline;
+			this.slblPendingDiff.LinkColor = ForkPostImportUi.WarnColor;
+			this.slblPendingDiff.ActiveLinkColor = Color.White;
+			this.slblPendingDiff.VisitedLinkColor = ForkPostImportUi.WarnColor;
+			this.slblPendingDiff.Click += this.ShowReviewDiff_Click;
+			this.pendingDiffStatusLinkWired = true;
+#endif
+		}
+
 		private void EnsureCodeplugHealthLink()
 		{
 #if OpenGD77
@@ -2429,8 +2479,10 @@ namespace DMR
 		{
 #if OpenGD77
 			this.EnsureForkReviewDiffUi();
+			this.EnsurePendingDiffStatusLink();
 			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectPendingDiffSnapshot();
 			bool hasPending = snap.HasPending;
+			ForkPostImportUi.ApplyMainPendingDiffStatusLink(this.slblPendingDiff, snap);
 			if (this.tsbtnReviewDiff != null)
 			{
 				this.tsbtnReviewDiff.Text = ForkPostImportUi.DiffToolbarLabel(snap);

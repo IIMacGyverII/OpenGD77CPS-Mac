@@ -1016,7 +1016,7 @@ namespace DMR
 			string scrollId = AndroidBackupReportHtml.GetReportScrollTarget(
 				operationResult, diff, integrity, this.lastValidation, this.diffPreApproved);
 			this.webReport.NavigateHtml(
-				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
+				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult, this.diffPreApproved),
 				scrollId);
 
 			string statusSummary = AndroidBackupReportHtml.GetFolderStatusSummary(

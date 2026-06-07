@@ -24,7 +24,8 @@ namespace DMR
 			AndroidBackupValidationResult validation,
 			AndroidImportDiffResult diff,
 			AndroidContactIntegrityResult integrity,
-			AndroidBatchResult operationResult = null)
+			AndroidBatchResult operationResult = null,
+			bool diffPreApproved = false)
 		{
 			StringBuilder html = new StringBuilder();
 			html.Append(ForkReportHtml.DocumentStart("Android backup report"));
@@ -116,7 +117,13 @@ namespace DMR
 
 			if (diff != null)
 			{
-				html.Append("<h2 id=\"studio-import-diff\">Import diff preview</h2>");
+				bool pendingDiff = ForkPostImportUi.ShouldOfferDiffLink(diff, diffPreApproved, true);
+				html.Append("<h2 id=\"studio-import-diff\">Import diff preview");
+				if (pendingDiff)
+				{
+					html.Append(" <span class=\"badge badge-warn\">Review required</span>");
+				}
+				html.Append("</h2>");
 				html.Append("<table><tr><th>Added</th><th>Changed</th><th>Deleted</th><th>Unchanged</th></tr><tr>");
 				html.Append("<td class=\"ok\">").Append(diff.Added).Append("</td>");
 				html.Append("<td class=\"warn\">").Append(diff.Changed).Append("</td>");
@@ -167,6 +174,12 @@ namespace DMR
 				else if (!string.IsNullOrEmpty(diff.Summary))
 				{
 					html.Append("<pre>").Append(ForkReportHtml.Escape(diff.Summary)).Append("</pre>");
+				}
+				if (pendingDiff)
+				{
+					html.Append("<p class=\"warn\">").Append(ForkReportHtml.ReviewDiffLink(ForkPostImportUi.PreImportReportDiffLink))
+						.Append(" — also amber status, Review diff ⚠ footer/toolbar/menu, or center/left status bar.</p>");
+					html.Append("<p class=\"foot\">").Append(ForkPostImportUi.PreImportReportFootWarn).Append("</p>");
 				}
 			}
 
