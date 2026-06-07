@@ -1063,10 +1063,15 @@ namespace DMR
 			this.btnReviewDiff.Enabled = hasChannels;
 			ForkPostImportUi.ConfigureDiffButton(this.btnReviewDiff, diff, this.diffPreApproved, hasChannels, this.footerTip);
 			bool canImport = this.lastValidation != null && !this.lastValidation.HasBlockingErrors && !pendingDiff;
-			this.btnImportAll.Enabled = canImport;
-			Theme.ApplyStudioButton(this.btnImportAll, canImport, false);
-			this.footerTip.SetToolTip(this.btnImportAll,
-				pendingDiff ? "Review diff first (Ctrl+D), then import (Ctrl+I)" : "Path B import all CSVs (Ctrl+I)");
+			ForkPostImportUi.ConfigureImportButton(
+				this.btnImportAll,
+				diff,
+				this.diffPreApproved,
+				hasChannels,
+				canImport,
+				ForkPostImportUi.PreImportImportButtonDefault,
+				this.footerTip);
+			this.UpdateStudioTitle(this.txtFolder.Text.Trim());
 		}
 
 		private bool TryApproveChannelDiff(string folderPath)
@@ -1196,6 +1201,15 @@ namespace DMR
 			if (name.Length > 48)
 			{
 				name = name.Substring(0, 45) + "…";
+			}
+			string channelsPath = Path.Combine(folderPath, "Channels.csv");
+			bool pendingDiff = File.Exists(channelsPath)
+				&& this.lastDiff != null
+				&& AndroidImportDiff.HasPendingDiffChanges(this.lastDiff)
+				&& !this.diffPreApproved;
+			if (pendingDiff)
+			{
+				name += " ⚠";
 			}
 			this.Text = baseTitle + " — " + name;
 		}

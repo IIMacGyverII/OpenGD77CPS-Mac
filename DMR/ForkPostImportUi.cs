@@ -44,6 +44,8 @@ namespace DMR
 		internal const string PendingDiffLinkTip = "Click to review channel changes before import (Ctrl+D)";
 		internal const string PreImportDiffButtonDefault = "Review diff…";
 		internal const string PreImportDiffButtonWarn = "Review diff ⚠ (Ctrl+D)";
+		internal const string PreImportImportButtonDefault = "Import all";
+		internal const string PreImportImportButtonF8Default = "Import all (Path B)";
 		internal const string FolderCaptionDefaultTip = "Re-validate CSVs in the loaded folder (F5)";
 
 		public static bool ImportHasHealthWarnings()
@@ -357,20 +359,99 @@ namespace DMR
 			{
 				return false;
 			}
+			DialogResult offer = ForkPostImportUi.ShowImportBlockedByPendingDiffDialog(owner, diff);
+			if (offer == DialogResult.Yes && openReviewDiff != null)
+			{
+				openReviewDiff();
+			}
+			return true;
+		}
+
+		/// <summary>Main-window Ctrl+I: offer Review diff first; Yes stops import, No continues to folder picker/preview.</summary>
+		public static bool OfferMainImportReviewPrompt(
+			IWin32Window owner,
+			ForkPendingDiffSnapshot snap,
+			Action openReviewDiff)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return true;
+			}
+			DialogResult offer = ForkPostImportUi.ShowImportBlockedByPendingDiffDialog(owner, snap.Diff);
+			if (offer == DialogResult.Yes)
+			{
+				if (openReviewDiff != null)
+				{
+					openReviewDiff();
+				}
+				return false;
+			}
+			return true;
+		}
+
+		private static DialogResult ShowImportBlockedByPendingDiffDialog(
+			IWin32Window owner,
+			AndroidImportDiffResult diff)
+		{
 			int pending = ForkPostImportUi.PendingDiffChangeCount(diff);
 			string suffix = pending > 1 ? " (" + pending + " ch)" : "";
-			DialogResult offer = MessageBox.Show(owner,
+			return MessageBox.Show(owner,
 				pending + " channel change(s) need review before Path B import" + suffix + ".\n\n"
 					+ "Open Review diff now (Ctrl+D)?\n\n"
 					+ "Or use amber status, Review diff ⚠ footer/toolbar/menu, center/left status bar, or the report link.",
 				ForkPostImportUi.ImportBlockedDiffTitle,
 				MessageBoxButtons.YesNo,
 				MessageBoxIcon.Warning);
-			if (offer == DialogResult.Yes && openReviewDiff != null)
+		}
+
+		public static string ImportButtonLabel(
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv,
+			string defaultLabel)
+		{
+			if (!ForkPostImportUi.ShouldOfferDiffLink(diff, diffPreApproved, hasChannelsCsv))
 			{
-				openReviewDiff();
+				return defaultLabel;
 			}
-			return true;
+			string note = ForkPostImportUi.DiffChangeCountToolbarNote(
+				ForkPostImportUi.PendingDiffChangeCount(diff));
+			if (!string.IsNullOrEmpty(note))
+			{
+				return "Import ⚠" + note;
+			}
+			return "Import ⚠";
+		}
+
+		public static void ConfigureImportButton(
+			Button button,
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv,
+			bool canImport,
+			string defaultLabel,
+			ToolTip toolTip = null)
+		{
+			if (button == null)
+			{
+				return;
+			}
+			bool highlight = ForkPostImportUi.ShouldOfferDiffLink(diff, diffPreApproved, hasChannelsCsv);
+			button.Enabled = canImport;
+			Theme.ApplyStudioButton(button, canImport, false);
+			button.Text = ForkPostImportUi.ImportButtonLabel(diff, diffPreApproved, hasChannelsCsv, defaultLabel);
+			if (highlight)
+			{
+				button.ForeColor = ForkPostImportUi.WarnColor;
+				button.FlatAppearance.BorderColor = ForkPostImportUi.WarnColor;
+			}
+			if (toolTip != null)
+			{
+				toolTip.SetToolTip(button,
+					highlight
+						? "Review diff first (Ctrl+D), then import (Ctrl+I)"
+						: "Path B import all CSVs (Ctrl+I)");
+			}
 		}
 
 		public static ForkPendingDiffSnapshot CollectPendingDiffSnapshot()

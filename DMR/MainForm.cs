@@ -4733,6 +4733,20 @@ namespace DMR
 
 		private void tsmiImportCsv_Click(object sender, EventArgs e)
 		{
+#if OpenGD77
+			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectPendingDiffSnapshot();
+			if (!ForkPostImportUi.OfferMainImportReviewPrompt(
+				this,
+				snap,
+				() =>
+				{
+					this.OpenAndroidBackupForDiffReview(snap.FolderPath);
+					this.RefreshForkPendingDiff();
+				}))
+			{
+				return;
+			}
+#endif
 			this.ImportAndroidBackupFolder(null);
 		}
 

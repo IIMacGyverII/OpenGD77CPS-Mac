@@ -24,7 +24,7 @@ namespace DMR
 					Text =
 						"Global (main window)\n" +
 						"  Ctrl+D     Review diff when pending (main window; channels grid uses Ctrl+D to duplicate)\n" +
-						"  Ctrl+I     Import Android backup folder (Path B)\n" +
+						"  Ctrl+I     Import Android backup folder (Path B) — pending diff offers Review diff first\n" +
 						"  Ctrl+E     Export Android backup folder\n" +
 						"  Ctrl+O     Open codeplug\n" +
 						"  Ctrl+S     Save codeplug\n" +
@@ -47,7 +47,7 @@ namespace DMR
 						"Codeplug Studio\n" +
 						"  F1         Keyboard shortcuts (this dialog)\n" +
 						"  Ctrl+O     Browse backup folder\n" +
-						"  Ctrl+I     Import all (Path B) — if blocked by pending diff, offers Review diff\n" +
+						"  Ctrl+I     Import all (Path B) — Import ⚠ footer when blocked; offers Review diff\n" +
 						"  Ctrl+D     Review diff…\n" +
 						"  Ctrl+E     Export all\n" +
 						"  F7         Codeplug health report\n" +

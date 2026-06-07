@@ -739,10 +739,14 @@ namespace DMR
 			this.btnReviewDiff.Enabled = hasChannels;
 			ForkPostImportUi.ConfigureDiffButton(this.btnReviewDiff, diff, this.diffPreApproved, hasChannels, this.footerTip);
 			bool canImport = this.lastValidation != null && !this.lastValidation.HasBlockingErrors && !pendingDiff;
-			this.btnImportAll.Enabled = canImport;
-			Theme.ApplyStudioButton(this.btnImportAll, canImport, false);
-			this.footerTip.SetToolTip(this.btnImportAll,
-				pendingDiff ? "Review diff first (Ctrl+D), then import (Ctrl+I)" : "Path B import all CSVs (Ctrl+I)");
+			ForkPostImportUi.ConfigureImportButton(
+				this.btnImportAll,
+				diff,
+				this.diffPreApproved,
+				hasChannels,
+				canImport,
+				ForkPostImportUi.PreImportImportButtonF8Default,
+				this.footerTip);
 		}
 
 		private bool TryApproveChannelDiff(string folderPath)
