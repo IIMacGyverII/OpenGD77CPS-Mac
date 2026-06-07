@@ -108,6 +108,50 @@ namespace DMR
 		}
 
 		/// <summary>Stop column/row headers changing color when a cell in that column is selected.</summary>
+		public static string GetZoneRoleBadge(int zoneIndex)
+		{
+			bool up = ZoneForm.basicData.CurZone == zoneIndex;
+			bool dn = ZoneForm.basicData.SubZone == zoneIndex;
+			if (up && dn)
+			{
+				return "Up+Dn";
+			}
+			if (up)
+			{
+				return "Up";
+			}
+			if (dn)
+			{
+				return "Dn";
+			}
+			return "";
+		}
+
+		public static void ApplyZoneRoleStyle(DataGridViewCellFormattingEventArgs e, string badge)
+		{
+			badge = badge ?? "";
+			if (badge == "Up")
+			{
+				e.CellStyle.BackColor = Color.FromArgb(0xD6, 0xE8, 0xF7);
+				e.CellStyle.ForeColor = Color.FromArgb(0x1A, 0x4A, 0x7A);
+			}
+			else if (badge == "Dn")
+			{
+				e.CellStyle.BackColor = Color.FromArgb(0xF5, 0xE6, 0xD0);
+				e.CellStyle.ForeColor = Color.FromArgb(0x7A, 0x4A, 0x1A);
+			}
+			else if (badge == "Up+Dn")
+			{
+				e.CellStyle.BackColor = Color.FromArgb(0xE1, 0xD5, 0xF0);
+				e.CellStyle.ForeColor = Color.FromArgb(0x4A, 0x1A, 0x7A);
+			}
+			else
+			{
+				e.CellStyle.ForeColor = SystemColors.GrayText;
+			}
+			e.CellStyle.Font = Theme.UiFontBold;
+		}
+
 		public static void ApplyFlatGridHeaders(DataGridView grid)
 		{
 			if (grid == null)

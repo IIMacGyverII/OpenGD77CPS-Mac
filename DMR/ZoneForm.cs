@@ -1204,6 +1204,7 @@ namespace DMR
 				MainForm mainForm = base.MdiParent as MainForm;
 				if (mainForm != null)
 				{
+					mainForm.RefreshRelatedForm(typeof(ZoneForm), num3);
 					mainForm.RefreshCodeplugHealth();
 				}
 #endif

@@ -2509,6 +2509,16 @@ namespace DMR
 					form2.RefreshSingleRow(index);
 				}
 			}
+#if OpenGD77
+			else if (type == typeof(ZoneForm))
+			{
+				ISingleRow zonesGrid = this.GetForm(typeof(ZoneBasicForm));
+				if (zonesGrid != null)
+				{
+					zonesGrid.RefreshSingleRow(index);
+				}
+			}
+#endif
 		}
 
 		public void RefreshRelatedForm(Type type)
@@ -2603,7 +2613,20 @@ namespace DMR
 			}
 			else if (type == typeof(ZoneForm))
 			{
+#if OpenGD77
+				int zoneIndex = this.GetOpenZoneEditorDataIndex();
+				ISingleRow zonesGrid = this.GetForm(typeof(ZoneBasicForm));
+				if (zonesGrid != null && zoneIndex >= 0)
+				{
+					zonesGrid.RefreshSingleRow(zoneIndex);
+				}
+				else
+				{
+					this.RefreshForm(typeof(ZoneBasicForm));
+				}
+#else
 				this.RefreshForm(typeof(ZoneBasicForm));
+#endif
 				this.RefreshForm(typeof(AttachmentForm));
 				if (self)
 				{
@@ -5308,9 +5331,21 @@ namespace DMR
 			this.OpenContactEditorDirect(dataIndex);
 		}
 
+		public int GetOpenZoneEditorDataIndex()
+		{
+			foreach (Form form in base.MdiChildren)
+			{
+				if (form.GetType() == typeof(ZoneForm) && form.Visible && form.Tag != null)
+				{
+					return Convert.ToInt32(form.Tag);
+				}
+			}
+			return -1;
+		}
+
 		public void OpenZoneEditorByDataIndex(int dataIndex)
 		{
-			if (dataIndex < 0 || !ZoneForm.data.ZoneChIsValid(dataIndex))
+			if (dataIndex < 0 || !ZoneForm.data.DataIsValid(dataIndex))
 			{
 				return;
 			}
