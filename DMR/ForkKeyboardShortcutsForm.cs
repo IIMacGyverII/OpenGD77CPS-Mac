@@ -64,7 +64,8 @@ namespace DMR
 						"  Click row  Open channel in editor\n\n" +
 						"Channel editor\n" +
 						"  Ctrl+Z     Revert to state when channel was opened\n" +
-						"  Ctrl+Shift+F  Focus navigation tree filter\n\n" +
+						"  Ctrl+Shift+F  Focus navigation tree filter\n" +
+						"  Hint bar   Ctrl+Z / Ctrl+Shift+F at bottom of editor\n\n" +
 						"Contacts grid\n" +
 						"  F2         Open contact editor\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +
@@ -73,7 +74,8 @@ namespace DMR
 						"  Click row  Open contact in editor\n" +
 						"  Double-click Call ID   Look up on RadioID.net\n\n" +
 						"Contact editor\n" +
-						"  Ctrl+Shift+F  Focus navigation tree filter\n\n" +
+						"  Ctrl+Shift+F  Focus navigation tree filter\n" +
+						"  Hint bar   Ctrl+Shift+F at bottom of editor\n\n" +
 						"Zones / TG lists / scan lists grids\n" +
 						"  F2         Open editor for selected row\n" +
 						"  Ctrl+F     Focus filter   Esc  Clear filter\n" +

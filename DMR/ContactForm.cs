@@ -1173,9 +1173,39 @@ namespace DMR
 		}
 
 #if OpenGD77
+		private Label lblContactEditorHint;
+
+		private void EnsureForkContactUi()
+		{
+			if (this.lblContactEditorHint == null)
+			{
+				this.lblContactEditorHint = new Label();
+				this.lblContactEditorHint.Text = ForkFilterEscape.ContactEditorHintText;
+				this.lblContactEditorHint.AutoSize = false;
+				this.lblContactEditorHint.ForeColor = System.Drawing.SystemColors.GrayText;
+				this.pnlContact.Controls.Add(this.lblContactEditorHint);
+				Theme.ScaleNewControlTree(this.lblContactEditorHint);
+			}
+		}
+
 		private void pnlContact_Resize(object sender, EventArgs e)
 		{
 			this.RepositionForkDmrIdLookup();
+			this.RepositionForkContactEditorHint();
+		}
+
+		private void RepositionForkContactEditorHint()
+		{
+			if (this.lblContactEditorHint == null)
+			{
+				return;
+			}
+			int pad = Theme.Dpi(8);
+			int h = Theme.Dpi(18);
+			this.lblContactEditorHint.Location = new Point(pad, Math.Max(0, this.pnlContact.ClientSize.Height - h - Theme.Dpi(4)));
+			this.lblContactEditorHint.Width = Math.Max(Theme.Dpi(120), this.pnlContact.ClientSize.Width - pad * 2);
+			this.lblContactEditorHint.Height = h;
+			this.lblContactEditorHint.BringToFront();
 		}
 
 		private void RepositionForkDmrIdLookup()
@@ -1256,8 +1286,10 @@ namespace DMR
 				this.pnlContact.Controls.Add(this.lnkLookupDmrId);
 #if OpenGD77
 				Theme.ScaleNewControlTree(this.lnkLookupDmrId);
+				this.EnsureForkContactUi();
 				this.pnlContact.Resize += this.pnlContact_Resize;
 				this.RepositionForkDmrIdLookup();
+				this.RepositionForkContactEditorHint();
 				Theme.ApplyStandardEditorColors(this);
 #endif
 				this.lnkLookupDmrId.BringToFront();

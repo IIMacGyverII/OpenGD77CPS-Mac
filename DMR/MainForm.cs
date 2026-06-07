@@ -1980,7 +1980,7 @@ namespace DMR
 			{
 				this.forkTreeToolTip = new ToolTip();
 			}
-			this.forkTreeToolTip.SetToolTip(this.txtTreeFilter, "Search tree (Ctrl+F or Ctrl+Shift+F) · Esc clears");
+			this.forkTreeToolTip.SetToolTip(this.txtTreeFilter, ForkFilterEscape.TreeFilterBoxTip);
 			this.forkTreeToolTip.SetToolTip(this.lblTreeFilter, "Filter (visible/total) while typing");
 			this.pnlTreeFilter.Controls.Add(this.lblTreeFilter);
 			this.pnlTreeFilter.Controls.Add(this.txtTreeFilter);

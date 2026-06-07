@@ -3055,10 +3055,21 @@ namespace DMR
 		}
 
 #if OpenGD77
+		private Label lblChannelEditorHint;
+
 		private void EnsureForkChannelUi()
 		{
 			this.pnlChannel.AutoSize = false;
 			this.pnlChannel.AutoScroll = true;
+			if (this.lblChannelEditorHint == null)
+			{
+				this.lblChannelEditorHint = new Label();
+				this.lblChannelEditorHint.Text = ForkFilterEscape.ChannelEditorHintText;
+				this.lblChannelEditorHint.AutoSize = false;
+				this.lblChannelEditorHint.ForeColor = System.Drawing.SystemColors.GrayText;
+				this.pnlChannel.Controls.Add(this.lblChannelEditorHint);
+				Theme.ScaleNewControlTree(this.lblChannelEditorHint);
+			}
 		}
 
 		private void pnlChannel_Resize(object sender, EventArgs e)
@@ -3079,6 +3090,15 @@ namespace DMR
 				minH = Math.Max(minH, this.chkShowAdvancedBinary.Bottom + Theme.Dpi(24));
 			}
 			this.pnlChannel.AutoScrollMinSize = new Size(minW, minH);
+			if (this.lblChannelEditorHint != null)
+			{
+				int pad = Theme.Dpi(10);
+				int h = Theme.Dpi(18);
+				this.lblChannelEditorHint.Location = new Point(pad, Math.Max(0, this.pnlChannel.ClientSize.Height - h - Theme.Dpi(4)));
+				this.lblChannelEditorHint.Width = Math.Max(Theme.Dpi(200), this.pnlChannel.ClientSize.Width - pad * 2);
+				this.lblChannelEditorHint.Height = h;
+				this.lblChannelEditorHint.BringToFront();
+			}
 		}
 #endif
 		
