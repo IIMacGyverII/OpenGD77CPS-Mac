@@ -861,6 +861,7 @@ namespace DMR
 		private TextBox txtZoneListFilter;
 		private Label lblZoneListFilter;
 		private Label lblZoneHint;
+		private bool forkZoneDpiScaled;
 		private List<SelectedItemUtils> forkUnselectedCache = new List<SelectedItemUtils>();
 
 		public static readonly int SPACE_ZONE;
@@ -1360,6 +1361,15 @@ namespace DMR
 			this.grpUnselected.Font = Theme.UiFont;
 			this.grpSelected.Font = Theme.UiFont;
 			this.pnlZone.AutoSize = false;
+#if OpenGD77
+			if (!this.forkZoneDpiScaled)
+			{
+				Theme.ScaleNewControlTree(this.lblZoneListFilter);
+				Theme.ScaleNewControlTree(this.txtZoneListFilter);
+				Theme.ScaleNewControlTree(this.lblZoneHint);
+				this.forkZoneDpiScaled = true;
+			}
+#endif
 		}
 
 		private void pnlZone_Resize(object sender, EventArgs e)
@@ -1373,57 +1383,58 @@ namespace DMR
 			{
 				return;
 			}
-			const int pad = 12;
-			const int centerBtnW = 78;
-			const int reorderBtnW = 76;
+			int pad = Theme.Dpi(12);
+			int centerBtnW = Theme.Dpi(78);
+			int reorderBtnW = Theme.Dpi(76);
 			int clientW = this.pnlZone.ClientSize.Width;
 			int clientH = this.pnlZone.ClientSize.Height;
-			int nameRowY = 34;
-			int groupsTop = 76;
-			int groupsH = Math.Max(220, clientH - groupsTop - pad);
+			int nameRowY = Theme.Dpi(34);
+			int groupsTop = Theme.Dpi(76);
+			int groupsH = Math.Max(Theme.Dpi(220), clientH - groupsTop - pad);
 
-			this.lblName.Location = new Point(pad, nameRowY + 2);
+			this.lblName.Location = new Point(pad, nameRowY + Theme.Dpi(2));
 			this.lblName.AutoSize = true;
-			this.txtName.Location = new Point(72, nameRowY);
-			this.txtName.Size = new Size(Math.Max(160, Math.Min(360, clientW - 96)), 23);
+			this.txtName.Location = new Point(Theme.Dpi(72), nameRowY);
+			this.txtName.Size = new Size(Math.Max(Theme.Dpi(160), Math.Min(Theme.Dpi(360), clientW - Theme.Dpi(96))), Theme.Dpi(23));
 
 			if (this.lblZoneHint != null)
 			{
-				this.lblZoneHint.Location = new Point(pad, nameRowY + 28);
-				this.lblZoneHint.Width = Math.Max(200, clientW - pad * 2);
+				this.lblZoneHint.Location = new Point(pad, nameRowY + Theme.Dpi(28));
+				this.lblZoneHint.Width = Math.Max(Theme.Dpi(200), clientW - pad * 2);
+				this.lblZoneHint.Height = Theme.Dpi(18);
 			}
 
-			int availW = Math.Max(200, (clientW - pad * 3 - centerBtnW - reorderBtnW) / 2);
-			int centerX = pad + availW + 4;
-			int memberX = centerX + centerBtnW + 4;
-			int memberW = Math.Max(200, clientW - memberX - reorderBtnW - pad);
+			int availW = Math.Max(Theme.Dpi(200), (clientW - pad * 3 - centerBtnW - reorderBtnW) / 2);
+			int centerX = pad + availW + Theme.Dpi(4);
+			int memberX = centerX + centerBtnW + Theme.Dpi(4);
+			int memberW = Math.Max(Theme.Dpi(200), clientW - memberX - reorderBtnW - pad);
 
 			this.grpUnselected.SetBounds(pad, groupsTop, availW, groupsH);
 			this.grpSelected.SetBounds(memberX, groupsTop, memberW, groupsH);
 
-			int filterY = 20;
-			this.lblZoneListFilter.Location = new Point(10, filterY + 2);
-			this.txtZoneListFilter.Location = new Point(56, filterY);
-			this.txtZoneListFilter.Width = Math.Max(100, this.grpUnselected.ClientSize.Width - 66);
+			int filterY = Theme.Dpi(20);
+			this.lblZoneListFilter.Location = new Point(Theme.Dpi(10), filterY + Theme.Dpi(2));
+			this.txtZoneListFilter.Location = new Point(Theme.Dpi(56), filterY);
+			this.txtZoneListFilter.Width = Math.Max(Theme.Dpi(100), this.grpUnselected.ClientSize.Width - Theme.Dpi(66));
 
-			int listTop = filterY + 30;
-			int listH = Math.Max(120, this.grpUnselected.ClientSize.Height - listTop - 10);
-			this.lstUnselected.SetBounds(10, listTop, Math.Max(80, this.grpUnselected.ClientSize.Width - 20), listH);
+			int listTop = filterY + Theme.Dpi(30);
+			int listH = Math.Max(Theme.Dpi(120), this.grpUnselected.ClientSize.Height - listTop - Theme.Dpi(10));
+			this.lstUnselected.SetBounds(Theme.Dpi(10), listTop, Math.Max(Theme.Dpi(80), this.grpUnselected.ClientSize.Width - Theme.Dpi(20)), listH);
 			this.lstUnselected.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
-			int memberListTop = 22;
-			int memberListH = Math.Max(120, this.grpSelected.ClientSize.Height - memberListTop - 10);
-			this.lstSelected.SetBounds(10, memberListTop, Math.Max(80, this.grpSelected.ClientSize.Width - 20), memberListH);
+			int memberListTop = Theme.Dpi(22);
+			int memberListH = Math.Max(Theme.Dpi(120), this.grpSelected.ClientSize.Height - memberListTop - Theme.Dpi(10));
+			this.lstSelected.SetBounds(Theme.Dpi(10), memberListTop, Math.Max(Theme.Dpi(80), this.grpSelected.ClientSize.Width - Theme.Dpi(20)), memberListH);
 			this.lstSelected.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
-			int btnX = centerX + (centerBtnW - 75) / 2;
+			int btnX = centerX + (centerBtnW - Theme.Dpi(75)) / 2;
 			int btnMidY = groupsTop + groupsH / 2;
-			this.btnAdd.SetBounds(btnX, btnMidY - 36, 75, 23);
-			this.btnDel.SetBounds(btnX, btnMidY + 8, 75, 23);
+			this.btnAdd.SetBounds(btnX, btnMidY - Theme.Dpi(36), Theme.Dpi(75), Theme.Dpi(23));
+			this.btnDel.SetBounds(btnX, btnMidY + Theme.Dpi(8), Theme.Dpi(75), Theme.Dpi(23));
 
-			int reorderX = memberX + memberW + 6;
-			this.btnUp.SetBounds(reorderX, btnMidY - 36, reorderBtnW - 8, 23);
-			this.btnDown.SetBounds(reorderX, btnMidY + 8, reorderBtnW - 8, 23);
+			int reorderX = memberX + memberW + Theme.Dpi(6);
+			this.btnUp.SetBounds(reorderX, btnMidY - Theme.Dpi(36), reorderBtnW - Theme.Dpi(8), Theme.Dpi(23));
+			this.btnDown.SetBounds(reorderX, btnMidY + Theme.Dpi(8), reorderBtnW - Theme.Dpi(8), Theme.Dpi(23));
 
 			this.lblZoneListFilter.BringToFront();
 			this.txtZoneListFilter.BringToFront();
