@@ -4638,9 +4638,10 @@ namespace DMR
 				}
 			}
 
+			bool openHealthReport = false;
 			if (showResultDialog)
 			{
-				AndroidBatchResult.ShowDialog(this, batch);
+				openHealthReport = AndroidBatchResult.ShowDialog(this, batch);
 			}
 			string statusMsg = batch.Title + " — " + batch.StatsLine;
 			int statusRevertMs = 8000;
@@ -4654,6 +4655,10 @@ namespace DMR
 			this.ShowForkStatusMessage(statusMsg, statusRevertMs);
 			this.RefreshOpenEditorsAfterAndroidImport();
 			this.UpdateForkChrome();
+			if (openHealthReport)
+			{
+				this.ShowCodeplugHealthReport(this, EventArgs.Empty);
+			}
 			this.InitTree();
 			return batch;
 		}

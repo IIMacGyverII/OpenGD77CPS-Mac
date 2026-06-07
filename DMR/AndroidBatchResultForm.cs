@@ -11,6 +11,8 @@ namespace DMR
 	{
 		private readonly AndroidBatchResult result;
 
+		public bool OpenHealthReportRequested { get; private set; }
+
 		public AndroidBatchResultForm(AndroidBatchResult result)
 		{
 			this.result = result;
@@ -55,19 +57,31 @@ namespace DMR
 			};
 
 			string healthHint = ForkPostImportUi.BatchDialogHealthHint(this.result);
+			bool showHealthFollowUp = !string.IsNullOrEmpty(healthHint);
 			Label lblHealthHint = new Label
 			{
 				Location = new Point(12, 360),
 				Size = new Size(496, 32),
 				Text = healthHint ?? "",
-				Visible = !string.IsNullOrEmpty(healthHint),
+				Visible = showHealthFollowUp,
 				ForeColor = ForkPostImportUi.WarnColor,
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
 			};
 
+			Button btnHealth = new Button
+			{
+				Location = new Point(12, showHealthFollowUp ? 392 : 364),
+				Size = new Size(120, 28),
+				Text = ForkPostImportUi.BatchDialogHealthButton,
+				Visible = showHealthFollowUp,
+				ForeColor = ForkPostImportUi.WarnColor,
+				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
+			};
+			btnHealth.Click += this.BtnHealth_Click;
+
 			Button btnOk = new Button
 			{
-				Location = new Point(408, lblHealthHint.Visible ? 392 : 364),
+				Location = new Point(408, showHealthFollowUp ? 392 : 364),
 				Size = new Size(100, 28),
 				Text = "OK",
 				DialogResult = DialogResult.OK,
@@ -88,12 +102,20 @@ namespace DMR
 			this.Controls.Add(lblStats);
 			this.Controls.Add(txtLog);
 			this.Controls.Add(chkWarnings);
-			if (lblHealthHint.Visible)
+			if (showHealthFollowUp)
 			{
 				this.Controls.Add(lblHealthHint);
+				this.Controls.Add(btnHealth);
 				this.ClientSize = new Size(520, 432);
 			}
 			this.Controls.Add(btnOk);
+		}
+
+		private void BtnHealth_Click(object sender, EventArgs e)
+		{
+			this.OpenHealthReportRequested = true;
+			this.DialogResult = DialogResult.OK;
+			this.Close();
 		}
 	}
 

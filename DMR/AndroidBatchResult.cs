@@ -127,11 +127,12 @@ namespace DMR
 			}
 		}
 
-		public static void ShowDialog(IWin32Window owner, AndroidBatchResult result)
+		public static bool ShowDialog(IWin32Window owner, AndroidBatchResult result)
 		{
 			using (AndroidBatchResultForm form = new AndroidBatchResultForm(result))
 			{
 				form.ShowDialog(owner);
+				return form.OpenHealthReportRequested;
 			}
 		}
 	}

@@ -10,6 +10,8 @@ namespace DMR
 		internal static readonly Color OkColor = Color.FromArgb(0x81, 0xC7, 0x84);
 		internal static readonly Color WarnColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
 		internal static readonly Color ErrColor = Color.FromArgb(0xEF, 0x53, 0x50);
+		internal const string BatchDialogHealthHintText = "Codeplug health warnings remain — open the full report or press OK.";
+		internal const string BatchDialogHealthButton = "Health (F7)";
 
 		public static bool ImportHasHealthWarnings()
 		{
@@ -49,7 +51,7 @@ namespace DMR
 			{
 				return null;
 			}
-			return "Codeplug health warnings remain — press F7 in the CPS window for the full report.";
+			return ForkPostImportUi.BatchDialogHealthHintText;
 		}
 	}
 }
