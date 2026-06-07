@@ -343,10 +343,32 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkTextMsgUi();
+			this.pnlTextMsg.Resize += this.pnlTextMsg_Resize;
 			this.txtContent.MaxByteLength = 10;
 			this.txtContent.Visible = false;
 			this.dgvMsg.Controls.Add(this.txtContent);
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkTextMsgLayout();
+		}
+
+		private void EnsureForkTextMsgUi()
+		{
+			this.pnlTextMsg.AutoSize = false;
+			this.pnlTextMsg.AutoScroll = true;
+		}
+
+		private void pnlTextMsg_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkTextMsgLayout();
+		}
+
+		private void ApplyForkTextMsgLayout()
+		{
+			int minW = Theme.Dpi(820);
+			int minH = Theme.Dpi(600);
+			this.pnlTextMsg.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void TextMsgForm_FormClosing(object sender, FormClosingEventArgs e)

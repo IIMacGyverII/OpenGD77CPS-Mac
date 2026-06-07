@@ -416,13 +416,35 @@ namespace DMR
 			{
 				Settings.smethod_59(base.Controls);
 				Settings.smethod_68(this);
+				this.EnsureForkEncryptUi();
+				this.pnlEncrypt.Resize += this.pnlEncrypt_Resize;
 				this.method_2();
 				this.DispData();
+				Theme.ApplyStandardEditorColors(this);
+				this.ApplyForkEncryptLayout();
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message);
 			}
+		}
+
+		private void EnsureForkEncryptUi()
+		{
+			this.pnlEncrypt.AutoSize = false;
+			this.pnlEncrypt.AutoScroll = true;
+		}
+
+		private void pnlEncrypt_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkEncryptLayout();
+		}
+
+		private void ApplyForkEncryptLayout()
+		{
+			int minW = Theme.Dpi(410);
+			int minH = Theme.Dpi(560);
+			this.pnlEncrypt.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void EncryptForm_FormClosing(object sender, FormClosingEventArgs e)

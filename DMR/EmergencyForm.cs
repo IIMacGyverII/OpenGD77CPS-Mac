@@ -1158,8 +1158,30 @@ namespace DMR
 		{
 			Settings.smethod_59(base.Controls);
 			Settings.smethod_68(this);
+			this.EnsureForkEmergencyUi();
+			this.pnlEmergency.Resize += this.pnlEmergency_Resize;
 			this.method_1();
 			this.DispData();
+			Theme.ApplyStandardEditorColors(this);
+			this.ApplyForkEmergencyLayout();
+		}
+
+		private void EnsureForkEmergencyUi()
+		{
+			this.pnlEmergency.AutoSize = false;
+			this.pnlEmergency.AutoScroll = true;
+		}
+
+		private void pnlEmergency_Resize(object sender, EventArgs e)
+		{
+			this.ApplyForkEmergencyLayout();
+		}
+
+		private void ApplyForkEmergencyLayout()
+		{
+			int minW = Theme.Dpi(340);
+			int minH = Theme.Dpi(400);
+			this.pnlEmergency.AutoScrollMinSize = new Size(minW, minH);
 		}
 
 		private void EmergencyForm_FormClosing(object sender, FormClosingEventArgs e)
