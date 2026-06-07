@@ -64,6 +64,7 @@ namespace DMR
 			if (standaloneLaunch)
 			{
 				this.ShowInTaskbar = true;
+				this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
 			}
 			this.ApplyStudioWindowSize(owner);
 			this.Font = Theme.UiFont;

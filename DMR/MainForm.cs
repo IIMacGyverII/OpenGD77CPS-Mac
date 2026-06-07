@@ -1469,13 +1469,19 @@ namespace DMR
 				}
 			}
 
-			this.frmHelp.Show(this.dockPanel);
-			this.frmTree.Show(this.dockPanel);
 			this.pnlTvw.Dock = DockStyle.Fill;
 			this.frmTree.Controls.Add(this.pnlTvw);
 #if OpenGD77
-			this.FixForkShellLayout();
-			this.EnsureForkMainMenu();
+			if (!this.forkStudioLaunch)
+			{
+				this.frmHelp.Show(this.dockPanel);
+				this.frmTree.Show(this.dockPanel);
+				this.FixForkShellLayout();
+				this.EnsureForkMainMenu();
+			}
+#else
+			this.frmHelp.Show(this.dockPanel);
+			this.frmTree.Show(this.dockPanel);
 #endif
 			ChannelForm.DefaultCh = ChannelForm.data[0].Clone();
 			NormalScanForm.DefaultScan = NormalScanForm.data[0].Clone();
@@ -1540,16 +1546,34 @@ namespace DMR
 			}
 
 			this.UpdateForkChrome();
-			ForkDockLayout.ApplyFirstRunIfNeeded(this);
-			ForkDockLayout.EnsureWorkspaceOpen(this);
 			if (this.forkStudioLaunch)
 			{
+				this.ShowInTaskbar = false;
+				this.Visible = false;
 				this.ShowCodeplugStudio(true);
 			}
 			else
 			{
+				ForkDockLayout.ApplyFirstRunIfNeeded(this);
+				ForkDockLayout.EnsureWorkspaceOpen(this);
 				AndroidWorkflowForm.ShowIfNeeded(this);
 			}
+		}
+
+		/// <summary>Reveal dock/tree/menu after Studio-only launch when user opens full CPS.</summary>
+		private void EnsureFullCpsShellReady()
+		{
+#if OpenGD77
+			this.EnsureForkMainMenu();
+			this.frmHelp.Show(this.dockPanel);
+			this.frmTree.Show(this.dockPanel);
+			this.FixForkShellLayout();
+			this.UpdateForkChrome();
+			ForkDockLayout.ApplyFirstRunIfNeeded(this);
+#endif
+			this.ShowInTaskbar = true;
+			this.Visible = true;
+			this.WindowState = FormWindowState.Normal;
 		}
 
 		public void RefreshForkStatus()
@@ -4186,13 +4210,11 @@ namespace DMR
 					return;
 				}
 			}
-			if (launchMode)
-			{
-				this.Activate();
-			}
 			if (openedFullCps)
 			{
+				this.EnsureFullCpsShellReady();
 				ForkDockLayout.EnsureWorkspaceOpen(this);
+				this.Activate();
 			}
 #endif
 		}
