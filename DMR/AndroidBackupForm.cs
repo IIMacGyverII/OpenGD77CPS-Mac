@@ -656,8 +656,16 @@ namespace DMR
 			this.webReport.NavigateHtml(
 				AndroidBackupReportHtml.Build(folderPath, this.lastValidation, diff, integrity, operationResult),
 				scrollId);
-			this.lblReportCaption.Text = AndroidBackupReportHtml.GetFolderStatusSummary(
-				this.lastValidation, integrity, diff, this.diffPreApproved, File.Exists(channelsPath));
+			if (operationResult != null)
+			{
+				ForkPostImportUi.ApplyBatchCaption(this.lblReportCaption, operationResult);
+			}
+			else
+			{
+				this.lblReportCaption.Text = AndroidBackupReportHtml.GetFolderStatusSummary(
+					this.lastValidation, integrity, diff, this.diffPreApproved, File.Exists(channelsPath));
+				this.lblReportCaption.ForeColor = Theme.MutedForeground;
+			}
 			this.UpdateDiffImportButtons(channelsPath, diff);
 			return true;
 		}

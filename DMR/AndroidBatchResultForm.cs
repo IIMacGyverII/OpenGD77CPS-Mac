@@ -54,9 +54,20 @@ namespace DMR
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
 			};
 
+			string healthHint = ForkPostImportUi.BatchDialogHealthHint(this.result);
+			Label lblHealthHint = new Label
+			{
+				Location = new Point(12, 360),
+				Size = new Size(496, 32),
+				Text = healthHint ?? "",
+				Visible = !string.IsNullOrEmpty(healthHint),
+				ForeColor = ForkPostImportUi.WarnColor,
+				Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+			};
+
 			Button btnOk = new Button
 			{
-				Location = new Point(408, 364),
+				Location = new Point(408, lblHealthHint.Visible ? 392 : 364),
 				Size = new Size(100, 28),
 				Text = "OK",
 				DialogResult = DialogResult.OK,
@@ -77,6 +88,11 @@ namespace DMR
 			this.Controls.Add(lblStats);
 			this.Controls.Add(txtLog);
 			this.Controls.Add(chkWarnings);
+			if (lblHealthHint.Visible)
+			{
+				this.Controls.Add(lblHealthHint);
+				this.ClientSize = new Size(520, 432);
+			}
 			this.Controls.Add(btnOk);
 		}
 	}

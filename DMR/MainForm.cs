@@ -4644,14 +4644,12 @@ namespace DMR
 			}
 			string statusMsg = batch.Title + " — " + batch.StatsLine;
 			int statusRevertMs = 8000;
-			if (!batch.HasErrors && string.Equals(batch.Operation, "Import", StringComparison.OrdinalIgnoreCase))
+			if (!batch.HasErrors
+				&& string.Equals(batch.Operation, "Import", StringComparison.OrdinalIgnoreCase)
+				&& ForkPostImportUi.ImportHasHealthWarnings())
 			{
-				CodeplugHealthSnapshot health = CodeplugHealthSnapshot.Collect();
-				if (health.HasWarning)
-				{
-					statusMsg += ForkFilterEscape.PostImportHealthHint;
-					statusRevertMs = 12000;
-				}
+				statusMsg += ForkFilterEscape.PostImportHealthHint;
+				statusRevertMs = 12000;
 			}
 			this.ShowForkStatusMessage(statusMsg, statusRevertMs);
 			this.RefreshOpenEditorsAfterAndroidImport();

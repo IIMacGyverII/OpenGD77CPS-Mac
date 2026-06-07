@@ -1198,24 +1198,14 @@ namespace DMR
 			{
 				return;
 			}
-			if (batch.HasErrors)
+			ForkPostImportUi.ApplyBatchCaption(this.lblReportStatus, batch);
+			Control parent = this.lblReportStatus == null ? null : this.lblReportStatus.Parent;
+			if (parent != null && this.lblReportStatus != null)
 			{
-				this.SetReportStatusChip(batch.Operation + " failed — see report", Color.FromArgb(0xEF, 0x53, 0x50));
-				return;
+				this.lblReportStatus.Location = new Point(
+					Math.Max(0, parent.ClientSize.Width - this.lblReportStatus.PreferredWidth),
+					Theme.Dpi(4));
 			}
-			string prefix = string.Equals(batch.Operation, "Export", StringComparison.OrdinalIgnoreCase) ? "Exported" : "Import";
-			string chip = prefix + " complete ✓ — " + batch.StatsLine;
-			Color chipColor = Color.FromArgb(0x81, 0xC7, 0x84);
-			if (string.Equals(batch.Operation, "Import", StringComparison.OrdinalIgnoreCase))
-			{
-				CodeplugHealthSnapshot health = CodeplugHealthSnapshot.Collect();
-				if (health.HasWarning)
-				{
-					chip += ForkFilterEscape.PostImportHealthHint;
-					chipColor = Color.FromArgb(0xFF, 0xB7, 0x4D);
-				}
-			}
-			this.SetReportStatusChip(chip, chipColor);
 		}
 
 		private void btnOpenFolder_Click(object sender, EventArgs e)
