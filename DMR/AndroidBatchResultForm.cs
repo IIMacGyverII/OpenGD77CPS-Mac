@@ -77,14 +77,16 @@ namespace DMR
 			{
 				Location = new Point(12, showHealthFollowUp ? 392 : 364),
 				Size = new Size(132, 28),
-				Text = ForkPostImportUi.PostImportHealthButtonWarn,
 				Visible = showHealthFollowUp,
-				ForeColor = ForkPostImportUi.WarnColor,
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
 			};
+			Theme.ApplyStudioButton(btnHealth, false, false);
 			btnHealth.Click += this.BtnHealth_Click;
 			ToolTip healthTip = new ToolTip();
-			healthTip.SetToolTip(btnHealth, ForkPostImportUi.PostImportHealthLinkTip);
+			if (showHealthFollowUp)
+			{
+				ForkPostImportUi.ConfigureHealthButton(btnHealth, this.result, healthTip);
+			}
 
 			Button btnOk = new Button
 			{

@@ -2330,7 +2330,9 @@ namespace DMR
 			}
 			if (this.forkHealthReportForm != null && !this.forkHealthReportForm.IsDisposed && this.forkHealthReportForm.Visible)
 			{
-				this.forkHealthReportForm.NavigateHtml(CodeplugHealthReportHtml.Build(snap));
+				this.forkHealthReportForm.NavigateHtml(
+					CodeplugHealthReportHtml.Build(snap),
+					CodeplugHealthReportHtml.GetScrollTarget(snap));
 			}
 #endif
 		}
