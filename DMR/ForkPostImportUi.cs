@@ -63,6 +63,33 @@ namespace DMR
 			return "Codeplug health report ⚠…";
 		}
 
+		public static string HealthToolbarLabel(CodeplugHealthSnapshot snap)
+		{
+			if (snap == null || !snap.HasWarning)
+			{
+				return "Health";
+			}
+			if (snap.WarningCategoryCount > 1)
+			{
+				return "Health ⚠ (" + snap.WarningCategoryCount + ")";
+			}
+			return "Health ⚠";
+		}
+
+		public static CodeplugHealthSnapshot CurrentHealthSnapshot()
+		{
+			return CodeplugHealthSnapshot.Collect();
+		}
+
+		public static string PostImportHealthButtonLabel(CodeplugHealthSnapshot snap)
+		{
+			if (snap != null && snap.WarningCategoryCount > 1)
+			{
+				return "Health ⚠ (" + snap.WarningCategoryCount + " · F7)";
+			}
+			return ForkPostImportUi.PostImportHealthButtonWarn;
+		}
+
 		public static void ApplyBatchCaption(Label label, AndroidBatchResult batch)
 		{
 			if (label == null || batch == null)
@@ -96,6 +123,12 @@ namespace DMR
 			{
 				return null;
 			}
+			CodeplugHealthSnapshot snap = ForkPostImportUi.CurrentHealthSnapshot();
+			if (snap.WarningCategoryCount > 1)
+			{
+				return "Codeplug health warnings remain in " + snap.WarningCategoryCount
+					+ " categories — click Health ⚠ (F7) below or OK to continue.";
+			}
 			return ForkPostImportUi.BatchDialogHealthHintText;
 		}
 
@@ -120,7 +153,7 @@ namespace DMR
 			label.Click += handler;
 			if (toolTip != null)
 			{
-				toolTip.SetToolTip(label, ForkPostImportUi.PostImportHealthLinkTip);
+				toolTip.SetToolTip(label, ForkPostImportUi.HealthCategoryTooltip(ForkPostImportUi.CurrentHealthSnapshot()));
 			}
 		}
 
@@ -150,7 +183,7 @@ namespace DMR
 			if (toolTip != null)
 			{
 				toolTip.SetToolTip(button, highlight
-					? ForkPostImportUi.PostImportHealthLinkTip
+					? ForkPostImportUi.HealthCategoryTooltip(ForkPostImportUi.CurrentHealthSnapshot())
 					: ForkPostImportUi.HealthButtonDefaultTip);
 			}
 		}
@@ -184,7 +217,9 @@ namespace DMR
 			{
 				return;
 			}
-			button.Text = highlight ? ForkPostImportUi.PostImportHealthButtonWarn : ForkPostImportUi.BatchDialogHealthButton;
+			button.Text = highlight
+				? ForkPostImportUi.PostImportHealthButtonLabel(ForkPostImportUi.CurrentHealthSnapshot())
+				: ForkPostImportUi.BatchDialogHealthButton;
 			button.ForeColor = highlight ? ForkPostImportUi.WarnColor : Theme.Foreground;
 			button.FlatAppearance.BorderColor = highlight ? ForkPostImportUi.WarnColor : Theme.StudioCardBorder;
 		}

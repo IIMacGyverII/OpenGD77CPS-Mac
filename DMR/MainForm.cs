@@ -2316,7 +2316,7 @@ namespace DMR
 			ForkPostImportUi.ApplyMainHealthStatusLink(this.slblCodeplugHealth, snap);
 			if (this.tsbtnCodeplugHealth != null)
 			{
-				this.tsbtnCodeplugHealth.Text = hasWarning ? "Health ⚠" : "Health";
+				this.tsbtnCodeplugHealth.Text = ForkPostImportUi.HealthToolbarLabel(snap);
 				this.tsbtnCodeplugHealth.ForeColor = hasWarning ? ForkPostImportUi.WarnColor : ForkPostImportUi.OkColor;
 				this.tsbtnCodeplugHealth.ToolTipText = ForkPostImportUi.HealthCategoryTooltip(snap);
 			}
