@@ -4175,15 +4175,10 @@ namespace DMR
 		private void ShowCodeplugStudio(bool launchMode)
 		{
 #if OpenGD77
-			if (launchMode)
-			{
-				this.WindowState = FormWindowState.Minimized;
-				this.ShowInTaskbar = false;
-			}
 			bool openedFullCps = false;
-			using (CodeplugStudioForm studio = new CodeplugStudioForm(this, this.forkStudioLaunchFolder))
+			using (CodeplugStudioForm studio = new CodeplugStudioForm(this, this.forkStudioLaunchFolder, launchMode))
 			{
-				studio.ShowDialog(this);
+				studio.ShowDialog(launchMode ? (IWin32Window)null : this);
 				openedFullCps = studio.UserOpenedFullCps;
 				if (launchMode && !openedFullCps)
 				{
@@ -4191,10 +4186,8 @@ namespace DMR
 					return;
 				}
 			}
-			if (launchMode || this.WindowState == FormWindowState.Minimized)
+			if (launchMode)
 			{
-				this.WindowState = FormWindowState.Normal;
-				this.ShowInTaskbar = true;
 				this.Activate();
 			}
 			if (openedFullCps)
@@ -4477,7 +4470,7 @@ namespace DMR
 			this.ExportAndroidBackupFolder(null);
 		}
 
-		public bool ExportAndroidBackupFolder(string folderPath, bool showResultDialog = true)
+		public AndroidBatchResult ExportAndroidBackupFolder(string folderPath, bool showResultDialog = true)
 		{
 			bool skipFolderPicker = !string.IsNullOrEmpty(folderPath);
 			if (string.IsNullOrEmpty(folderPath))
@@ -4494,24 +4487,24 @@ namespace DMR
 						MessageBoxIcon.Question);
 					if (source == DialogResult.Cancel)
 					{
-						return false;
+						return null;
 					}
 					if (source == DialogResult.Yes)
 					{
-						return AndroidAdbBackup.TryExportAndPushToPhone(this, this);
+						return AndroidAdbBackup.TryExportAndPushToPhone(this, this) ? new AndroidBatchResult { Operation = "Export" } : null;
 					}
 				}
 				string lastFolder = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
 				folderPath = AndroidBackupFolderPicker.PickFolder(this, lastFolder, true);
 				if (string.IsNullOrEmpty(folderPath))
 				{
-					return false;
+					return null;
 				}
 			}
 			else if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
 			{
 				AndroidBackupFolderPicker.ShowFolderUnavailableHelp(this, folderPath);
-				return false;
+				return null;
 			}
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
 			AndroidBatchResult batch = new AndroidBatchResult
@@ -4535,7 +4528,7 @@ namespace DMR
 					MessageBoxIcon.Question);
 				if (confirmResult != DialogResult.Yes)
 				{
-					return false;
+					return null;
 				}
 			}
 			
@@ -4624,7 +4617,7 @@ namespace DMR
 			}
 			this.ShowForkStatusMessage(batch.Title + " — " + batch.StatsLine + " (UTF-8, no BOM)");
 			this.UpdateForkChrome();
-			return !batch.HasErrors;
+			return batch;
 		}
 
 		// Helper method to count valid contacts

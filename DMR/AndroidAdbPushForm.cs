@@ -230,7 +230,8 @@ namespace DMR
 			try
 			{
 				string staging = AndroidAdbBackup.CreatePushStagingFolder(folderName);
-				if (!this.mainForm.ExportAndroidBackupFolder(staging, false))
+				AndroidBatchResult export = this.mainForm.ExportAndroidBackupFolder(staging, false);
+				if (export == null || export.HasErrors)
 				{
 					throw new InvalidOperationException("Export failed — fix codeplug errors and try again.");
 				}

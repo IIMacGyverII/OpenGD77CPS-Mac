@@ -56,11 +56,15 @@ namespace DMR
 
 		public bool UserOpenedFullCps { get; private set; }
 
-		public CodeplugStudioForm(MainForm owner, string launchFolder = null)
+		public CodeplugStudioForm(MainForm owner, string launchFolder = null, bool standaloneLaunch = false)
 		{
 			this.mainForm = owner;
 			this.Text = "PriInterPhone Codeplug Studio";
 			this.FormBorderStyle = FormBorderStyle.Sizable;
+			if (standaloneLaunch)
+			{
+				this.ShowInTaskbar = true;
+			}
 			this.ApplyStudioWindowSize(owner);
 			this.Font = Theme.UiFont;
 			Theme.ApplyForkDialog(this);
@@ -948,21 +952,73 @@ namespace DMR
 			}
 			this.mainForm.ImportAndroidBackupFolder(folderPath, this.diffPreApproved);
 			this.SetFolder(folderPath, false);
+			this.SetReportStatusChip("Import complete ✓", Color.FromArgb(0x81, 0xC7, 0x84));
 		}
 
 		private void btnExportAll_Click(object sender, EventArgs e)
 		{
-			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(this.txtFolder.Text.Trim()))
+			string folderPath = this.txtFolder.Text.Trim();
+			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
 			{
 				string picked = AndroidBackupFolderPicker.PickFolder(this, this.txtFolder.Text, true);
 				if (picked == null)
 				{
 					return;
 				}
-				this.SetFolder(picked, true);
+				if (!this.SetFolder(picked, true))
+				{
+					return;
+				}
+				folderPath = picked;
 			}
-			this.mainForm.ExportAndroidBackupFolder(this.txtFolder.Text);
-			this.SetFolder(this.txtFolder.Text, false);
+			DialogResult confirm = MessageBox.Show(this,
+				"Export Contacts, TG Lists, Channels, and Zones to:\n\n" + folderPath + "\n\nContinue?",
+				"Export all",
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Question);
+			if (confirm != DialogResult.Yes)
+			{
+				return;
+			}
+			AndroidBatchResult batch = this.mainForm.ExportAndroidBackupFolder(folderPath, false);
+			if (batch == null)
+			{
+				return;
+			}
+			this.SetFolder(folderPath, false);
+			this.ApplyBatchStatusChip(batch);
+		}
+
+		private void SetReportStatusChip(string text, Color color)
+		{
+			if (this.lblReportStatus == null)
+			{
+				return;
+			}
+			this.lblReportStatus.Text = text;
+			this.lblReportStatus.ForeColor = color;
+			Control parent = this.lblReportStatus.Parent;
+			if (parent != null)
+			{
+				this.lblReportStatus.Location = new Point(
+					Math.Max(0, parent.ClientSize.Width - this.lblReportStatus.PreferredWidth),
+					Theme.Dpi(4));
+			}
+		}
+
+		private void ApplyBatchStatusChip(AndroidBatchResult batch)
+		{
+			if (batch == null)
+			{
+				return;
+			}
+			if (batch.HasErrors)
+			{
+				this.SetReportStatusChip("Export failed — see details", Color.FromArgb(0xEF, 0x53, 0x50));
+				MessageBox.Show(this, batch.DetailText, batch.Title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+			this.SetReportStatusChip("Exported ✓ — " + batch.StatsLine, Color.FromArgb(0x81, 0xC7, 0x84));
 		}
 
 		private void btnOpenFolder_Click(object sender, EventArgs e)
