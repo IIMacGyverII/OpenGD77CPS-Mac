@@ -4153,6 +4153,13 @@ namespace DMR
 			this.ShowCodeplugStudio(false);
 		}
 
+		public void OpenCodeplugHealthReport()
+		{
+#if OpenGD77
+			this.ShowCodeplugHealthReport(this, EventArgs.Empty);
+#endif
+		}
+
 		private void ShowCodeplugStudio(bool launchMode)
 		{
 #if OpenGD77
@@ -4161,10 +4168,12 @@ namespace DMR
 				this.WindowState = FormWindowState.Minimized;
 				this.ShowInTaskbar = false;
 			}
+			bool openedFullCps = false;
 			using (CodeplugStudioForm studio = new CodeplugStudioForm(this))
 			{
 				studio.ShowDialog(this);
-				if (launchMode && !studio.UserOpenedFullCps)
+				openedFullCps = studio.UserOpenedFullCps;
+				if (launchMode && !openedFullCps)
 				{
 					Application.Exit();
 					return;
@@ -4175,6 +4184,10 @@ namespace DMR
 				this.WindowState = FormWindowState.Normal;
 				this.ShowInTaskbar = true;
 				this.Activate();
+			}
+			if (openedFullCps)
+			{
+				ForkDockLayout.EnsureWorkspaceOpen(this);
 			}
 #endif
 		}

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
@@ -32,6 +33,7 @@ namespace DMR
 		private readonly Button btnExportAll;
 		private readonly Button btnOpenFullCps;
 		private readonly TextBox txtValidation;
+		private readonly ToolTip csvTileTip = new ToolTip();
 		private AndroidBackupValidationResult lastValidation;
 		private string lastDiffFolder = "";
 		private bool diffPreApproved;
@@ -51,7 +53,7 @@ namespace DMR
 			{
 				Dock = DockStyle.Top,
 				Height = 36,
-				Text = "CSV-only workflow — load the 5-file phone backup, validate, review diff, then import or export (Path B). No USB required."
+				Text = "CSV-only workflow — load the 5-file phone backup, validate, review diff, then import or export (Path B). Double-click a CSV tile to open that file."
 			};
 
 			Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 118 };
@@ -157,9 +159,25 @@ namespace DMR
 			};
 			this.btnExportAll.Click += this.btnExportAll_Click;
 
-			this.btnOpenFullCps = new Button
+			Button btnOpenFolder = new Button
 			{
 				Location = new Point(356, 8),
+				Size = new Size(90, 28),
+				Text = "Open folder"
+			};
+			btnOpenFolder.Click += this.btnOpenFolder_Click;
+
+			Button btnHealth = new Button
+			{
+				Location = new Point(452, 8),
+				Size = new Size(90, 28),
+				Text = "Health (F7)"
+			};
+			btnHealth.Click += this.btnHealth_Click;
+
+			this.btnOpenFullCps = new Button
+			{
+				Location = new Point(548, 8),
 				Size = new Size(130, 28),
 				Text = "Open full editor…"
 			};
@@ -180,6 +198,8 @@ namespace DMR
 			bottomPanel.Controls.Add(this.btnImportAll);
 			bottomPanel.Controls.Add(this.btnReviewDiff);
 			bottomPanel.Controls.Add(this.btnExportAll);
+			bottomPanel.Controls.Add(btnOpenFolder);
+			bottomPanel.Controls.Add(btnHealth);
 			bottomPanel.Controls.Add(this.btnOpenFullCps);
 			bottomPanel.Controls.Add(btnClose);
 
@@ -189,6 +209,7 @@ namespace DMR
 			this.Controls.Add(lblIntro);
 
 			this.Shown += this.CodeplugStudioForm_Shown;
+			this.Resize += this.CodeplugStudioForm_Resize;
 
 			string last = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
 			if (!string.IsNullOrEmpty(last))
@@ -246,12 +267,70 @@ namespace DMR
 			};
 			tile.Controls.Add(lblName);
 			tile.Controls.Add(lblStatus);
+			tile.Cursor = Cursors.Hand;
+			tile.DoubleClick += this.csvTile_DoubleClick;
+			this.csvTileTip.SetToolTip(tile, "Double-click to open " + fileName);
 			return tile;
 		}
 
 		private void CodeplugStudioForm_Shown(object sender, EventArgs e)
 		{
 			this.webReport.EnsureInitialized();
+			this.LayoutCsvTiles();
+		}
+
+		private void CodeplugStudioForm_Resize(object sender, EventArgs e)
+		{
+			this.LayoutCsvTiles();
+		}
+
+		private void LayoutCsvTiles()
+		{
+			if (this.pnlCsvTiles == null || this.pnlCsvTiles.Controls.Count == 0)
+			{
+				return;
+			}
+			int count = this.pnlCsvTiles.Controls.Count;
+			int gap = 6;
+			int available = Math.Max(124 * count, this.pnlCsvTiles.ClientSize.Width - gap);
+			int tileWidth = Math.Max(124, (available - gap * (count - 1)) / count);
+			foreach (Control control in this.pnlCsvTiles.Controls)
+			{
+				control.Width = tileWidth;
+			}
+		}
+
+		private void csvTile_DoubleClick(object sender, EventArgs e)
+		{
+			Panel tile = sender as Panel;
+			string fileName = tile == null ? null : tile.Tag as string;
+			if (string.IsNullOrEmpty(fileName))
+			{
+				return;
+			}
+			string folderPath = this.txtFolder.Text.Trim();
+			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
+			{
+				MessageBox.Show(this, "Choose a valid backup folder first.", "Open CSV",
+					MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+			string path = Path.Combine(folderPath, fileName);
+			if (!File.Exists(path))
+			{
+				MessageBox.Show(this, fileName + " is missing in this folder.", "Open CSV",
+					MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+			try
+			{
+				Process.Start(path);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(this, path + "\n\n" + ex.Message, "Open CSV",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
 		}
 
 		private void btnBrowse_Click(object sender, EventArgs e)
@@ -504,6 +583,31 @@ namespace DMR
 			}
 			this.mainForm.ExportAndroidBackupFolder(this.txtFolder.Text);
 			this.SetFolder(this.txtFolder.Text, false);
+		}
+
+		private void btnOpenFolder_Click(object sender, EventArgs e)
+		{
+			string folderPath = this.txtFolder.Text.Trim();
+			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
+			{
+				MessageBox.Show(this, "Choose a valid backup folder first.", "Open folder",
+					MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+			try
+			{
+				Process.Start("explorer.exe", folderPath);
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(this, folderPath + "\n\n" + ex.Message, "Open folder",
+					MessageBoxButtons.OK, MessageBoxIcon.Warning);
+			}
+		}
+
+		private void btnHealth_Click(object sender, EventArgs e)
+		{
+			this.mainForm.OpenCodeplugHealthReport();
 		}
 
 		private void btnOpenFullCps_Click(object sender, EventArgs e)

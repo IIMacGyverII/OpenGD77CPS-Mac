@@ -39,8 +39,8 @@ namespace DMR
 					"Phone workflow:\n" +
 					"1. Export the 5-file backup folder from the radio app (Contacts, TG_Lists, Channels, Zones, DTMF).\n" +
 					"2. On PC: use Pull from phone (ADB) if USB debugging is on, or copy the folder to Desktop/Documents (MTP browse in CPS does not work).\n" +
-					"3. On PC: F8 opens Android backup manager — validation report, Review diff, then Import all (Path B).\n" +
-					"   Or File → Import CSV Files… / Ctrl+I for quick folder import.\n" +
+					"3. On PC: Ctrl+Shift+S opens Codeplug Studio (CSV-only) or F8 for Android backup manager.\n" +
+					"   Validate, Review diff, then Import all (Path B). Or File → Import CSV… / Ctrl+I.\n" +
 					"4. Edit channels in the tree; Android-only fields live in the PriInterPhone section on each channel.\n" +
 					"5. Export with File → Export CSV… or Ctrl+E. Files are UTF-8 without BOM.\n" +
 					"6. F7 opens codeplug health report — click any warning name to jump to that channel, contact, or zone.\n\n" +
