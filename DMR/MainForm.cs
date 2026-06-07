@@ -204,6 +204,10 @@ namespace DMR
 
 		private ToolStripMenuItem tsmiAndroidBackup;
 
+		private ToolStripMenuItem tsmiCodeplugStudio;
+
+		private ToolStripButton tsbtnCodeplugStudio;
+
 		private ToolStripSeparator toolStripSeparatorAndroidMenu;
 
 		private ToolStripStatusLabel slblForkVersion;
@@ -225,6 +229,10 @@ namespace DMR
 		private bool forkAdvancedMenuBuilt;
 
 		private bool forkCodeplugHealthUiBuilt;
+
+		private bool forkCodeplugStudioUiBuilt;
+
+		private bool forkStudioLaunch;
 
 		private ToolStripStatusLabel slblCodeplugHealth;
 
@@ -377,6 +385,7 @@ namespace DMR
 			this.tsmiImportCsv = new ToolStripMenuItem();
 			this.tsmiExportCsv = new ToolStripMenuItem();
 			this.toolStripSeparatorAndroidMenu = new ToolStripSeparator();
+			this.tsmiCodeplugStudio = new ToolStripMenuItem();
 			this.tsmiAndroidBackup = new ToolStripMenuItem();
 			this.toolStripSeparator1 = new ToolStripSeparator();
 			this.tsmiExit = new ToolStripMenuItem();
@@ -514,7 +523,7 @@ namespace DMR
 			this.mnsMain.Padding = new Padding(7, 3, 0, 3);
 			this.mnsMain.Size = new Size(865, 27);
 			this.mnsMain.TabIndex = 4;
-			this.tsmiFile.DropDownItems.AddRange(new ToolStripItem[10]
+			this.tsmiFile.DropDownItems.AddRange(new ToolStripItem[11]
 			{
 				this.tsmiNew,
 				this.tsmiSave,
@@ -523,6 +532,7 @@ namespace DMR
 				this.tsmiImportCsv,
 				this.tsmiExportCsv,
 				this.toolStripSeparatorAndroidMenu,
+				this.tsmiCodeplugStudio,
 				this.tsmiAndroidBackup,
 				this.toolStripSeparator1,
 				this.tsmiExit
@@ -565,6 +575,11 @@ namespace DMR
 
 			this.toolStripSeparatorAndroidMenu.Name = "toolStripSeparatorAndroidMenu";
 			this.toolStripSeparatorAndroidMenu.Size = new Size(205, 6);
+
+			this.tsmiCodeplugStudio.Name = "tsmiCodeplugStudio";
+			this.tsmiCodeplugStudio.Size = new Size(260, 22);
+			this.tsmiCodeplugStudio.Text = "Codeplug Studio…";
+			this.tsmiCodeplugStudio.Click += this.tsmiCodeplugStudio_Click;
 
 			this.tsmiAndroidBackup.Name = "tsmiAndroidBackup";
 			this.tsmiAndroidBackup.Size = new Size(260, 22);
@@ -1262,6 +1277,18 @@ namespace DMR
 		public MainForm(string[] args)
 		{
 			MainForm.StartupArgs = args;
+			this.forkStudioLaunch = false;
+			if (args != null)
+			{
+				foreach (string arg in args)
+				{
+					if (string.Equals(arg, "--studio", StringComparison.OrdinalIgnoreCase))
+					{
+						this.forkStudioLaunch = true;
+						break;
+					}
+				}
+			}
 
 			this.frmHelp = new HelpForm();
 			this.frmTree = new TreeForm();
@@ -1503,7 +1530,14 @@ namespace DMR
 			this.UpdateForkChrome();
 			ForkDockLayout.ApplyFirstRunIfNeeded(this);
 			ForkDockLayout.EnsureWorkspaceOpen(this);
-			AndroidWorkflowForm.ShowIfNeeded(this);
+			if (this.forkStudioLaunch)
+			{
+				this.ShowCodeplugStudio(true);
+			}
+			else
+			{
+				AndroidWorkflowForm.ShowIfNeeded(this);
+			}
 		}
 
 		public void RefreshForkStatus()
@@ -1533,6 +1567,7 @@ namespace DMR
 				this.tsmiImportCsv,
 				this.tsmiExportCsv,
 				this.toolStripSeparatorAndroidMenu,
+				this.tsmiCodeplugStudio,
 				this.tsmiAndroidBackup,
 				this.toolStripSeparator1,
 				this.tsmiExit
@@ -1568,6 +1603,7 @@ namespace DMR
 			this.EnsureForkAdvancedMenu();
 			this.EnsureForkHelpMenu();
 			this.EnsureForkCodeplugHealthUi();
+			this.EnsureForkCodeplugStudioUi();
 			if (this.tsmiRestoreLayout == null)
 			{
 				this.tsmiRestoreLayout = new ToolStripMenuItem("Restore PriInterPhone default layout…");
@@ -1681,6 +1717,39 @@ namespace DMR
 			}
 			this.PolishForkAndroidBackupToolbar();
 			this.forkCodeplugHealthUiBuilt = true;
+#endif
+		}
+
+		private void EnsureForkCodeplugStudioUi()
+		{
+#if OpenGD77
+			if (this.forkCodeplugStudioUiBuilt)
+			{
+				return;
+			}
+			if (this.tsmiCodeplugStudio != null)
+			{
+				this.tsmiCodeplugStudio.ShortcutKeys = Keys.Control | Keys.Shift | Keys.S;
+				this.tsmiCodeplugStudio.ShowShortcutKeys = true;
+			}
+
+			this.tsbtnCodeplugStudio = new ToolStripButton();
+			this.tsbtnCodeplugStudio.DisplayStyle = ToolStripItemDisplayStyle.Text;
+			this.tsbtnCodeplugStudio.Text = "Studio";
+			this.tsbtnCodeplugStudio.Font = new Font(Theme.UiFont.FontFamily, 9.75f, FontStyle.Bold);
+			this.tsbtnCodeplugStudio.ForeColor = Color.FromArgb(0x81, 0xC7, 0x84);
+			this.tsbtnCodeplugStudio.ToolTipText = "Codeplug Studio (Ctrl+Shift+S) — CSV-only backup workflow";
+			this.tsbtnCodeplugStudio.Click += this.tsmiCodeplugStudio_Click;
+			int backupIndex = this.tsrMain.Items.IndexOf(this.tsbtnAndroidBackup);
+			if (backupIndex >= 0)
+			{
+				this.tsrMain.Items.Insert(backupIndex, this.tsbtnCodeplugStudio);
+			}
+			else
+			{
+				this.tsrMain.Items.Add(this.tsbtnCodeplugStudio);
+			}
+			this.forkCodeplugStudioUiBuilt = true;
 #endif
 		}
 
@@ -4077,6 +4146,37 @@ namespace DMR
 			{
 				form.ShowDialog(this);
 			}
+		}
+
+		private void tsmiCodeplugStudio_Click(object sender, EventArgs e)
+		{
+			this.ShowCodeplugStudio(false);
+		}
+
+		private void ShowCodeplugStudio(bool launchMode)
+		{
+#if OpenGD77
+			if (launchMode)
+			{
+				this.WindowState = FormWindowState.Minimized;
+				this.ShowInTaskbar = false;
+			}
+			using (CodeplugStudioForm studio = new CodeplugStudioForm(this))
+			{
+				studio.ShowDialog(this);
+				if (launchMode && !studio.UserOpenedFullCps)
+				{
+					Application.Exit();
+					return;
+				}
+			}
+			if (launchMode || this.WindowState == FormWindowState.Minimized)
+			{
+				this.WindowState = FormWindowState.Normal;
+				this.ShowInTaskbar = true;
+				this.Activate();
+			}
+#endif
 		}
 
 		private void tsbtnOpenBackupFolder_Click(object sender, EventArgs e)

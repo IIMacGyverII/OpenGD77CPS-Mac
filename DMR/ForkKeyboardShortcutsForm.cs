@@ -29,7 +29,8 @@ namespace DMR
 						"  Ctrl+S     Save codeplug\n" +
 						"  F1         PriInterPhone workflow help\n" +
 						"  F7         Codeplug health report — click names to open editors\n" +
-						"  F8         Android backup manager (diff + import)\n\n" +
+						"  F8         Android backup manager (diff + import)\n" +
+						"  Ctrl+Shift+S  Codeplug Studio — CSV-only backup workflow\n\n" +
 						"Navigation tree\n" +
 						"  Filter box Search zones, channels, contacts, etc.\n\n" +
 						"Channels grid\n" +
