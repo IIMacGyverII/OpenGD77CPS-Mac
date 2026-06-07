@@ -2002,13 +2002,15 @@ namespace DMR
 			string dupCtNameNote = snap.DuplicateContactNameGroups > 0 ? " | dup ct nm: " + snap.DuplicateContactNameGroups : "";
 			string digNoCtNote = snap.DigitalNoContact > 0 ? " | dig no ct: " + snap.DigitalNoContact : "";
 			string zoneNote = snap.EmptyZones > 0 ? " | empty zn: " + snap.EmptyZones : "";
+			string emptyTgNote = snap.EmptyTgLists > 0 ? " | empty TG: " + snap.EmptyTgLists : "";
+			string badTgNote = snap.InvalidTgRefs > 0 ? " | bad TG ref: " + snap.InvalidTgRefs : "";
 			string emptyScanNote = snap.EmptyScanLists > 0 ? " | empty sc: " + snap.EmptyScanLists : "";
 			string badScanNote = snap.InvalidScanRefs > 0 ? " | bad sc ref: " + snap.InvalidScanRefs : "";
 			string warningTag = hasWarning ? " ⚠" : "";
 			this.slblCodeplugHealth.Text = "▶ Health report" + warningTag + " — "
 				+ snap.Channels + " ch (" + snap.Digital + "D/" + snap.Analog + "A)"
 				+ " | " + snap.Contacts + " ct | " + snap.Zones + " zn | " + snap.TgLists + " TG | " + snap.ScanLists + " sc"
-				+ relayNote + orphanNote + dupNote + dupIdNote + dupCtNameNote + digNoCtNote + zoneNote + emptyScanNote + badScanNote;
+				+ relayNote + orphanNote + dupNote + dupIdNote + dupCtNameNote + digNoCtNote + zoneNote + emptyTgNote + badTgNote + emptyScanNote + badScanNote;
 			this.slblCodeplugHealth.ForeColor = hasWarning ? Color.FromArgb(0xFF, 0xB7, 0x4D) : Theme.Foreground;
 			if (this.tsbtnCodeplugHealth != null)
 			{

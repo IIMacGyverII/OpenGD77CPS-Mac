@@ -19,6 +19,14 @@ namespace DMR
 		public int InvalidRefCount;
 	}
 
+	public sealed class CodeplugHealthTgRow
+	{
+		public int TgIndex;
+		public string Name;
+		public int ContactCount;
+		public int InvalidRefCount;
+	}
+
 	public sealed class CodeplugHealthDrillItem
 	{
 		public int Index;
@@ -45,6 +53,11 @@ namespace DMR
 		public int InvalidScanRefs;
 		public List<CodeplugHealthDrillItem> InvalidScanRefDrill = new List<CodeplugHealthDrillItem>();
 		public List<CodeplugHealthScanRow> ScanRows = new List<CodeplugHealthScanRow>();
+		public int EmptyTgLists;
+		public List<CodeplugHealthDrillItem> EmptyTgDrill = new List<CodeplugHealthDrillItem>();
+		public int InvalidTgRefs;
+		public List<CodeplugHealthDrillItem> InvalidTgRefDrill = new List<CodeplugHealthDrillItem>();
+		public List<CodeplugHealthTgRow> TgRows = new List<CodeplugHealthTgRow>();
 		public int RelayZero;
 		public List<string> RelayZeroNames = new List<string>();
 		public List<CodeplugHealthDrillItem> RelayZeroDrill = new List<CodeplugHealthDrillItem>();
@@ -76,7 +89,8 @@ namespace DMR
 				return this.RelayZero > 0 || this.OrphanCount > 0 || this.DuplicateNameGroups > 0
 					|| this.EmptyZones > 0 || this.ChannelsNotInZone > 0 || this.DuplicateDmrIdGroups > 0
 					|| this.DuplicateContactNameGroups > 0 || this.DigitalNoContact > 0
-					|| this.EmptyScanLists > 0 || this.InvalidScanRefs > 0;
+					|| this.EmptyScanLists > 0 || this.InvalidScanRefs > 0
+					|| this.EmptyTgLists > 0 || this.InvalidTgRefs > 0;
 			}
 		}
 
@@ -162,6 +176,7 @@ namespace DMR
 			snap.Contacts = CountValidContacts();
 			snap.Zones = ZoneForm.data.ValidCount;
 			snap.TgLists = CountValidRxGroupLists();
+			CollectTgListHealth(snap, nameListLimit);
 			CollectScanHealth(snap, nameListLimit);
 			CollectDuplicateDmrIds(snap, nameListLimit);
 			CollectDuplicateContactNames(snap, nameListLimit);
@@ -276,6 +291,65 @@ namespace DMR
 					ScanIndex = s,
 					Name = NormalScanForm.data[s].Name,
 					ChannelCount = chCount,
+					InvalidRefCount = invalidRefs
+				});
+			}
+		}
+
+		private static void CollectTgListHealth(CodeplugHealthSnapshot snap, int nameListLimit)
+		{
+			for (int t = 0; t < RxGroupListForm.data.Count; t++)
+			{
+				if (!RxGroupListForm.data.DataIsValid(t))
+				{
+					continue;
+				}
+				int contactCount = RxGroupListForm.data.GetContactCntByIndex(t);
+				int invalidRefs = 0;
+				for (int i = 0; i < contactCount; i++)
+				{
+					ushort contactNum = RxGroupListForm.data[t].ContactList[i];
+					if (contactNum == 0)
+					{
+						continue;
+					}
+					int idx = contactNum - 1;
+					if (!ContactForm.data.DataIsValid(idx) || !ContactForm.data.IsGroupCall(idx))
+					{
+						invalidRefs++;
+					}
+				}
+				if (contactCount == 0)
+				{
+					snap.EmptyTgLists++;
+					if (snap.EmptyTgDrill.Count < nameListLimit)
+					{
+						snap.EmptyTgDrill.Add(new CodeplugHealthDrillItem
+						{
+							Index = t,
+							Name = RxGroupListForm.data[t].Name
+						});
+					}
+				}
+				if (invalidRefs > 0)
+				{
+					snap.InvalidTgRefs += invalidRefs;
+					if (snap.InvalidTgRefDrill.Count < nameListLimit)
+					{
+						string label = RxGroupListForm.data[t].Name + " (" + invalidRefs + " bad ref"
+							+ (invalidRefs == 1 ? "" : "s") + ")";
+						snap.InvalidTgRefDrill.Add(new CodeplugHealthDrillItem
+						{
+							Index = t,
+							Name = label
+						});
+					}
+				}
+				snap.TgRows.Add(new CodeplugHealthTgRow
+				{
+					TgIndex = t,
+					Name = RxGroupListForm.data[t].Name,
+					ContactCount = contactCount,
 					InvalidRefCount = invalidRefs
 				});
 			}

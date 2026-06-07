@@ -98,6 +98,43 @@ namespace DMR
 					"warn", "These channels exist but are not assigned to a zone.");
 			}
 
+			if (snap.EmptyTgLists > 0)
+			{
+				AppendDrillList(html, "Empty TG/Rx lists", snap.EmptyTgLists, snap.EmptyTgDrill, "tglist",
+					"warn", "TG/Rx group lists with no member contacts.");
+			}
+
+			if (snap.InvalidTgRefs > 0)
+			{
+				AppendDrillList(html, "Invalid TG/Rx contact refs", snap.InvalidTgRefs, snap.InvalidTgRefDrill, "tglist",
+					"warn", "TG/Rx lists reference missing contacts or non-group (private/all-call) entries.");
+			}
+
+			if (snap.TgRows.Count > 0)
+			{
+				html.Append("<h2>TG/Rx list breakdown</h2>");
+				html.Append("<table><tr><th>TG/Rx list</th><th>Contacts</th><th>Bad refs</th></tr>");
+				int tgTableRows = 0;
+				foreach (CodeplugHealthTgRow row in snap.TgRows)
+				{
+					string rowClass = row.ContactCount == 0 ? "miss" : (row.InvalidRefCount > 0 ? "warn" : "");
+					html.Append("<tr><td class=\"").Append(rowClass).Append("\">")
+						.Append(ForkReportHtml.DrillLink("tglist", row.TgIndex, row.Name)).Append("</td><td>")
+						.Append(row.ContactCount).Append("</td><td>")
+						.Append(row.InvalidRefCount > 0 ? row.InvalidRefCount.ToString() : "—").Append("</td></tr>");
+					tgTableRows++;
+					if (tgTableRows >= 40)
+					{
+						break;
+					}
+				}
+				if (snap.TgRows.Count > tgTableRows)
+				{
+					html.Append("<tr><td colspan=\"3\">… and ").Append(snap.TgRows.Count - tgTableRows).Append(" more TG/Rx lists</td></tr>");
+				}
+				html.Append("</table>");
+			}
+
 			if (snap.EmptyScanLists > 0)
 			{
 				AppendDrillList(html, "Empty scan lists", snap.EmptyScanLists, snap.EmptyScanDrill, "scanlist",
@@ -161,7 +198,7 @@ namespace DMR
 
 			if (!snap.HasWarning)
 			{
-				html.Append("<p class=\"ok\">No relay=0, orphan-contact, duplicate channel/contact names, duplicate DMR ID, digital-no-contact, zone, or scan-list issues detected in the loaded codeplug.</p>");
+				html.Append("<p class=\"ok\">No relay=0, orphan-contact, duplicate channel/contact names, duplicate DMR ID, digital-no-contact, zone, TG/Rx-list, or scan-list issues detected in the loaded codeplug.</p>");
 			}
 
 			html.Append(ForkReportHtml.DocumentEnd());
