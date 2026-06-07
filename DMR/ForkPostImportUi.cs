@@ -37,6 +37,8 @@ namespace DMR
 		internal const string PreImportReportDiffLink = "Open Review diff… (Ctrl+D)";
 		internal const string PreImportReportFootWarn = "Review channel changes before Path B import — amber status, Review diff ⚠ footer/toolbar/menu, status bar links, or Ctrl+D in F8/Studio.";
 		internal const string ImportBlockedDiffTitle = "Review diff first";
+		internal const string ExportOverwriteDiffTitle = "Overwrite pending diff?";
+		internal const string BatchDialogDiffClearedHintText = "Review diff ⚠ shell cues cleared — backup Channels.csv matches codeplug.";
 		internal const string MainToolbarDiffTipDefault = "Review channel changes before Path B import — Ctrl+D when pending, or F8/Studio";
 		internal const string MainImportToolbarTipDefault = "Import PriInterPhone backup folder (File → Import CSV, Path B)";
 		internal const string MainBackupToolbarTipDefault = "Android backup manager (F8) — F5 refresh report, Path B import/export";
@@ -456,8 +458,14 @@ namespace DMR
 
 		public static ForkPendingDiffSnapshot CollectPendingDiffSnapshot()
 		{
+			string folderPath = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
+			return ForkPostImportUi.CollectFolderPendingDiffSnapshot(folderPath);
+		}
+
+		public static ForkPendingDiffSnapshot CollectFolderPendingDiffSnapshot(string folderPath)
+		{
 			ForkPendingDiffSnapshot snap = new ForkPendingDiffSnapshot();
-			snap.FolderPath = IniFileUtils.getProfileStringWithDefault("Setup", "LastAndroidBackupFolder", "");
+			snap.FolderPath = folderPath ?? "";
 			if (string.IsNullOrEmpty(snap.FolderPath) || !Directory.Exists(snap.FolderPath))
 			{
 				return snap;
@@ -481,6 +489,23 @@ namespace DMR
 			snap.HasPending = ForkPostImportUi.ShouldOfferDiffLink(snap.Diff, diffPreApproved, true);
 			snap.ChangeCount = ForkPostImportUi.PendingDiffChangeCount(snap.Diff);
 			return snap;
+		}
+
+		public static bool OfferExportOverwritePendingDiff(IWin32Window owner, ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return true;
+			}
+			string suffix = snap.ChangeCount > 1 ? " (" + snap.ChangeCount + " ch)" : "";
+			DialogResult offer = MessageBox.Show(owner,
+				snap.ChangeCount + " unreviewed channel change(s) in this backup" + suffix + ".\n\n"
+					+ "Export will overwrite Channels.csv with your loaded codeplug.\n\n"
+					+ "Continue export anyway?",
+				ForkPostImportUi.ExportOverwriteDiffTitle,
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Warning);
+			return offer == DialogResult.Yes;
 		}
 
 		public static void ConfigureDiffButton(

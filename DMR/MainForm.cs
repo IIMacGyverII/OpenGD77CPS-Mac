@@ -4826,6 +4826,8 @@ namespace DMR
 			}
 
 			bool channelsWillImport = File.Exists(channelsFile);
+			bool hadPendingDiff = channelsWillImport
+				&& ForkPostImportUi.CollectFolderPendingDiffSnapshot(folderPath).HasPending;
 			bool diffApproved = false;
 			bool skipDiffReview = channelsWillImport
 				&& AndroidImportDiff.IsDiffReviewCurrent(channelsFile, diffPreApproved, diffApprovedChannelsStamp);
@@ -5002,6 +5004,8 @@ namespace DMR
 				}
 			}
 
+			batch.PendingDiffCleared = hadPendingDiff && channelsWillImport && !batch.HasErrors;
+
 			bool openHealthReport = false;
 			if (showResultDialog)
 			{
@@ -5079,6 +5083,12 @@ namespace DMR
 				return null;
 			}
 			IniFileUtils.WriteProfileString("Setup", "LastAndroidBackupFolder", folderPath);
+			ForkPendingDiffSnapshot exportDiffSnap = ForkPostImportUi.CollectFolderPendingDiffSnapshot(folderPath);
+			if (!ForkPostImportUi.OfferExportOverwritePendingDiff(this, exportDiffSnap))
+			{
+				return null;
+			}
+			bool hadPendingDiff = exportDiffSnap.HasPending;
 			AndroidBatchResult batch = new AndroidBatchResult
 			{
 				Operation = "Export",
@@ -5182,6 +5192,13 @@ namespace DMR
 
 			batch.AddLog("");
 			batch.AddLog("Encoding: UTF-8 (no BOM) for all CSV files.");
+
+			if (!batch.HasErrors && batch.ChannelsCount > 0)
+			{
+				ForkPostImportUi.MarkPendingDiffReviewed(folderPath);
+			}
+			this.RefreshForkPendingDiff();
+			batch.PendingDiffCleared = hadPendingDiff && !batch.HasErrors && batch.ChannelsCount > 0;
 
 			if (showResultDialog)
 			{

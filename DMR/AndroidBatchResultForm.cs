@@ -63,9 +63,25 @@ namespace DMR
 
 			string healthHint = ForkPostImportUi.BatchDialogHealthHint(this.result);
 			bool showHealthFollowUp = !string.IsNullOrEmpty(healthHint);
+			bool showDiffClearedHint = this.result.PendingDiffCleared;
+			int footerTop = 360;
+			Label lblDiffClearedHint = null;
+			if (showDiffClearedHint)
+			{
+				lblDiffClearedHint = new Label
+				{
+					Location = new Point(12, footerTop),
+					Size = new Size(496, 28),
+					Text = ForkPostImportUi.BatchDialogDiffClearedHintText,
+					Visible = true,
+					ForeColor = ForkPostImportUi.WarnColor,
+					Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
+				};
+				footerTop += 32;
+			}
 			Label lblHealthHint = new Label
 			{
-				Location = new Point(12, 360),
+				Location = new Point(12, footerTop),
 				Size = new Size(496, 32),
 				Text = healthHint ?? "",
 				Visible = showHealthFollowUp,
@@ -75,7 +91,7 @@ namespace DMR
 
 			Button btnHealth = new Button
 			{
-				Location = new Point(12, showHealthFollowUp ? 392 : 364),
+				Location = new Point(12, footerTop + (showHealthFollowUp ? 32 : 0)),
 				Size = new Size(132, 28),
 				Visible = showHealthFollowUp,
 				Anchor = AnchorStyles.Bottom | AnchorStyles.Left
@@ -88,9 +104,10 @@ namespace DMR
 				ForkPostImportUi.ConfigureHealthButton(btnHealth, this.result, healthTip);
 			}
 
+			int okTop = showHealthFollowUp ? footerTop + 32 : (showDiffClearedHint ? footerTop : 364);
 			Button btnOk = new Button
 			{
-				Location = new Point(408, showHealthFollowUp ? 392 : 364),
+				Location = new Point(408, okTop),
 				Size = new Size(100, 28),
 				Text = "OK",
 				DialogResult = DialogResult.OK,
@@ -103,7 +120,7 @@ namespace DMR
 			{
 				lblStats.ForeColor = Color.Khaki;
 			}
-			else if (showHealthFollowUp)
+			else if (showHealthFollowUp || showDiffClearedHint)
 			{
 				lblStats.ForeColor = ForkPostImportUi.WarnColor;
 			}
@@ -115,11 +132,14 @@ namespace DMR
 			this.Controls.Add(lblStats);
 			this.Controls.Add(txtLog);
 			this.Controls.Add(chkWarnings);
+			if (showDiffClearedHint)
+			{
+				this.Controls.Add(lblDiffClearedHint);
+			}
 			if (showHealthFollowUp)
 			{
 				this.Controls.Add(lblHealthHint);
 				this.Controls.Add(btnHealth);
-				this.ClientSize = new Size(520, 432);
 				this.KeyPreview = true;
 				this.KeyDown += (s, e) =>
 				{
@@ -129,6 +149,10 @@ namespace DMR
 						e.Handled = true;
 					}
 				};
+			}
+			if (showDiffClearedHint || showHealthFollowUp)
+			{
+				this.ClientSize = new Size(520, okTop + 40);
 			}
 			this.Controls.Add(btnOk);
 		}

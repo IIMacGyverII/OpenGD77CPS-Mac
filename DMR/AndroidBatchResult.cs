@@ -21,6 +21,7 @@ namespace DMR
 		public int ZonesSkipped;
 		public readonly List<string> LogLines = new List<string>();
 		public readonly List<string> Warnings = new List<string>();
+		public bool PendingDiffCleared;
 
 		public bool HasErrors
 		{

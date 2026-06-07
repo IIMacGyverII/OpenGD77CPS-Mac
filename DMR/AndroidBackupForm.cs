@@ -747,6 +747,36 @@ namespace DMR
 				canImport,
 				ForkPostImportUi.PreImportImportButtonF8Default,
 				this.footerTip);
+			this.UpdateF8Title(this.txtFolder.Text.Trim());
+		}
+
+		private void UpdateF8Title(string folderPath)
+		{
+			const string baseTitle = "Android backup — PriInterPhone Path B";
+			if (string.IsNullOrEmpty(folderPath))
+			{
+				this.Text = baseTitle;
+				return;
+			}
+			string name = Path.GetFileName(folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+			if (string.IsNullOrEmpty(name))
+			{
+				name = folderPath;
+			}
+			if (name.Length > 48)
+			{
+				name = name.Substring(0, 45) + "…";
+			}
+			string channelsPath = Path.Combine(folderPath, "Channels.csv");
+			bool pendingDiff = File.Exists(channelsPath)
+				&& this.lastDiff != null
+				&& AndroidImportDiff.HasPendingDiffChanges(this.lastDiff)
+				&& !this.diffPreApproved;
+			if (pendingDiff)
+			{
+				name += " ⚠";
+			}
+			this.Text = baseTitle + " — " + name;
 		}
 
 		private bool TryApproveChannelDiff(string folderPath)
@@ -832,7 +862,7 @@ namespace DMR
 				}
 				this.SetFolder(picked, true);
 			}
-			AndroidBatchResult batch = this.mainForm.ExportAndroidBackupFolder(this.txtFolder.Text, false);
+			AndroidBatchResult batch = this.mainForm.ExportAndroidBackupFolder(this.txtFolder.Text.Trim(), false);
 			if (batch != null)
 			{
 				this.SetFolder(this.txtFolder.Text.Trim(), false, batch);

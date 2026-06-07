@@ -25,7 +25,7 @@ namespace DMR
 						"Global (main window)\n" +
 						"  Ctrl+D     Review diff when pending (main window; channels grid uses Ctrl+D to duplicate)\n" +
 						"  Ctrl+I     Import Android backup folder (Path B) — pending diff offers Review diff first\n" +
-						"  Ctrl+E     Export Android backup folder\n" +
+						"  Ctrl+E     Export Android backup folder — warns if export overwrites pending diff\n" +
 						"  Ctrl+O     Open codeplug\n" +
 						"  Ctrl+S     Save codeplug\n" +
 						"  F1         PriInterPhone workflow help\n" +
@@ -49,7 +49,7 @@ namespace DMR
 						"  Ctrl+O     Browse backup folder\n" +
 						"  Ctrl+I     Import all (Path B) — Import ⚠ footer when blocked; offers Review diff\n" +
 						"  Ctrl+D     Review diff…\n" +
-						"  Ctrl+E     Export all\n" +
+						"  Ctrl+E     Export all — warns if export overwrites pending diff\n" +
 						"  F7         Codeplug health report\n" +
 						"  F5         Refresh folder validation report\n" +
 						"  Recent     Pick a recently used backup folder\n" +
