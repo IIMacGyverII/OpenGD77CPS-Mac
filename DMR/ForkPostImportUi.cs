@@ -41,6 +41,9 @@ namespace DMR
 		internal const string BatchDialogDiffClearedHintText = "Review diff ⚠ shell cues cleared — backup Channels.csv matches codeplug.";
 		internal const string MainToolbarDiffTipDefault = "Review channel changes before Path B import — Ctrl+D when pending, or F8/Studio";
 		internal const string MainImportToolbarTipDefault = "Import PriInterPhone backup folder (File → Import CSV, Path B)";
+		internal const string MainExportToolbarTipDefault = "Export Android-format CSV (UTF-8, no BOM)";
+		internal const string PreImportExportButtonDefault = "Export all";
+		internal const string PreImportExportButtonF8Default = "Export all";
 		internal const string MainBackupToolbarTipDefault = "Android backup manager (F8) — F5 refresh report, Path B import/export";
 		internal static readonly Color BackupToolbarColorDefault = Color.FromArgb(0x64, 0xB5, 0xF6);
 		internal const string PendingDiffLinkTip = "Click to review channel changes before import (Ctrl+D)";
@@ -280,6 +283,46 @@ namespace DMR
 			return "Pending channel changes in last backup — Review diff first (Ctrl+D) or import shows diff preview";
 		}
 
+		public static string ExportMenuLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "Export Android backup folder...";
+			}
+			if (snap.ChangeCount > 1)
+			{
+				return "Export Android backup folder ⚠ (" + snap.ChangeCount + " ch)...";
+			}
+			return "Export Android backup folder ⚠...";
+		}
+
+		public static string ExportToolbarLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "Export Android";
+			}
+			if (snap.ChangeCount > 1)
+			{
+				return "Export ⚠ (" + snap.ChangeCount + ")";
+			}
+			return "Export ⚠";
+		}
+
+		public static string ExportToolbarTooltip(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return ForkPostImportUi.MainExportToolbarTipDefault;
+			}
+			return "Pending channel changes — export overwrites Channels.csv (overwrite warning on Ctrl+E)";
+		}
+
+		public static string PostDiffClearedStatusSuffix()
+		{
+			return ForkFilterEscape.PostDiffClearedHint;
+		}
+
 		public static string DiffMenuLabel(ForkPendingDiffSnapshot snap)
 		{
 			if (snap == null || !snap.HasPending)
@@ -423,6 +466,55 @@ namespace DMR
 				return "Import ⚠" + note;
 			}
 			return "Import ⚠";
+		}
+
+		public static string ExportButtonLabel(
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv,
+			string defaultLabel)
+		{
+			if (!ForkPostImportUi.ShouldOfferDiffLink(diff, diffPreApproved, hasChannelsCsv))
+			{
+				return defaultLabel;
+			}
+			string note = ForkPostImportUi.DiffChangeCountToolbarNote(
+				ForkPostImportUi.PendingDiffChangeCount(diff));
+			if (!string.IsNullOrEmpty(note))
+			{
+				return "Export ⚠" + note;
+			}
+			return "Export ⚠";
+		}
+
+		public static void ConfigureExportButton(
+			Button button,
+			AndroidImportDiffResult diff,
+			bool diffPreApproved,
+			bool hasChannelsCsv,
+			string defaultLabel,
+			ToolTip toolTip = null)
+		{
+			if (button == null)
+			{
+				return;
+			}
+			bool highlight = ForkPostImportUi.ShouldOfferDiffLink(diff, diffPreApproved, hasChannelsCsv);
+			button.Enabled = true;
+			Theme.ApplyStudioButton(button, false, false);
+			button.Text = ForkPostImportUi.ExportButtonLabel(diff, diffPreApproved, hasChannelsCsv, defaultLabel);
+			if (highlight)
+			{
+				button.ForeColor = ForkPostImportUi.WarnColor;
+				button.FlatAppearance.BorderColor = ForkPostImportUi.WarnColor;
+			}
+			if (toolTip != null)
+			{
+				toolTip.SetToolTip(button,
+					highlight
+						? "Export overwrites Channels.csv — pending diff warning (Ctrl+E)"
+						: "Export codeplug to backup folder (Ctrl+E)");
+			}
 		}
 
 		public static void ConfigureImportButton(

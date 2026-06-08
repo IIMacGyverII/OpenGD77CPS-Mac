@@ -747,6 +747,13 @@ namespace DMR
 				canImport,
 				ForkPostImportUi.PreImportImportButtonF8Default,
 				this.footerTip);
+			ForkPostImportUi.ConfigureExportButton(
+				this.btnExportAll,
+				diff,
+				this.diffPreApproved,
+				hasChannels,
+				ForkPostImportUi.PreImportExportButtonF8Default,
+				this.footerTip);
 			this.UpdateF8Title(this.txtFolder.Text.Trim());
 		}
 

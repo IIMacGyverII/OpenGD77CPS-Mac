@@ -21,6 +21,7 @@ namespace DMR
 		internal const string ScanEditorHintText = "Ctrl+F filter Available · Esc clear · Ctrl+Shift+F tree · Add/Delete move channels · Up/Down reorders Member · hover filter box";
 		internal const string PostImportHealthHint = " · F7 health report";
 		internal const string PreImportDiffHint = " · Ctrl+D review diff";
+		internal const string PostDiffClearedHint = " · Review diff cues cleared";
 
 		public static ToolTip EnsureFilterToolTips(ToolTip existing, TextBox box, Label label, string boxTip)
 		{

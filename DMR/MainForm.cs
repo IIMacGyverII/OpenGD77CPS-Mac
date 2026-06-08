@@ -2519,6 +2519,16 @@ namespace DMR
 			{
 				this.tsbtnOpenBackupFolder.ToolTipText = ForkPostImportUi.OpenBackupFolderTooltip(snap);
 			}
+			if (this.tsmiExportCsv != null)
+			{
+				this.tsmiExportCsv.Text = ForkPostImportUi.ExportMenuLabel(snap);
+			}
+			if (this.tsbtnExportAndroid != null)
+			{
+				this.tsbtnExportAndroid.Text = ForkPostImportUi.ExportToolbarLabel(snap);
+				this.tsbtnExportAndroid.ForeColor = hasPending ? ForkPostImportUi.WarnColor : Theme.Foreground;
+				this.tsbtnExportAndroid.ToolTipText = ForkPostImportUi.ExportToolbarTooltip(snap);
+			}
 #endif
 		}
 
@@ -5020,6 +5030,11 @@ namespace DMR
 				statusMsg += ForkPostImportUi.PostImportHealthStatusSuffix();
 				statusRevertMs = 12000;
 			}
+			if (batch.PendingDiffCleared)
+			{
+				statusMsg += ForkPostImportUi.PostDiffClearedStatusSuffix();
+				statusRevertMs = Math.Max(statusRevertMs, 10000);
+			}
 			this.ShowForkStatusMessage(statusMsg, statusRevertMs);
 			this.RefreshOpenEditorsAfterAndroidImport();
 			this.UpdateForkChrome();
@@ -5204,7 +5219,14 @@ namespace DMR
 			{
 				AndroidBatchResult.ShowDialog(this, batch);
 			}
-			this.ShowForkStatusMessage(batch.Title + " — " + batch.StatsLine + " (UTF-8, no BOM)");
+			string exportStatus = batch.Title + " — " + batch.StatsLine + " (UTF-8, no BOM)";
+			int exportRevertMs = 8000;
+			if (batch.PendingDiffCleared)
+			{
+				exportStatus += ForkPostImportUi.PostDiffClearedStatusSuffix();
+				exportRevertMs = 10000;
+			}
+			this.ShowForkStatusMessage(exportStatus, exportRevertMs);
 			this.UpdateForkChrome();
 			return batch;
 		}
