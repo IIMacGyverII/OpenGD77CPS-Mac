@@ -35,9 +35,10 @@ namespace DMR
 		internal const string F8StudioBannerHealthHint = "Post-import scrolls to health · click names in health section, report link, amber status, Health ⚠ footer/toolbar, or F7";
 		internal const string F8StudioBannerDiffHint = "Pending diff: amber status, Review diff ⚠ footer/toolbar/menu/status bar/report link (Ctrl+D in F8/Studio) · left status after pull";
 		internal const string PreImportReportDiffLink = "Open Review diff… (Ctrl+D)";
-		internal const string PreImportReportFootWarn = "Review channel changes before Path B import — amber status, Review diff ⚠ footer/toolbar/menu, status bar links, or Ctrl+D in F8/Studio.";
+		internal const string PreImportReportFootWarn = "Review channel changes before Path B import — amber status, Review diff ⚠ / Import ⚠ / Export ⚠ footer/toolbar/menu, center/left status bar, or Ctrl+D in F8/Studio.";
 		internal const string ImportBlockedDiffTitle = "Review diff first";
 		internal const string ExportOverwriteDiffTitle = "Overwrite pending diff?";
+		internal const string ExportReviewFirstTitle = "Review diff before export?";
 		internal const string BatchDialogDiffClearedHintText = "Review diff ⚠ shell cues cleared — backup Channels.csv matches codeplug.";
 		internal const string MainToolbarDiffTipDefault = "Review channel changes before Path B import — Ctrl+D when pending, or F8/Studio";
 		internal const string MainImportToolbarTipDefault = "Import PriInterPhone backup folder (File → Import CSV, Path B)";
@@ -410,6 +411,43 @@ namespace DMR
 				openReviewDiff();
 			}
 			return true;
+		}
+
+		/// <summary>Main-window Ctrl+E: offer Review diff first; Yes stops export, No continues (overwrite warning follows).</summary>
+		public static bool OfferMainExportReviewPrompt(
+			IWin32Window owner,
+			ForkPendingDiffSnapshot snap,
+			Action openReviewDiff)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return true;
+			}
+			DialogResult offer = ForkPostImportUi.ShowExportReviewFirstDialog(owner, snap.Diff);
+			if (offer == DialogResult.Yes)
+			{
+				if (openReviewDiff != null)
+				{
+					openReviewDiff();
+				}
+				return false;
+			}
+			return true;
+		}
+
+		private static DialogResult ShowExportReviewFirstDialog(
+			IWin32Window owner,
+			AndroidImportDiffResult diff)
+		{
+			int pending = ForkPostImportUi.PendingDiffChangeCount(diff);
+			string suffix = pending > 1 ? " (" + pending + " ch)" : "";
+			return MessageBox.Show(owner,
+				pending + " channel change(s) not yet reviewed" + suffix + ".\n\n"
+					+ "Review diff before export (Ctrl+D)?\n\n"
+					+ "Export overwrites Channels.csv. Or use Export ⚠ toolbar/footer, center status bar, or continue to export.",
+				ForkPostImportUi.ExportReviewFirstTitle,
+				MessageBoxButtons.YesNo,
+				MessageBoxIcon.Warning);
 		}
 
 		/// <summary>Main-window Ctrl+I: offer Review diff first; Yes stops import, No continues to folder picker/preview.</summary>
@@ -845,6 +883,37 @@ namespace DMR
 			label.VisitedLinkColor = ForkPostImportUi.WarnColor;
 			label.ActiveLinkColor = Color.White;
 			label.ToolTipText = ForkPostImportUi.DiffToolbarTooltip(snap);
+		}
+
+		public static string MainPendingExportStatusLabel(ForkPendingDiffSnapshot snap)
+		{
+			if (snap == null || !snap.HasPending)
+			{
+				return "";
+			}
+			return "▶ Export ⚠" + ForkPostImportUi.DiffChangeCountToolbarNote(snap.ChangeCount);
+		}
+
+		public static void ApplyMainPendingExportStatusLink(ToolStripStatusLabel label, ForkPendingDiffSnapshot snap)
+		{
+			if (label == null)
+			{
+				return;
+			}
+			bool hasPending = snap != null && snap.HasPending;
+			label.Visible = hasPending;
+			if (!hasPending)
+			{
+				label.Text = "";
+				label.ToolTipText = "";
+				return;
+			}
+			label.Text = ForkPostImportUi.MainPendingExportStatusLabel(snap);
+			label.ForeColor = ForkPostImportUi.WarnColor;
+			label.LinkColor = ForkPostImportUi.WarnColor;
+			label.VisitedLinkColor = ForkPostImportUi.WarnColor;
+			label.ActiveLinkColor = Color.White;
+			label.ToolTipText = ForkPostImportUi.ExportToolbarTooltip(snap);
 		}
 
 		private static void ApplyHealthButtonState(Button button, bool highlight)

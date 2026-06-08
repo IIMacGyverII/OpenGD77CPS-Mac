@@ -245,9 +245,13 @@ namespace DMR
 
 		private ToolStripStatusLabel slblPendingDiff;
 
+		private ToolStripStatusLabel slblPendingExport;
+
 		private bool codeplugHealthLinkWired;
 
 		private bool pendingDiffStatusLinkWired;
+
+		private bool pendingExportStatusLinkWired;
 
 		private ForkHtmlReportForm forkHealthReportForm;
 
@@ -508,6 +512,7 @@ namespace DMR
 			this.tsbtnAbout = new ToolStripButton();
 			this.slblForkVersion = new ToolStripStatusLabel();
 			this.slblPendingDiff = new ToolStripStatusLabel();
+			this.slblPendingExport = new ToolStripStatusLabel();
 			this.slblCodeplugHealth = new ToolStripStatusLabel();
 			this.mnsMain.SuspendLayout();
 			this.cmsGroup.SuspendLayout();
@@ -1118,10 +1123,11 @@ namespace DMR
 			this.tvwMain.NodeMouseClick += this.tvwMain_NodeMouseClick;
 			this.tvwMain.BeforeLabelEdit += this.tvwMain_BeforeLabelEdit;
 			this.tvwMain.KeyDown += this.tvwMain_KeyDown;
-			this.ssrMain.Items.AddRange(new ToolStripItem[4]
+			this.ssrMain.Items.AddRange(new ToolStripItem[5]
 			{
 				this.slblComapny,
 				this.slblPendingDiff,
+				this.slblPendingExport,
 				this.slblCodeplugHealth,
 				this.slblForkVersion
 			});
@@ -1138,6 +1144,10 @@ namespace DMR
 			this.slblPendingDiff.AutoSize = true;
 			this.slblPendingDiff.Visible = false;
 			this.slblPendingDiff.Text = "";
+			this.slblPendingExport.Name = "slblPendingExport";
+			this.slblPendingExport.AutoSize = true;
+			this.slblPendingExport.Visible = false;
+			this.slblPendingExport.Text = "";
 			this.slblCodeplugHealth.Name = "slblCodeplugHealth";
 			this.slblCodeplugHealth.Size = new Size(420, 17);
 			this.slblCodeplugHealth.Spring = true;
@@ -2413,6 +2423,23 @@ namespace DMR
 #endif
 		}
 
+		private void EnsurePendingExportStatusLink()
+		{
+#if OpenGD77
+			if (this.pendingExportStatusLinkWired || this.slblPendingExport == null)
+			{
+				return;
+			}
+			this.slblPendingExport.IsLink = true;
+			this.slblPendingExport.LinkBehavior = LinkBehavior.AlwaysUnderline;
+			this.slblPendingExport.LinkColor = ForkPostImportUi.WarnColor;
+			this.slblPendingExport.ActiveLinkColor = Color.White;
+			this.slblPendingExport.VisitedLinkColor = ForkPostImportUi.WarnColor;
+			this.slblPendingExport.Click += this.ShowPendingExport_Click;
+			this.pendingExportStatusLinkWired = true;
+#endif
+		}
+
 		private void EnsureCodeplugHealthLink()
 		{
 #if OpenGD77
@@ -2480,9 +2507,11 @@ namespace DMR
 #if OpenGD77
 			this.EnsureForkReviewDiffUi();
 			this.EnsurePendingDiffStatusLink();
+			this.EnsurePendingExportStatusLink();
 			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectPendingDiffSnapshot();
 			bool hasPending = snap.HasPending;
 			ForkPostImportUi.ApplyMainPendingDiffStatusLink(this.slblPendingDiff, snap);
+			ForkPostImportUi.ApplyMainPendingExportStatusLink(this.slblPendingExport, snap);
 			if (this.tsbtnReviewDiff != null)
 			{
 				this.tsbtnReviewDiff.Text = ForkPostImportUi.DiffToolbarLabel(snap);
@@ -2550,6 +2579,30 @@ namespace DMR
 				return;
 			}
 			this.tsmiAndroidBackup_Click(sender, e);
+#endif
+		}
+
+		private void ShowPendingExport_Click(object sender, EventArgs e)
+		{
+#if OpenGD77
+			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectPendingDiffSnapshot();
+			if (!snap.HasPending || string.IsNullOrEmpty(snap.FolderPath))
+			{
+				this.tsmiExportCsv_Click(sender, e);
+				return;
+			}
+			if (!ForkPostImportUi.OfferMainExportReviewPrompt(
+				this,
+				snap,
+				() =>
+				{
+					this.OpenAndroidBackupForDiffReview(snap.FolderPath);
+					this.RefreshForkPendingDiff();
+				}))
+			{
+				return;
+			}
+			this.ExportAndroidBackupFolder(snap.FolderPath);
 #endif
 		}
 
@@ -5058,6 +5111,20 @@ namespace DMR
 
 		private void tsmiExportCsv_Click(object sender, EventArgs e)
 		{
+#if OpenGD77
+			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectPendingDiffSnapshot();
+			if (!ForkPostImportUi.OfferMainExportReviewPrompt(
+				this,
+				snap,
+				() =>
+				{
+					this.OpenAndroidBackupForDiffReview(snap.FolderPath);
+					this.RefreshForkPendingDiff();
+				}))
+			{
+				return;
+			}
+#endif
 			this.ExportAndroidBackupFolder(null);
 		}
 

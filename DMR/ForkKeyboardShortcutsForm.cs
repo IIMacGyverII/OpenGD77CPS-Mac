@@ -25,13 +25,13 @@ namespace DMR
 						"Global (main window)\n" +
 						"  Ctrl+D     Review diff when pending (main window; channels grid uses Ctrl+D to duplicate)\n" +
 						"  Ctrl+I     Import Android backup folder (Path B) — pending diff offers Review diff first\n" +
-						"  Ctrl+E     Export Android backup folder — warns if export overwrites pending diff\n" +
+						"  Ctrl+E     Export Android backup folder — pending diff offers Review diff first; overwrite warning follows\n" +
 						"  Ctrl+O     Open codeplug\n" +
 						"  Ctrl+S     Save codeplug\n" +
 						"  F1         PriInterPhone workflow help\n" +
 						"  F7         Codeplug health report — scrolls to first warning\n" +
 						"  F5         Refresh health report (F7 open) or backup report (F8/Studio)\n" +
-						"             Pending diff: center/left status bar, Review diff ⚠ / Import ⚠ / Export ⚠ / Backup ⚠ toolbar, F8 report link\n" +
+						"             Pending diff: center Review diff ⚠ / Export ⚠ links, left status after pull, toolbar/menu cues, F8 report link\n" +
 						"             After pull: left status bar link opens Review diff (Ctrl+D)\n" +
 						"             After Path B import: click names in F8/Studio health section, report link, amber status, toolbar/menu, batch, status bar\n" +
 						"  F8         Android backup manager (diff + import) — toolbar turns Backup ⚠ when diff pending\n" +

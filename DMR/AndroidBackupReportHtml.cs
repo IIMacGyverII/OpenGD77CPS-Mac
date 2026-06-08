@@ -178,7 +178,7 @@ namespace DMR
 				if (pendingDiff)
 				{
 					html.Append("<p class=\"warn\">").Append(ForkReportHtml.ReviewDiffLink(ForkPostImportUi.PreImportReportDiffLink))
-						.Append(" — also amber status, Review diff ⚠ footer/toolbar/menu, or center/left status bar.</p>");
+						.Append(" — also Review diff ⚠ / Import ⚠ / Export ⚠ footer/toolbar/menu, or center/left status bar.</p>");
 					html.Append("<p class=\"foot\">").Append(ForkPostImportUi.PreImportReportFootWarn).Append("</p>");
 				}
 			}

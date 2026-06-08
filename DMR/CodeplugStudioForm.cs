@@ -1161,6 +1161,14 @@ namespace DMR
 		private void btnExportAll_Click(object sender, EventArgs e)
 		{
 			string folderPath = this.txtFolder.Text.Trim();
+			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectFolderPendingDiffSnapshot(folderPath);
+			if (!ForkPostImportUi.OfferMainExportReviewPrompt(
+				this,
+				snap,
+				() => this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty)))
+			{
+				return;
+			}
 			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
 			{
 				string picked = AndroidBackupFolderPicker.PickFolder(this, this.txtFolder.Text, true);

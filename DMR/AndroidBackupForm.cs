@@ -359,10 +359,7 @@ namespace DMR
 			}
 			if (e.Control && e.KeyCode == Keys.E)
 			{
-				if (this.btnExportAll.Enabled)
-				{
-					this.btnExportAll_Click(this.btnExportAll, EventArgs.Empty);
-				}
+				this.btnExportAll_Click(this.btnExportAll, EventArgs.Empty);
 				e.Handled = true;
 				return;
 			}
@@ -860,7 +857,16 @@ namespace DMR
 
 		private void btnExportAll_Click(object sender, EventArgs e)
 		{
-			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(this.txtFolder.Text.Trim()))
+			string folderPath = this.txtFolder.Text.Trim();
+			ForkPendingDiffSnapshot snap = ForkPostImportUi.CollectFolderPendingDiffSnapshot(folderPath);
+			if (!ForkPostImportUi.OfferMainExportReviewPrompt(
+				this,
+				snap,
+				() => this.btnReviewDiff_Click(this.btnReviewDiff, EventArgs.Empty)))
+			{
+				return;
+			}
+			if (!AndroidBackupFolderPicker.IsReadableBackupFolder(folderPath))
 			{
 				string picked = AndroidBackupFolderPicker.PickFolder(this, this.txtFolder.Text, true);
 				if (picked == null)
