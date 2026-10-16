@@ -2499,6 +2499,8 @@ namespace DMR
 		private double revertLatitude;
 		private double revertLongitude;
 		private bool revertUseLocation;
+		private bool revertSoftSQ;
+		private int revertSoftSQLevel;
 		private int revertChannelIndex = -1;
 
 	//	private IContainer components;
@@ -2743,6 +2745,9 @@ namespace DMR
 		private Label lblLongitude;
 		private TextBox txtLongitude;
 		private CheckBox chkUseLocation;
+		private CheckBox chkSoftSQ;              // Android per-channel Soft SQ on/off (CSV-only)
+		private Label lblSoftSQLevel;
+		private ComboBox cmbSoftSQLevel;         // Soft SQ level 1-9 (CSV-only)
 		private ToolTip androidFieldsToolTip;
 #if OpenGD77
 		private GroupBox grpAndroidFork;
@@ -2847,6 +2852,9 @@ namespace DMR
 			if (this.txtLatitude != null) { double lat; if (double.TryParse(this.txtLatitude.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lat)) ChannelForm.CsvLatitudes[index] = lat; }
 			if (this.txtLongitude != null) { double lon; if (double.TryParse(this.txtLongitude.Text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out lon)) ChannelForm.CsvLongitudes[index] = lon; }
 			if (this.chkUseLocation != null) ChannelForm.CsvUseLocations[index] = this.chkUseLocation.Checked;
+			// Soft SQ (CSV-only Android field)
+			if (this.chkSoftSQ != null) ChannelForm.CsvSoftSQ[index] = this.chkSoftSQ.Checked;
+			if (this.cmbSoftSQLevel != null) ChannelForm.CsvSoftSQLevels[index] = this.cmbSoftSQLevel.SelectedIndex + 1; // 0->1 .. 8->9
 			ChannelForm.data[index] = value;
 #if OpenGD77
 			MainForm mainForm = base.MdiParent as MainForm;
@@ -2939,6 +2947,9 @@ namespace DMR
 			if (this.txtLatitude != null) this.txtLatitude.Text = ChannelForm.CsvLatitudes[index].ToString(System.Globalization.CultureInfo.InvariantCulture);
 			if (this.txtLongitude != null) this.txtLongitude.Text = ChannelForm.CsvLongitudes[index].ToString(System.Globalization.CultureInfo.InvariantCulture);
 			if (this.chkUseLocation != null) this.chkUseLocation.Checked = ChannelForm.CsvUseLocations[index];
+			// Soft SQ (CSV-only Android field)
+			if (this.chkSoftSQ != null) this.chkSoftSQ.Checked = ChannelForm.CsvSoftSQ[index];
+			if (this.cmbSoftSQLevel != null) { int ssLv = ChannelForm.CsvSoftSQLevels[index]; this.cmbSoftSQLevel.SelectedIndex = (ssLv >= 1 && ssLv <= 9) ? ssLv - 1 : 4; } // default 5
 			this.CaptureRevertSnapshot(index);
 			this.method_7();
 			this.method_9();
@@ -3260,10 +3271,31 @@ namespace DMR
 			this.chkUseLocation.AutoSize = true;
 			grpAndroid.Controls.Add(this.chkUseLocation);
 
+			// Row 5: Soft SQ (per-channel software squelch) - CSV-only Android/PriInterPhone field
+			yPos += spacing;
+			this.chkSoftSQ = new CheckBox();
+			this.chkSoftSQ.Text = "Soft SQ (software squelch)";
+			this.chkSoftSQ.Location = new System.Drawing.Point(xCol1, yPos);
+			this.chkSoftSQ.AutoSize = true;
+			grpAndroid.Controls.Add(this.chkSoftSQ);
+
+			this.lblSoftSQLevel = new Label();
+			this.lblSoftSQLevel.Text = "Soft SQ Level:";
+			this.lblSoftSQLevel.Location = new System.Drawing.Point(xCol3, yPos + 3);
+			this.lblSoftSQLevel.AutoSize = true;
+			grpAndroid.Controls.Add(this.lblSoftSQLevel);
+
+			this.cmbSoftSQLevel = new ComboBox();
+			this.cmbSoftSQLevel.Items.AddRange(new string[] { "1", "2", "3", "4", "5", "6", "7", "8", "9" });
+			this.cmbSoftSQLevel.DropDownStyle = ComboBoxStyle.DropDownList;
+			this.cmbSoftSQLevel.Location = new System.Drawing.Point(xCol3 + 85, yPos);
+			this.cmbSoftSQLevel.Size = new System.Drawing.Size(60, 23);
+			grpAndroid.Controls.Add(this.cmbSoftSQLevel);
+
 			// Add info label
 			yPos += spacing + 10;
 			var lblInfo = new Label();
-			lblInfo.Text = "Note: These fields are Android-specific. EncryptKey, Latitude, Longitude and Use Location are CSV-only (not stored in binary codeplug).";
+			lblInfo.Text = "Note: These fields are Android-specific. EncryptKey, Latitude, Longitude, Use Location and Soft SQ are CSV-only (not stored in binary codeplug).";
 			lblInfo.Location = new System.Drawing.Point(xCol1, yPos);
 			lblInfo.MaximumSize = new System.Drawing.Size(700, 0);
 			lblInfo.AutoSize = true;
@@ -3742,6 +3774,8 @@ namespace DMR
 			this.revertLatitude = ChannelForm.CsvLatitudes[index];
 			this.revertLongitude = ChannelForm.CsvLongitudes[index];
 			this.revertUseLocation = ChannelForm.CsvUseLocations[index];
+			this.revertSoftSQ = ChannelForm.CsvSoftSQ[index];
+			this.revertSoftSQLevel = ChannelForm.CsvSoftSQLevels[index];
 		}
 
 		private void RevertToSnapshot()
@@ -3756,6 +3790,8 @@ namespace DMR
 			ChannelForm.CsvLatitudes[index] = this.revertLatitude;
 			ChannelForm.CsvLongitudes[index] = this.revertLongitude;
 			ChannelForm.CsvUseLocations[index] = this.revertUseLocation;
+			ChannelForm.CsvSoftSQ[index] = this.revertSoftSQ;
+			ChannelForm.CsvSoftSQLevels[index] = this.revertSoftSQLevel;
 			this.DispData();
 			MainForm mainForm = base.MdiParent as MainForm;
 			if (mainForm != null)
