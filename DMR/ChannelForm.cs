@@ -2491,6 +2491,8 @@ namespace DMR
 		internal static double[] CsvLatitudes = new double[1024];
 		internal static double[] CsvLongitudes = new double[1024];
 		internal static bool[] CsvUseLocations = new bool[1024];
+		internal static bool[] CsvSoftSQ = new bool[1024];       // Android per-channel Soft SQ on/off (CSV-only, round-trip)
+		internal static int[] CsvSoftSQLevels = new int[1024];   // Android per-channel Soft SQ level 1-9 (CSV-only, round-trip)
 
 		private ChannelOne revertSnapshot;
 		private string revertEncryptKey;

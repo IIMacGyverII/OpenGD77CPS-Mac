@@ -927,6 +927,7 @@ namespace DMR
 					bool isOpenGD77Format = (csvRow.Count > 0 && ((List<string>)csvRow)[0] == "CH_DATA");
 					bool isAndroidFormat = (csvRow.Count > 0 && (((List<string>)csvRow)[0] == "Channel Number" || ((List<string>)csvRow)[0] == "_id"));
 					bool hasIdColumn = (csvRow.Count > 0 && ((List<string>)csvRow)[0] == "_id"); // New format with _id column
+					bool hasSoftSqColumns = ((List<string>)csvRow).Contains("SoftSQ"); // Android per-channel Soft SQ (appended columns)
 					
 					debugInfo += "Detected as OpenGD77: " + isOpenGD77Format + "\n";
 					debugInfo += "Detected as Android: " + isAndroidFormat + "\n";
@@ -1157,6 +1158,8 @@ namespace DMR
 							System.Array.Clear(ChannelForm.CsvLatitudes,    0, ChannelForm.CsvLatitudes.Length);
 							System.Array.Clear(ChannelForm.CsvLongitudes,   0, ChannelForm.CsvLongitudes.Length);
 							System.Array.Clear(ChannelForm.CsvUseLocations, 0, ChannelForm.CsvUseLocations.Length);
+							System.Array.Clear(ChannelForm.CsvSoftSQ,       0, ChannelForm.CsvSoftSQ.Length);
+							System.Array.Clear(ChannelForm.CsvSoftSQLevels, 0, ChannelForm.CsvSoftSQLevels.Length);
 						}
 
 					int rowNumber = 0;
@@ -1349,6 +1352,16 @@ namespace DMR
 							if (int.TryParse(cols[col].Trim(), out ctVal)) value.AndroidContactType = ctVal;
 							col++;
 						}
+						
+						// Soft SQ (appended columns, always the last two): SoftSQ + SoftSQLevel (CSV-only, round-trip)
+						if (hasSoftSqColumns && cols.Count >= 2 && foundIndex >= 0 && foundIndex < ChannelForm.CsvSoftSQ.Length)
+						{
+							string sqStr = cols[cols.Count - 2].Trim();
+							string lvStr = cols[cols.Count - 1].Trim();
+							ChannelForm.CsvSoftSQ[foundIndex] = sqStr.Equals("On", StringComparison.OrdinalIgnoreCase) || sqStr == "1" || sqStr.Equals("true", StringComparison.OrdinalIgnoreCase);
+							int ssLvVal;
+							ChannelForm.CsvSoftSQLevels[foundIndex] = (int.TryParse(lvStr, out ssLvVal) && ssLvVal >= 1 && ssLvVal <= 9) ? ssLvVal : 5;
+						}
 
 							// Handle contact lookup/creation
 							if (!string.IsNullOrEmpty(contactName) && contactName != "None")
@@ -1481,6 +1494,8 @@ namespace DMR
 					csvRow.Add("Outbound Slot");
 					csvRow.Add("Channel Mode");
 					csvRow.Add("Contact Type");
+					csvRow.Add("SoftSQ");
+					csvRow.Add("SoftSQLevel");
 					csvFileWriter.WriteRow(csvRow);
 					
 					// Write all valid channels
@@ -1621,6 +1636,10 @@ namespace DMR
 						
 						// Column 36: Contact Type
 							csvRow.Add(channelOne.AndroidContactType.ToString());
+							
+							// Soft SQ (appended columns): SoftSQ + SoftSQLevel (CSV-only, round-trip)
+							csvRow.Add(ChannelForm.CsvSoftSQ[i] ? "On" : "Off");
+							csvRow.Add((ChannelForm.CsvSoftSQLevels[i] >= 1 ? ChannelForm.CsvSoftSQLevels[i] : 5).ToString());
 							
 							csvFileWriter.WriteRow(csvRow);
 						}
